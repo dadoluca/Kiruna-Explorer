@@ -49,12 +49,12 @@ The `documents` collection contains all documents.
 - **title**: (String) The document title.
 - **stakeholders**: (Array) List of organizations or entities involved in the document (e.g. ["LKAB", "Kiruna kommun"]).
 - **scale**: (String) It is the relationship between the dimensions drawn on a plan or architectural drawing and the actual dimensions of the building (e.g. "1 : 1,000" or "blueprints/effects").
-- **issuance_date**: (String) Date the document was issued.
+- **issuance_date**: (String) Date the document was issued. Valid formats: `"dd-mm-yyyy"`, `"mm-yyyy"`, `"yyyy"`
 - **type**: (String) The document type (e.g. "Prescriptive document" or "Material effect").
 - **connections**: (Number) The number of connections this document has to others.
-- **language**: (String) Language of the document content.
-- **pages**: (String) Pages number or range within the document (e.g. "10" or "1-43").
-- _only one of the following can be not null:_
+- **language**: (String) Language of the document content. Can be empty.
+- **pages**: (String) Pages number or range within the document (e.g. "10" or "1-43"). Can be empty.
+- _only one of the following can be defined:_
     - **coordinates**: (GeoJSON Object) Represents the document’s geographic location:
         - **type**: (String) Geometry type (e.g. `"Point"`).
         - **coordinates**: (Array) Coordinates in GeoJSON format for the document location.
@@ -90,7 +90,6 @@ The `documents` collection contains all documents.
     "type": "Point",
     "coordinates": [20.30033, 67.84856]
   },
-  "areaId": null,
   "description": "This plan, approved in July 2016, is the first detailed plan to be implemented...",
   "relationships": [
     {

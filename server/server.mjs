@@ -1,6 +1,8 @@
 import express from 'express';
 import { connectDB } from './config/db.mjs';
+import { validateDocument } from './validators/documentValidator.mjs';
 import dotenv from 'dotenv';
+import cors from 'cors';
 dotenv.config();
 
 
@@ -8,6 +10,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // Route Imports
@@ -18,7 +21,7 @@ import documentRoutes from './routes/documentRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 
 // Use Routes
-app.use('/documents', documentRoutes);
+app.use('/documents', validateDocument, documentRoutes);
 //app.use('/resources', resourceRoutes);
 //app.use('/links', linkRoutes);
 //app.use('/geolocations', geolocationRoutes);

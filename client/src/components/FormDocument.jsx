@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
-import { Button, Row, Col, Card } from 'react-bootstrap'; 
+import { Button, Row, Col, Card } from 'react-bootstrap';
+import { createDocument } from '../services/api';
 
 function DocumentInsert() {
     const navigate = useNavigate();
@@ -12,12 +13,13 @@ function DocumentInsert() {
     const [stakeholders, setStakeholders] = useState('');
     const [type, setType] = useState('');
     const [scale, setScale] = useState('');
-    const [date, setDate] = useState(Date.now());
+    const [date, setDate] = useState('');
     const [connections, setConnections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [longitude, setLongitude] = useState(0.0);
     const [latitude, setLatitude] = useState(0.0);
+    const [description, setDescription] = useState('');
 
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
@@ -35,6 +37,8 @@ function DocumentInsert() {
         if (!scale) newErrors.scale = 'Scale is required';
         if (!latitude) newErrors.latitude = 'Latitude is required';
         if (!longitude) newErrors.longitude = 'Longitude is required';
+        if (!description) newErrors.longitude = 'Description is required';
+        if (!date) newErrors.date = 'Date is required';
         if (connections <= 0) newErrors.connections = 'Connections must be at least 1';
     
         setErrors(newErrors);
@@ -50,38 +54,28 @@ function DocumentInsert() {
             return;
         }
 
-        onSubmit({ title, scale, date, stakeholdersArray, type, connections, pages, language, latitude, longitude });
-
         const document = {
             title: title,
             stakeholders: stakeholdersArray,
             type: type,
             scale: scale,
-            date: date,
+            issuance_date: date,
             language: language,
             connections: connections,
             pages: pages,
+            description: description,
+            coordinates: {
+                type: "Point",
+                coordinates: [parseFloat(longitude), parseFloat(latitude)]
+            },
         }
 
-        /* TEST ON FAKE DB FRO FRONTEND
         try {
-            const response = await fetch('http://localhost:3001/documents', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(document),
-            });
-    
-            if (response.ok) {
-                const result = await response.json();
-                console.log('Document added:', result);
-            } else {
-                console.error('Error');
-            }
+            await createDocument(document);
+            console.log("Document created successfully!");
         } catch (error) {
-            console.error('Network error: ', error);
-        }*/
+            console.error("Failed to create a new document:", error);
+        }
     };   
 
     const handleReturnHome = () => {
@@ -134,7 +128,9 @@ function DocumentInsert() {
                 className="mb-3"
             >
                 <Form.Control type="date" value={date}
-                    onChange={(ev) => setDate(ev.target.value)}/>
+                    onChange={(ev) => setDate(ev.target.value)}
+                    isInvalid={!!errors.date}
+                    required={true}/>
             </FloatingLabel>
             <FloatingLabel
                 label="Type of the document"
@@ -204,6 +200,15 @@ function DocumentInsert() {
                     </FloatingLabel>
                 </Col>
             </Row>
+            <FloatingLabel
+                label="Description"
+                className="mb-3"
+            >
+                <Form.Control type="text" value={description}
+                    onChange={(ev) => setDescription(ev.target.value)}
+                    isInvalid={!!errors.description}
+                    required={true}/>
+            </FloatingLabel>
             </Card.Body>
             <div className="buttons">
                 <Row>
