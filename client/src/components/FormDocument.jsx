@@ -63,7 +63,7 @@ function DocumentInsert() {
             pages: pages,
         }
 
-        /* TEST ON FAKE DB
+        /* TEST ON FAKE DB FRO FRONTEND
         try {
             const response = await fetch('http://localhost:3001/documents', {
                 method: 'POST',
