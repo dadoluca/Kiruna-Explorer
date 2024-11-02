@@ -4,6 +4,7 @@ import { RouterProvider, createBrowserRouter, Navigate, Outlet } from 'react-rou
 import RootLayout from './pages/RootLayout';
 import ErrorPage from './pages/ErrorPage';
 import HomePage from './pages/HomePage';
+import DocumentInsert from './components/FormDocument';
 
 function App() {
   const router = createBrowserRouter([
@@ -18,6 +19,10 @@ function App() {
         {
           path: "/",
           element: <HomePage />
+        },
+        {
+          path: "/document-creation",
+          element: <DocumentInsert />
         },
         {
           path: "*",
