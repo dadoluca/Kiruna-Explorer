@@ -4,6 +4,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
 import { createDocument } from '../services/api';
+import styles from './FormDocument.module.css';
 
 function DocumentInsert() {
     const navigate = useNavigate();
@@ -12,217 +13,282 @@ function DocumentInsert() {
     const [title, setTitle] = useState('');
     const [stakeholders, setStakeholders] = useState('');
     const [type, setType] = useState('');
+    const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [date, setDate] = useState('');
-    const [connections, setConnections] = useState(0);
+    const [connections] = useState(1);
     const [pages, setPages] = useState('Not specified');
-    const [language, setLanguage] = useState('Not specified');
-    const [longitude, setLongitude] = useState(0.0);
-    const [latitude, setLatitude] = useState(0.0);
+    const [language, setLanguage] = useState('Swedish');
+    const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
+    const [longitude, setLongitude] = useState(20.2253);
+    const [latitude, setLatitude] = useState(67.8558);
     const [description, setDescription] = useState('');
 
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
-    const handlestakeholders = (ev) => {
+    const handleStakeholders = (ev) => {
         setStakeholders(ev.target.value);
         setStakeholdersArray(ev.target.value.split(','));
-    }
-
-    const validateForm = () => {
-        let newErrors = {};
-        
-        if (!title) newErrors.title = 'Title is required';
-        if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
-        if (!type) newErrors.type = 'Type is required';
-        if (!scale) newErrors.scale = 'Scale is required';
-        if (!latitude) newErrors.latitude = 'Latitude is required';
-        if (!longitude) newErrors.longitude = 'Longitude is required';
-        if (!description) newErrors.longitude = 'Description is required';
-        if (!date) newErrors.date = 'Date is required';
-        if (connections <= 0) newErrors.connections = 'Connections must be at least 1';
-    
-        setErrors(newErrors);
-    
-        // Return true if there are no errors, false otherwise
-        return Object.keys(newErrors).length === 0;
     };
-    
 
-    const handleSubmit = async()=>{
+    const handleSubmit = async () => {
+        console.log('submit');
+
         if (!validateForm()) {
             console.error('Validation failed');
             return;
         }
 
         const document = {
-            title: title,
+            title,
             stakeholders: stakeholdersArray,
-            type: type,
-            scale: scale,
+            type: customType || type, // Use custom type if provided
+            scale,
             issuance_date: date,
-            language: language,
-            connections: connections,
-            pages: pages,
-            description: description,
+            language: customLanguage || language, // Use custom language if provided
+            connections,
+            pages,
+            description,
             coordinates: {
                 type: "Point",
                 coordinates: [parseFloat(longitude), parseFloat(latitude)]
             },
-        }
+        };
 
         try {
+            console.log(document);
             await createDocument(document);
-            console.log("Document created successfully!");
+            setTitle('');
+            setStakeholders('');
+            setType('');
+            setScale('');
+            setDate('');
+            setPages('Not specified');
+            setLanguage('Swedish');
+            setLongitude(20.2253);
+            setLatitude(67.8558);
+            setDescription('');
+            setCustomType(''); // Reset custom type
+            setCustomLanguage(''); // Reset custom language
+            alert("Document added successfully!");
+            navigate('/');
         } catch (error) {
             console.error("Failed to create a new document:", error);
         }
-    };   
+    };
 
-    const handleReturnHome = () => {
-        navigate('/');
-    }
+    const validateForm = () => {
+        let newErrors = {};
+
+        if (!title) newErrors.title = 'Title is required';
+        if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
+        if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
+        if (!scale) newErrors.scale = 'Scale is required';
+        if (!latitude) newErrors.latitude = 'Latitude is required';
+        if (!longitude) newErrors.longitude = 'Longitude is required';
+        if (!description) newErrors.description = 'Description is required';
+        if (!date) newErrors.date = 'Date is required';
+
+        setErrors(newErrors);
+        console.log(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     return (
-        <>
-        <Card>
-            <Card.Title>INSERT DOCUMENT</Card.Title>
+        <Card className={styles.formCard}>
+            <Card.Title className={styles.cardTitle}>Insert Document</Card.Title>
             <Card.Body>
-                <FloatingLabel
-                label="Title of the document"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={title}               
-                    onChange={(ev) => setTitle(ev.target.value)}
-                    isInvalid={!!errors.title}
-                    required={true}/>
-                <Form.Control.Feedback type="invalid">
-                    {errors.title}
-                </Form.Control.Feedback>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Stakeholders"
-                className="mb-3"
-            >
-                <Form.Control type="text"  value={stakeholders}
-                    onChange={(ev) => handlestakeholders(ev)}
-                    isInvalid={!!errors.stakeholders}
-                    required={true}/>
-                <Form.Control.Feedback type="invalid">
-                    {errors.stakeholders}
-                </Form.Control.Feedback>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Scale"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={scale}
-                    onChange={(ev) => setScale(ev.target.value)}
-                    isInvalid={!!errors.scale}
-                    required={true}/>
-                <Form.Control.Feedback type="invalid">
-                    {errors.scale}
-                </Form.Control.Feedback>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Issuance date"
-                className="mb-3"
-            >
-                <Form.Control type="date" value={date}
-                    onChange={(ev) => setDate(ev.target.value)}
-                    isInvalid={!!errors.date}
-                    required={true}/>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Type of the document"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={type}
-                    onChange={(ev) => setType(ev.target.value)}
-                    isInvalid={!!errors.type}
-                    required={true}/>
-                <Form.Control.Feedback type="invalid">
-                    {errors.type}
-                </Form.Control.Feedback>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Connections"
-                className="mb-3"
-            >
-                <Form.Control type="number" value={connections}
-                    onChange={(ev) => setConnections(ev.target.value)}
-                    isInvalid={!!errors.connections}
-                    required={true}/>
-                <Form.Control.Feedback type="invalid">
-                    {errors.connections}
-                </Form.Control.Feedback>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Language"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={language}
-                    onChange={(ev) => setLanguage(ev.target.value)}/>
-            </FloatingLabel>
-            <FloatingLabel
-                label="Pages"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={pages}
-                    onChange={(ev) => setPages(ev.target.value)}/>
-            </FloatingLabel>
-            <Row className="align-items-end">
-                <Col md={6}>
-                        <FloatingLabel
-                                label="Latitude"
-                                className="mb-3"
-                        >
-                            <Form.Control type="number" value={latitude}
-                                onChange={(ev) => setLatitude(ev.target.value)}
-                                isInvalid={!!errors.latitude}
-                                required={true}/>
+                <FloatingLabel label="Title of the document" className={styles.formField}>
+                    <Form.Control 
+                        type="text" 
+                        value={title}
+                        onChange={(ev) => setTitle(ev.target.value)}
+                        isInvalid={!!errors.title}
+                        required
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.title}
+                    </Form.Control.Feedback>
+                </FloatingLabel>
+
+                <Row>
+                    <Col md={6}>
+                        <FloatingLabel label="Document Type" className="mb-3">
+                            <Form.Select 
+                                value={type}
+                                onChange={(ev) => {
+                                    setType(ev.target.value);
+                                    if (ev.target.value !== "Add Custom...") {
+                                        setCustomType('');
+                                    }
+                                }}
+                                isInvalid={!!errors.type}
+                                required
+                            >
+                                <option value="">Select a document type</option>
+                                <option>Design Doc.</option>
+                                <option>Informative Doc.</option>
+                                <option>Prescriptive Doc.</option>
+                                <option>Technical Doc.</option>
+                                <option>Add Custom...</option>
+                            </Form.Select>
                             <Form.Control.Feedback type="invalid">
-                                {errors.latitude}
+                                {errors.type}
                             </Form.Control.Feedback>
                         </FloatingLabel>
-                </Col>
-                <Col md={6}>
-                    <FloatingLabel
-                        label="Longitude"
-                        className="mb-3"
-                    >
-                        <Form.Control type="number" value={longitude}
-                            onChange={(ev) => setLongitude(ev.target.value)}
-                            isInvalid={!!errors.longitude}
-                            required={true}/>
-                        <Form.Control.Feedback type="invalid">
-                            {errors.longitude}
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
-                </Col>
-            </Row>
-            <FloatingLabel
-                label="Description"
-                className="mb-3"
-            >
-                <Form.Control type="text" value={description}
-                    onChange={(ev) => setDescription(ev.target.value)}
-                    isInvalid={!!errors.description}
-                    required={true}/>
-            </FloatingLabel>
-            </Card.Body>
-            <div className="buttons">
-                <Row>
-                    <Col>
-                        <Button className="mt-3" variant="dark" onClick={handleSubmit}>Add</Button>
                     </Col>
-                    <Col>
-                        <Button className="mt-3" variant="dark" onClick={handleReturnHome}>Back</Button>
+                    <Col md={6}>
+                        <FloatingLabel label="Language" className="mb-3">
+                            <Form.Select 
+                                value={language}
+                                onChange={(ev) => {
+                                    setLanguage(ev.target.value);
+                                    if (ev.target.value !== "Add Custom...") {
+                                        setCustomLanguage('');
+                                    }
+                                }}
+                            >
+                                <option value="Swedish">Swedish</option>
+                                <option value="English">English</option>
+                                <option>Add Custom...</option>
+                            </Form.Select>
+                        </FloatingLabel>
                     </Col>
                 </Row>
-            </div>
+
+                {/* Custom Document Type Input */}
+                {type === "Add Custom..." && (
+                    <FloatingLabel label="Custom Document Type" className="mb-3">
+                        <Form.Control 
+                            type="text" 
+                            value={customType} 
+                            onChange={(ev) => setCustomType(ev.target.value)} 
+                        />
+                    </FloatingLabel>
+                )}
+
+                {/* Custom Language Input */}
+                {language === "Add Custom..." && (
+                    <FloatingLabel label="Custom Language" className="mb-3">
+                        <Form.Control 
+                            type="text" 
+                            value={customLanguage} 
+                            onChange={(ev) => setCustomLanguage(ev.target.value)} 
+                        />
+                    </FloatingLabel>
+                )}
+
+                {/* Stakeholders */}
+                <FloatingLabel label="Stakeholders" className={styles.formField}>
+                    <Form.Control 
+                        type="text" 
+                        value={stakeholders}
+                        onChange={handleStakeholders}
+                        isInvalid={!!errors.stakeholders}
+                        required
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.stakeholders}
+                    </Form.Control.Feedback>
+                </FloatingLabel>
+                
+                {/* Connections - Non-editable field with value set to 1 */}
+                <Row>
+                    <Col md={6}>
+                        <FloatingLabel label="Connections" className="mb-3">
+                            <Form.Control type="number" value={connections} disabled required />
+                        </FloatingLabel>
+                    </Col>
+                    <Col md={6}>
+                        <FloatingLabel label="Pages" className="mb-3">
+                            <Form.Control 
+                                type="text" 
+                                value={pages} 
+                                onChange={(ev) => setPages(ev.target.value)} 
+                            />
+                        </FloatingLabel>
+                    </Col>
+                </Row>
+
+                <Row className="mb-3">
+                    <Col md={6}>
+                        <FloatingLabel label="Scale">
+                            <Form.Control 
+                                type="text" 
+                                value={scale}
+                                onChange={(ev) => setScale(ev.target.value)}
+                                isInvalid={!!errors.scale}
+                                required={true}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.scale}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
+                    <Col md={6}>
+                        <FloatingLabel label="Issuance date">
+                            <Form.Control 
+                                type="date" 
+                                value={date}
+                                onChange={(ev) => setDate(ev.target.value)}
+                                isInvalid={!!errors.date}
+                                required={true}
+                            />
+                        </FloatingLabel>
+                    </Col>
+                </Row>
+
+                {/* Latitude and Longitude */}
+                <Row className="align-items-end">
+                    <Col md={6}>
+                        <FloatingLabel label="Latitude" className="mb-3">
+                            <Form.Control
+                                type="number"
+                                value={latitude}
+                                onChange={(ev) => setLatitude(ev.target.value)}
+                                isInvalid={!!errors.latitude}
+                                required
+                                placeholder="67.8558"
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.latitude}</Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
+                    <Col md={6}>
+                        <FloatingLabel label="Longitude" className="mb-3">
+                            <Form.Control
+                                type="number"
+                                value={longitude}
+                                onChange={(ev) => setLongitude(ev.target.value)}
+                                isInvalid={!!errors.longitude}
+                                required
+                                placeholder="20.2253"
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.longitude}</Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
+                </Row>
+
+                <FloatingLabel label="Description" className="mb-3">
+                    <Form.Control
+                        type="text"
+                        value={description}
+                        onChange={(ev) => setDescription(ev.target.value)}
+                        isInvalid={!!errors.description}
+                        required
+                    />
+                </FloatingLabel>
+
+                <Row className={`${styles.buttons} mb-3`}>
+                    <Col xs={12} md={6}>
+                        <Button variant="dark" onClick={handleSubmit} className="w-100">Add</Button>
+                    </Col>
+                    <Col xs={12} md={6}>
+                        <Button variant="dark" onClick={() => navigate('/')} className="w-100">Back</Button>
+                    </Col>
+                </Row>
+            </Card.Body>
         </Card>
-        </>
-  );
+    );
 }
 
 export default DocumentInsert;

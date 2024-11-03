@@ -1,0 +1,27 @@
+/* Container for the form card */
+.formCard {
+    max-width: 700px;
+    margin: 1rem auto;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Title styling */
+.cardTitle {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 0rem;
+}
+
+/* Buttons container */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+/* Form fields */
+.formField {
+    margin-bottom: 1rem;
+}
