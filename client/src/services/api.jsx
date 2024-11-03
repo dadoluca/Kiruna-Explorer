@@ -1,8 +1,10 @@
 const SERVER_BASE_URL = 'http://localhost:5001';
-const API_BASE_URL = `${SERVER_BASE_URL}/users`; 
+const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`; 
+const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`; 
+
 
 const logIn = async (credentials) => {
-    const response = await fetch(API_BASE_URL + '/login', {
+    const response = await fetch(USERS_API_BASE_URL + '/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +24,7 @@ const logIn = async (credentials) => {
 };
 
 const logOut = async() => {
-  const response = await fetch(API_BASE_URL + '/logout', {
+  const response = await fetch(USERS_API_BASE_URL + '/logout', {
     method: 'DELETE',
     credentials: 'include'
   });
@@ -44,7 +46,7 @@ const getUserInfo = async () => {
 };
 
 const register = async (newUser) => {
-  const response = await fetch(API_BASE_URL + '/register', {
+  const response = await fetch(USERS_API_BASE_URL + '/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -64,7 +66,7 @@ const register = async (newUser) => {
 
 const createDocument = async (document) => {
     try {
-      const response = await fetch(`${SERVER_BASE_URL}/documents`, {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,4 +85,25 @@ const createDocument = async (document) => {
     }
   }
 
-export default { logIn, logOut, getUserInfo, register, createDocument };
+  const getDocuments = async () => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(response);
+      if (response.ok) {
+        return await response.json(); // List of documents
+      } else {
+        throw new Error(`Failed to retrieve documents: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error in getDocuments:", error);
+      throw error;
+    }
+  };
+  
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments };

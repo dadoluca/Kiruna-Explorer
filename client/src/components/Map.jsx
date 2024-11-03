@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react'; 
 import DetailPlanCard from './CardDocument';
 import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
 import { useContext } from 'react';
 import styles from './Map.module.css';
+import API from '../services/api';
 
 const MapComponent = () => {
     const navigate = useNavigate();
@@ -13,6 +15,19 @@ const MapComponent = () => {
     const [markers, setMarkers] = useState([]); // Array of markers
     const [selectedMarker, setSelectedMarker] = useState(null); 
     const { loggedIn } = useContext(AuthContext);
+
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            try {
+                const documents = await API.getDocuments(); 
+                setMarkers(documents); 
+            } catch (error) {
+                console.error("Failed to fetch documents:", error);
+            }
+        };
+
+        fetchDocuments();
+    }, []);
 
 
     // Redirect to document creation page
