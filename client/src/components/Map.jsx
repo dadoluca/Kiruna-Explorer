@@ -19,8 +19,26 @@ const MapComponent = () => {
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
-                const documents = await API.getDocuments(); 
-                setMarkers(documents); 
+                const documents = await API.getDocuments();
+                
+                console.log("Fetched documents:", documents);
+                
+                const validMarkers = documents.map(doc => {
+                    const [longitude, latitude] = doc.coordinates?.coordinates || [];
+                    if (longitude == null || latitude == null) {
+                        console.warn(`Skipping marker with invalid coordinates: ${JSON.stringify(doc)}`);
+                        return null;
+                    }
+
+                    // Parse coordinates to ensure they are numbers
+                    return {
+                        ...doc,
+                        longitude: parseFloat(longitude),
+                        latitude: parseFloat(latitude)
+                    };
+                }).filter(doc => doc !== null);
+
+                setMarkers(validMarkers); 
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -28,6 +46,8 @@ const MapComponent = () => {
 
         fetchDocuments();
     }, []);
+
+    
 
 
     // Redirect to document creation page

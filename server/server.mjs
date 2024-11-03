@@ -20,7 +20,7 @@ import documentRoutes from './routes/documentRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 
 // Use Routes
-app.use('/documents', validateDocument, documentRoutes);
+app.use('/documents',/* validateDocument,*/ documentRoutes);
 app.use('/users', userRoutes);
 
 const PORT = process.env.PORT || 5001;
