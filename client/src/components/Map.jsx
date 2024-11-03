@@ -8,6 +8,14 @@ import { AuthContext } from '../contexts/AuthContext';
 import { useContext } from 'react';
 import styles from './Map.module.css';
 import API from '../services/api';
+import L from 'leaflet';
+
+const documentIcon = new L.Icon({
+    iconUrl: '/document-icon.png',
+    iconSize: [32, 32], 
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32] 
+});
 
 const MapComponent = () => {
     const navigate = useNavigate();
@@ -73,9 +81,10 @@ const MapComponent = () => {
                     <Marker 
                         key={index} 
                         position={[marker.latitude, marker.longitude]} 
+                        icon={documentIcon}
                         eventHandlers={{ click: () => handleMarkerClick(marker) }}
                     >
-                        <Popup>
+                        <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
                             <DetailPlanCard 
                                 doc={selectedMarker} 
                                 onClose={() => setSelectedMarker(null)} 

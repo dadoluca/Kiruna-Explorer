@@ -46,6 +46,7 @@ const documentSchema = new mongoose.Schema({
     relationships: [
       {
         documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
+        documentTitle: { type: String },
         type: { type: String, enum: ['direct consequence', 'collateral consequence', 'projection', 'update'] }
       }
     ],

@@ -1,12 +1,10 @@
 .detailPlanCard {
-    max-width: 600px;
+    max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    /*box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);*/
     border-radius: 8px;
-    /*background-color: #f9f9f9;*/
     color: #333;
-    border: none
+    border: none;
   }
   
   .cardTitle {
@@ -23,6 +21,7 @@
     padding: 8px 0;
     border-bottom: 1px solid #ddd;
     color: #555;
+    gap: 4px; /* Added gap for better separation */
   }
   
   .icon {
@@ -30,9 +29,46 @@
     margin-right: 10px;
     font-size: 18px;
   }
+
+  
+  .dropdownButton {
+    margin-left: 20px;
+  }
+  
+  .dropdownToggle {
+    height: 33px;
+    width: 33px;
+    background-color: #000000;
+    color: rgb(255, 255, 255);
+    border-radius: 2px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .dropdownToggle:hover {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  
+  .addConnectionIcon {
+    margin-left: 20px;
+    height: 33px;
+    width: 33px;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #000000;
+    color: rgb(255, 255, 255);
+  }
+  
+  .addConnectionIcon:hover {
+    background-color: #ffffff;
+    color: #000000;
+  }
   
   .stakeholderItem {
-    margin-left: 28px; /* aligns with icon spacing */
+    margin-left: 28px;
     font-size: 14px;
     color: #666;
   }
