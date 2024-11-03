@@ -226,16 +226,38 @@ function DocumentInsert() {
                         </FloatingLabel>
                     </Col>
                     <Col md={6}>
-                        <FloatingLabel label="Issuance date">
-                            <Form.Control 
-                                type="date" 
-                                value={date}
-                                onChange={(ev) => setDate(ev.target.value)}
-                                isInvalid={!!errors.date}
-                                required={true}
-                            />
-                        </FloatingLabel>
-                    </Col>
+                    <FloatingLabel label="Issuance date">
+                        <Form.Control
+                            type="text" // Change to text to accept custom formats
+                            value={date}
+                            onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
+                            isInvalid={!!errors.date}
+                            required={true}
+                            placeholder="mm/yyyy or yyyy" // Provide a hint to the user
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
+                        </Form.Control.Feedback>
+                    </FloatingLabel>
+                </Col>
+                {/*Date as text field
+                <Col md={6}>
+                    <FloatingLabel label="Issuance date">
+                        <Form.Control
+                            type="text" // Change to text to accept custom formats
+                            value={date}
+                            onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
+                            isInvalid={!!errors.date}
+                            required={true}
+                            placeholder="mm/yyyy or yyyy" // Provide a hint to the user
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
+                        </Form.Control.Feedback>
+                    </FloatingLabel>
+                </Col>
+                */}
+
                 </Row>
 
                 {/* Latitude and Longitude */}
