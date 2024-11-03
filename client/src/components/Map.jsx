@@ -39,6 +39,7 @@ const MapComponent = () => {
                 }).filter(doc => doc !== null);
 
                 setMarkers(validMarkers); 
+                console.log("Valid markers:", validMarkers);
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
