@@ -1,25 +1,33 @@
 import { useState } from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import API from '../services/api';
+import { useContext } from 'react';
+
+import { AuthContext } from '../contexts/AuthContext';
 
 function RegisterForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { handleRegistration } = useContext(AuthContext);
 
-  const handleSubmit = async (event) => {
+
+  const handleSubmit = (event) => {
     event.preventDefault();
-    const newUser = { name, email, password, role: 'urban planner' };
-    
-    try {
+
+    const newUser = { name, email, password, role: 'Urban Planner' };
+      
+    handleRegistration(newUser);
+    navigate('/login');
+
+    /*try {
       await API.register(newUser);
       navigate('/login');
     } catch (error) {
       console.error('Registration failed:', error);
       // Handle registration error, e.g., show a message to the user
-    }
+    }*/
   };
 
   return (

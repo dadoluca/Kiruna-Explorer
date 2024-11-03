@@ -9,22 +9,22 @@ import styles from './LoginForm.module.css';
 function LoginForm() {
   const { handleLogin } = useContext(AuthContext);
 
-  const [username, setUsername] = useState('');
+  const [email, setUsername] = useState('');
   const [password, setPassword] = useState('');
   
   const handleSubmit = (event) => {
       event.preventDefault();
       
-      const credentials = { username, password };
+      const credentials = { email, password };
       
       handleLogin(credentials);
   };
 
   return (
     <Form onSubmit={handleSubmit}>
-      <Form.Group controlId='username' className='mb-3'>
+      <Form.Group controlId='email' className='mb-3'>
         <Form.Label>Email</Form.Label>
-          <Form.Control type='email' value={username} onChange={ev => setUsername(ev.target.value)} required />
+          <Form.Control type='email' value={email} onChange={ev => setUsername(ev.target.value)} required />
       </Form.Group>
 
       <Form.Group controlId='password' className='mb-3'>

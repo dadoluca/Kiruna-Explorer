@@ -13,12 +13,10 @@ import {
 
 const router = express.Router();
 
-// Existing routes
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/:id', getUserById);
 
-// New routes
+router.post('/register', registerUser);                 // Register
+router.post('/login', loginUser);                       // Login
+router.get('/:id', getUserById);                        // Get user by ID
 router.put('/:id/profile', updateUserProfile);          // Update profile
 router.put('/:id/change-password', changePassword);     // Change password
 router.post('/forgot-password', forgotPassword);        // Forgot password

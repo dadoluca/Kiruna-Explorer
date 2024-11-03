@@ -31,11 +31,26 @@ const AuthProvider = ({ children }) => {
   const handleLogin = async (credentials) => {
     try {
       const user = await API.logIn(credentials);
+      console.log(user);
       setLoggedIn(true);
-      setMessage({ msg: `Welcome, ${user.name}!`, type: 'success' });
+      setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
       setUser(user);
     } catch (err) {
-      setMessage({ msg: err, type: 'danger' });
+      var jsonErr = JSON.parse(err);
+      setMessage({ msg: jsonErr.message, type: 'danger' });
+    }
+  };
+
+  const handleRegistration = async (newUser) => {
+    try {
+      const user = await API.register(newUser);
+      console.log(user);
+      setLoggedIn(true);
+      setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
+      setUser(user);
+    } catch (err) {
+      var jsonErr = JSON.parse(err);
+      setMessage({ msg: jsonErr.message, type: 'danger' });
     }
   };
 
@@ -51,7 +66,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ loggedIn, user, message, setMessage, handleLogin, handleLogout }}>
+    <AuthContext.Provider value={{ loggedIn, user, message, setMessage, handleLogin, handleRegistration, handleLogout }}>
       {/*
 
       Why this Context?

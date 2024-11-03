@@ -8,6 +8,7 @@ import ErrorPage from './pages/ErrorPage';
 import HomePage from './pages/HomePage';
 import  LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DocumentInsert from './components/FormDocument';
 
 function App() {
   const { loggedIn } = useContext(AuthContext);
@@ -31,6 +32,10 @@ function App() {
         {
           path: "/login",
           element: loggedIn ? <Navigate to="/" /> : <LoginPage  />,
+        },
+        {
+          path: "/document-creation",
+          element: <DocumentInsert />
         },
         {
           path: "*",

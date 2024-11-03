@@ -49,12 +49,12 @@ The `documents` collection contains all documents.
 - **title**: (String) The document title.
 - **stakeholders**: (Array) List of organizations or entities involved in the document (e.g. ["LKAB", "Kiruna kommun"]).
 - **scale**: (String) It is the relationship between the dimensions drawn on a plan or architectural drawing and the actual dimensions of the building (e.g. "1 : 1,000" or "blueprints/effects").
-- **issuance_date**: (String) Date the document was issued.
+- **issuance_date**: (String) Date the document was issued. Valid formats: `"dd-mm-yyyy"`, `"mm-yyyy"`, `"yyyy"`
 - **type**: (String) The document type (e.g. "Prescriptive document" or "Material effect").
 - **connections**: (Number) The number of connections this document has to others.
-- **language**: (String) Language of the document content.
-- **pages**: (String) Pages number or range within the document (e.g. "10" or "1-43").
-- _only one of the following can be not null:_
+- **language**: (String) Language of the document content. Can be empty.
+- **pages**: (String) Pages number or range within the document (e.g. "10" or "1-43"). Can be empty.
+- _only one of the following can be defined:_
     - **coordinates**: (GeoJSON Object) Represents the document’s geographic location:
         - **type**: (String) Geometry type (e.g. `"Point"`).
         - **coordinates**: (Array) Coordinates in GeoJSON format for the document location.
@@ -90,7 +90,6 @@ The `documents` collection contains all documents.
     "type": "Point",
     "coordinates": [20.30033, 67.84856]
   },
-  "areaId": null,
   "description": "This plan, approved in July 2016, is the first detailed plan to be implemented...",
   "relationships": [
     {
@@ -211,3 +210,53 @@ To manage users effectively, we’ve implemented a set of RESTful API endpoints:
 - **POST /users/reset-password**: Resets the password using a valid token from the forgot-password step.
 - **DELETE /users/:id**: Deletes a user account, accessible to the user or admin roles.
 - **PUT /users/:id/role**: Updates the role of a user, accessible only by admin users.
+
+## Document Management API Endpoints
+
+To manage documents effectively, we’ve implemented a set of RESTful API endpoints:
+
+- **POST /documents**: Creates a new document with details such as title, stakeholders, scale, issuance date, and optional coordinates or area reference.
+- **GET /documents**: Retrieves all documents with optional query filters (e.g., by type, stakeholders) and pagination support.
+- **GET /documents/:id**: Retrieves the details of a specific document by its unique `_id`.
+- **PUT /documents/:id**: Updates an existing document’s details, allowing fields like title, description, and relationships to be modified.
+- **DELETE /documents/:id**: Deletes a specific document by its `_id`, removing it from the database.
+
+## Document Relationship API Endpoints
+
+To manage relationships between documents, we’ve added API endpoints that allow users to create, view, update, and delete relationships:
+
+- **POST /documents/:id/relationships**: Adds a new relationship to a document, linking it to another document and specifying the relationship type.
+- **GET /documents/:id/relationships**: Retrieves all relationships for a specific document, including details of linked documents and relationship types.
+- **PUT /documents/:id/relationships/:relationshipId**: Updates the type of an existing relationship between documents.
+- **DELETE /documents/:id/relationships/:relationshipId**: Deletes a specific relationship from a document by its relationship ID.
+
+## Extended Document Relationship API Endpoints
+
+To enhance document relationship management and analysis, we’ve added extended API endpoints:
+
+- **GET /documents/:id/linked-documents**: Retrieves all documents linked to a specified document, with optional filtering by relationship type.
+- **GET /documents/relationships**: Retrieves all documents that have a specified relationship type, allowing for targeted relationship analysis.
+- **GET /documents/:id/relationship-count**: Returns a count of each relationship type for a specific document, providing a quick summary of relationship distribution.
+- **GET /documents/:id/linked-by-depth**: Retrieves documents linked to a specified document within a certain "depth" or level of separation, supporting multi-level relationship analysis.
+- **POST /documents/:id/bulk-relationships**: Adds multiple relationships to a document in a single request, streamlining the process of linking documents.
+- **GET /documents/:id/relationship-tree**: Retrieves a full hierarchical tree of all documents linked to a specified document, illustrating the entire relationship network.
+
+## Document Tag API Endpoints
+
+To organize and categorize documents more effectively, we’ve added API endpoints that allow users to add tags to documents and retrieve documents by specific tags:
+
+- **POST /documents/:id/tags**: Adds one or more tags to a specified document. Tags are used to categorize documents for easier searching and organization.
+  - **Request Body Example**:
+    ```json
+    {
+      "tags": ["Infrastructure", "Urban Development"]
+    }
+    ```
+  - **Description**: This endpoint adds the specified tags to the document with the given ID. If a tag already exists, it won’t be duplicated.
+
+- **GET /documents/tags/:tag**: Retrieves all documents associated with a specific tag.
+  - **URL Parameter**: `:tag` - The tag used to filter documents (e.g., `Infrastructure`).
+  - **Description**: This endpoint returns a list of all documents that have been tagged with the specified tag, making it easier to locate documents related to particular topics or categories.
+
+These tag APIs enhance document organization by allowing users to tag documents with relevant keywords, which can then be used to search and filter documents efficiently.
+

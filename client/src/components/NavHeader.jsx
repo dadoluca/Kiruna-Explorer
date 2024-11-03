@@ -15,11 +15,11 @@ function NavHeader() {
       <Container fluid>
         <Link to='/' className='navbar-brand'>Kirnua eXplorer</Link>
         <div>
-          {loggedIn && 
+          {/*loggedIn && 
             <Link to='/profile' className='btn btn-outline-light me-2'>
               <FaUser />
             </Link>
-          }
+          */}
           {loggedIn ? 
             <LogoutButton/> :
             <Link to='/login' className={`${styles.customLink} btn`} >Are you an Urban Planner?</Link>
