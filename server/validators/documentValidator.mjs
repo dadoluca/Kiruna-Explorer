@@ -1,4 +1,18 @@
 import { body, validationResult } from 'express-validator';
+import * as turf from '@turf/turf';
+
+const kirunaPolygon = {
+  type: "Polygon",
+  coordinates: [
+    [
+      [20.12, 67.875],
+      [20.42, 67.875],
+      [20.42, 67.79],
+      [20.12, 67.79],
+      [20.12, 67.875]
+    ]
+  ]
+};
 
 export const validateDocument = [
   body('title')
@@ -40,10 +54,17 @@ export const validateDocument = [
         if (value.type !== 'Point' || !Array.isArray(value.coordinates) || value.coordinates.length !== 2) {
           throw new Error('Coordinates must be a valid GeoJSON object.');
         }
+        
+        const point = turf.point(value.coordinates);
+        const polygon = turf.polygon(kirunaPolygon.coordinates);
+        if (!turf.booleanPointInPolygon(point, polygon)) {
+          throw new Error('Coordinates must be within the municipality area of Kiruna.');
+        }
+
         return true;
       }
       return true; // if 'coordinates' is null
-    }),
+  }),
   
   body('areaId')
     .isMongoId().withMessage('Area ID must be a valid MongoDB Object ID.')
@@ -64,7 +85,7 @@ export const validateDocument = [
         });
       }
       return true;
-    }),
+  }),
   
   body('original_resources')
     .isArray().withMessage('Original resources must be an array.')
@@ -78,7 +99,7 @@ export const validateDocument = [
         });
       }
       return true;
-    }),
+  }),
   
   body('attachments')
     .isArray().withMessage('Attachments must be an array.')
@@ -92,7 +113,7 @@ export const validateDocument = [
         });
       }
       return true;
-    }),
+  }),
   
   (req, res, next) => {
     const { coordinates, areaId } = req.body;
