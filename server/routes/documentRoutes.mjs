@@ -3,7 +3,8 @@ import { validateDocument } from '../validators/documentValidator.mjs';
 import { 
   createDocument, 
   getAllDocuments, 
-  getDocumentById, 
+  getDocumentById,
+  getAllTitles,
   updateDocument, 
   deleteDocument, 
   addRelationship,
@@ -25,6 +26,7 @@ const router = express.Router();
 // Document CRUD routes
 router.post('/', validateDocument, createDocument);                 // Create a new document
 router.get('/', getAllDocuments);                 // Get all documents (with optional filters)
+router.get('/all/titles', getAllTitles);          // Get all documents titles (with optional filters)
 router.get('/:id', getDocumentById);              // Get a document by ID
 router.put('/:id', updateDocument);               // Update an existing document by ID
 router.delete('/:id', deleteDocument);            // Delete a document by ID

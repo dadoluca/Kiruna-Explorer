@@ -32,6 +32,17 @@ export const getDocumentById = async (req, res) => {
   }
 };
 
+// Get all documents with optional filters, retrieving only the title field
+export const getAllTitles = async (req, res) => {
+  try {
+    const documents = await Document.find(req.query).select('title').lean();
+    const titles = documents.map(doc => doc.title);
+    res.json(titles);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Update an existing document
 export const updateDocument = async (req, res) => {
   try {
