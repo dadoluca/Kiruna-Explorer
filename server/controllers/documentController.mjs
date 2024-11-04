@@ -269,3 +269,20 @@ export const addTagsToDocument = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
+//Retrive all document names 
+export const getAvailableDocuments = async (req,res) => {
+  try {
+    const {id: currentDocumentID} = req.params;
+    const currentDocument = await Document.findById(currentDocumentID);
+    if (!currentDocument) return res.status(400).json({message:'Current document not found'});
+
+    const connectedDocumentIds = currentDocument.relationships.map(rel => rel.documentId);
+
+    const availableDocuments = await Document.find({_id:{$nin:connectedDocumentIds}} , 'title');
+
+    res.json(availableDocuments);
+  } catch(error){
+    res.status(500).jason({ message: error.message});
+  }
+
+  };
