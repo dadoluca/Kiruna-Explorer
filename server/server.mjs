@@ -1,6 +1,5 @@
 import express from 'express';
 import { connectDB } from './config/db.mjs';
-import { validateDocument } from './validators/documentValidator.mjs';
 import dotenv from 'dotenv';
 import cors from 'cors';
 dotenv.config();
@@ -20,7 +19,7 @@ import documentRoutes from './routes/documentRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 
 // Use Routes
-app.use('/documents',/* validateDocument,*/ documentRoutes);
+app.use('/documents', documentRoutes);
 app.use('/users', userRoutes);
 
 const PORT = process.env.PORT || 5001;

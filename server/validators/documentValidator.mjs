@@ -13,10 +13,11 @@ export const validateDocument = [
     .isString().withMessage('Scale must be a string.')
     .notEmpty().withMessage('Scale is required.'),
   
-  body('issuance_date').notEmpty(),
-    /*.isString()
-    .matches(/^(?:\d{2}-\d{2}-\d{4}|\d{2}-\d{4}|\d{4})$/) // dd-mm-yyyy, mm-yyyy, yyyy
-    .withMessage('Invalid date format. Use dd-mm-yyyy, mm-yyyy, or yyyy.'),*/
+  body('issuance_date')
+    .notEmpty()
+    .isString()
+    .matches(/^(?:\d{2}\/\d{2}\/\d{4}|\d{2}\/\d{4}|\d{4})$/) // dd/mm/yyyy, mm/yyyy, yyyy
+    .withMessage('Invalid date format. Use dd/mm/yyyy, mm/yyyy, or yyyy.'),
   
   body('type')
     .isString().withMessage('Type must be a string.')
