@@ -49,7 +49,7 @@ The `documents` collection contains all documents.
 - **title**: (String) The document title.
 - **stakeholders**: (Array) List of organizations or entities involved in the document (e.g. ["LKAB", "Kiruna kommun"]).
 - **scale**: (String) It is the relationship between the dimensions drawn on a plan or architectural drawing and the actual dimensions of the building (e.g. "1 : 1,000" or "blueprints/effects").
-- **issuance_date**: (String) Date the document was issued. Valid formats: `"dd-mm-yyyy"`, `"mm-yyyy"`, `"yyyy"`
+- **issuance_date**: (String) Date the document was issued. Valid formats: `"dd/mm/yyyy"`, `"mm/yyyy"`, `"yyyy"`
 - **type**: (String) The document type (e.g. "Prescriptive document" or "Material effect").
 - **connections**: (Number) The number of connections this document has to others.
 - **language**: (String) Language of the document content. Can be empty.
@@ -62,6 +62,7 @@ The `documents` collection contains all documents.
 - **description**: (String) Description of the document’s content.
 - **relationships**: (Array) Documents related to this one, with each entry containing:
   - **documentId**: Reference to another document’s `_id`.
+  - **documentTitle**: (String) Other document's title.
   - **type**: (String) Link type (one of the following: `"direct consequence"`, `"collateral consequence"`, `"projection"`, `"update"`).
 - **original_resources**: (Array) List of downloadable files related to this document, with each entry containing:
   - **filename**: (String) Name of the downloadable file.
@@ -96,7 +97,8 @@ The `documents` collection contains all documents.
       "documentId": {
         "$oid": "671cba50d4e8ac2db4ad8342"
       },
-      "type": "direct consequence"
+      "documentTitle": "Sample title",
+      "type": "direct consequence",
     },
     ...
   ],
@@ -217,6 +219,7 @@ To manage documents effectively, we’ve implemented a set of RESTful API endpoi
 
 - **POST /documents**: Creates a new document with details such as title, stakeholders, scale, issuance date, and optional coordinates or area reference.
 - **GET /documents**: Retrieves all documents with optional query filters (e.g., by type, stakeholders) and pagination support.
+- **GET /documents/all/titles**: Retrieves all documents titles (as an array of strings) with optional query filters.
 - **GET /documents/:id**: Retrieves the details of a specific document by its unique `_id`.
 - **PUT /documents/:id**: Updates an existing document’s details, allowing fields like title, description, and relationships to be modified.
 - **DELETE /documents/:id**: Deletes a specific document by its `_id`, removing it from the database.

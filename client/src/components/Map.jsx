@@ -11,7 +11,7 @@ import API from '../services/api';
 import L from 'leaflet';
 
 const documentIcon = new L.Icon({
-    iconUrl: '/document-icon.png',
+    iconUrl: '/google-docs.png',
     iconSize: [32, 32], 
     iconAnchor: [16, 32],
     popupAnchor: [0, -32] 

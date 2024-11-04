@@ -18,7 +18,7 @@ function DocumentInsert() {
     const [date, setDate] = useState('');
     const [connections] = useState(1);
     const [pages, setPages] = useState('Not specified');
-    const [language, setLanguage] = useState('Swedish');
+    const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
     const [longitude, setLongitude] = useState(20.2253);
     const [latitude, setLatitude] = useState(67.8558);
@@ -148,6 +148,7 @@ function DocumentInsert() {
                                     }
                                 }}
                             >
+                                <option value="Not Specified">Not specified</option>
                                 <option value="Swedish">Swedish</option>
                                 <option value="English">English</option>
                                 <option>Add Custom...</option>
