@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -8,6 +8,8 @@ import styles from './FormDocument.module.css';
 
 function DocumentInsert() {
     const navigate = useNavigate();
+    const location = useLocation(); // Ottieni la posizione
+    const { coordinates } = location.state || {}; // Estrai le coordinate dallo stato
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
@@ -20,8 +22,8 @@ function DocumentInsert() {
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
-    const [longitude, setLongitude] = useState(20.2253);
-    const [latitude, setLatitude] = useState(67.8558);
+    const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Imposta le coordinate se disponibili
+    const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Imposta le coordinate se disponibili
     const [description, setDescription] = useState('');
 
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
@@ -227,38 +229,20 @@ function DocumentInsert() {
                         </FloatingLabel>
                     </Col>
                     <Col md={6}>
-                    <FloatingLabel label="Issuance date">
-                        <Form.Control
-                            type="text" // Change to text to accept custom formats
-                            value={date}
-                            onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
-                            isInvalid={!!errors.date}
-                            required={true}
-                            placeholder="mm/yyyy or yyyy" // Provide a hint to the user
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
-                </Col>
-                {/*Date as text field
-                <Col md={6}>
-                    <FloatingLabel label="Issuance date">
-                        <Form.Control
-                            type="text" // Change to text to accept custom formats
-                            value={date}
-                            onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
-                            isInvalid={!!errors.date}
-                            required={true}
-                            placeholder="mm/yyyy or yyyy" // Provide a hint to the user
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
-                        </Form.Control.Feedback>
-                    </FloatingLabel>
-                </Col>
-                */}
-
+                        <FloatingLabel label="Issuance date">
+                            <Form.Control
+                                type="text" // Change to text to accept custom formats
+                                value={date}
+                                onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
+                                isInvalid={!!errors.date}
+                                required={true}
+                                placeholder="mm/yyyy or yyyy" // Provide a hint to the user
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
                 </Row>
 
                 {/* Latitude and Longitude */}

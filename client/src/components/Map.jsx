@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useEffect, useContext } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react'; 
 import DetailPlanCard from './CardDocument';
 import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
-import { useContext } from 'react';
 import styles from './Map.module.css';
 import API from '../services/api';
 import L from 'leaflet';
@@ -23,12 +21,14 @@ const MapComponent = () => {
     const [markers, setMarkers] = useState([]); // Array of markers
     const [selectedMarker, setSelectedMarker] = useState(null); 
     const { loggedIn } = useContext(AuthContext);
+    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Stato per le coordinate del mouse
+    const [newDocumentCoords, setNewDocumentCoords] = useState(null); // Stato per le coordinate del nuovo documento
+    const [isSelecting, setIsSelecting] = useState(false); // Stato per gestire la modalità di selezione
 
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
                 const documents = await API.getDocuments();
-                
                 console.log("Fetched documents:", documents);
                 
                 const validMarkers = documents.map(doc => {
@@ -56,12 +56,28 @@ const MapComponent = () => {
         fetchDocuments();
     }, []);
 
-    
-
+    // Hook per catturare il movimento del mouse e aggiornare le coordinate
+    const MapMouseEvents = () => {
+        useMapEvents({
+            mousemove: (e) => {
+                setMouseCoords({ lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) });
+            },
+            click: (e) => {
+                if (isSelecting && loggedIn) { // Cattura le coordinate solo se la modalità di selezione è attiva
+                    setNewDocumentCoords(e.latlng); // Imposta le coordinate del nuovo documento
+                    navigate('/document-creation', { state: { coordinates: e.latlng } }); // Naviga al form con le coordinate
+                    setIsSelecting(false); // Disabilita la modalità di selezione dopo aver cliccato
+                }
+            }
+        });
+        return null;
+    };
 
     // Redirect to document creation page
     const handleButtonClick = () => {
-        navigate('/document-creation');
+        if (loggedIn) {
+            setIsSelecting(true); // Attiva la modalità di selezione
+        }
     };
 
     // Handle marker click to show details
@@ -71,7 +87,20 @@ const MapComponent = () => {
 
     return (
         <div className={styles.mapContainer}>
+            {/* Barra in alto per mostrare le coordinate del mouse */}
+            {isSelecting && (
+                <div className={styles.coordinatesBar}>
+                    {mouseCoords.lat && mouseCoords.lng ? (
+                        `Coordinate: ${mouseCoords.lat}, ${mouseCoords.lng}`
+                    ) : (
+                        'Muovi il mouse sulla mappa per vedere le coordinate'
+                    )}
+                </div>
+            )}
+            
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <MapMouseEvents /> {/* Component per catturare il movimento del mouse */}
+
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -100,28 +129,3 @@ const MapComponent = () => {
 };
 
 export default MapComponent;
-
-
-
-
-
-
-  /*
-    //Function for managing form submission (used for static frontend testing)
-    const handleFormSubmit = ({ title, scale, date, stakeholdersArray, type, connections, pages, language, latitude, longitude }) => {
-        const newMarker = { 
-            index: markers.length,
-            title: title,
-            scale: scale,
-            date: date,
-            stakeholders: stakeholdersArray,
-            type: type,
-            connections: connections,
-            pages: pages,
-            language: language,
-            latitude: parseFloat(latitude), 
-            longitude: parseFloat(longitude) };
-        console.log(newMarker);
-        setMarkers([...markers, newMarker]);    //add new marker to the array of markers(graphic rappresentation of the documents)                
-    };
-    */

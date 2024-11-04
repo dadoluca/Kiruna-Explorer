@@ -49,7 +49,7 @@ router.delete('/:id/relationships/:relationshipId', deleteRelationship); // Dele
 //router.post('/:id/tags', addTagsToDocument);                           // Add tags to a document
 //router.get('/tags/:tag', getDocumentsByTag);                           // Retrieve documents by a specific tag
 
-router.get('/:id/available', getAvailableDocuments);
+// router.get('/:id/available', getAvailableDocuments);
 
 
 
