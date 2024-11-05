@@ -305,9 +305,26 @@ function DocumentInsert() {
                     </Form.Control.Feedback>
                 </FloatingLabel>
 
-                <Button variant="dark" className={styles.submitButton} onClick={handleSubmit}>
-                    Submit
-                </Button>
+                <Row className="mt-3">
+                    <Col>
+                        <Button 
+                            variant="secondary" 
+                            onClick={()=>navigate('/')} 
+                            className="w-100"
+                        >
+                            Back
+                        </Button>
+                    </Col>
+                    <Col>
+                        <Button 
+                            variant="dark" 
+                            onClick={handleSubmit} 
+                            className="w-100"
+                        >
+                            Submit
+                        </Button>
+                    </Col>
+                </Row>
             </Card.Body>
         </Card>
     );
