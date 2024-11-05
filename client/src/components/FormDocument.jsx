@@ -18,7 +18,7 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [date, setDate] = useState('');
-    const [connections] = useState(1);
+    const [connections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language

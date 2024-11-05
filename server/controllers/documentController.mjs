@@ -76,6 +76,7 @@ export const addRelationship = async (req, res) => {
 
     const newRelationship = { documentId: newDocumentId, documentTitle: title, type}; 
     document.relationships.push(newRelationship);
+    document.connections = (document.connections || 0) + 1;
     await document.save();
 
     res.status(201).json(document);
