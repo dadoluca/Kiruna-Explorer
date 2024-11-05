@@ -10,11 +10,14 @@ import PropTypes from "prop-types";
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
 import NewLinkModal from './NewLinkModal';
 import { useDocumentContext } from '../contexts/DocumentContext';
+import { useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
+  const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
@@ -86,10 +89,10 @@ const DetailPlanCard = (props) => {
             </Dropdown>
 
           {/*add connection btn */}
-          <FaPlus
+          {loggedIn && <FaPlus
               className={`${styles.addConnectionIcon}`}
               onClick={() => setShowModal(true)}
-            />
+            />}
           </ListGroup.Item>
 
 
