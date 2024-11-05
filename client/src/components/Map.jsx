@@ -31,8 +31,11 @@ const MapComponent = () => {
         [67.881950910, 20.18],  // Top-left point
         [67.850, 20.2100],  // Clockwise
         [67.8410, 20.2000],
-        [67.8260, 20.3000],
-        [67.840, 20.310],
+        [67.84037, 20.230],
+        [67.8260, 20.288],
+        [67.8365, 20.304],
+        [67.842, 20.303],
+        [67.844, 20.315],
         [67.8350, 20.350],
         [67.850, 20.370],
         [67.860, 20.300]
@@ -138,7 +141,7 @@ const MapComponent = () => {
                     positions={kirunaPolygonCoordinates}
                     color="gray"        // Border color
                     fillColor="#D3D3D3" // Light gray fill color
-                    fillOpacity={0.5}   // Light effect opacity
+                    fillOpacity={0.4}   // Light effect opacity
                 />
 
                 {markers.map((marker, index) => (
