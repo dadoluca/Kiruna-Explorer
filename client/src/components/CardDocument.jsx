@@ -19,25 +19,7 @@ const DetailPlanCard = (props) => {
 
 
   const handleAddConnection = async () => {
-    // Logic to add connection here
-    try {
-      const response = await fetch(`/api/documents/connect`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fromDocumentId: document._id,
-          toDocumentId: selectedDocumentId,
-          type: "direct consequence", // Default or chosen type
-        }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert("Connection added successfully!");
-        setShowModal(false);
-      }
-    } catch (error) {
-      console.error("Error adding connection:", error);
-    }
+    setShowModal(false);
   };
 
   return (

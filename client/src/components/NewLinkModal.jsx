@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
@@ -6,20 +5,36 @@ import Button from 'react-bootstrap/Button';
 import PropTypes from 'prop-types';
 import API from '../services/api';
 
+const connectionTypes = ['direct consequence', 'collateral consequence', 'projection', 'update'];
+
 const NewLinkModal = ({ show, onClose, documentId, onAddConnection }) => {
   const [availableDocuments, setAvailableDocuments] = useState([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
-  // Fetch available documents that are not connected to the current document
   useEffect(() => {
     if (documentId) {
-        var data = API.getAvailableDocuments(documentId);
-        data.then((data) => {
-            console.log(data);
-            setAvailableDocuments(data);
-        })
+      API.getAvailableDocuments(documentId).then((data) => {
+        console.log(data);
+        setAvailableDocuments(data);
+      });
     }
   }, [documentId]);
+
+  const handleAddConnection = () => {
+    const selectedDocument = availableDocuments.find(doc => doc._id === selectedDocumentId);
+    const selectedTitle = selectedDocument ? selectedDocument.title : '';
+    
+    API.createConnection({
+      documentId,
+      newDocumentId: selectedDocumentId,
+      type: selectedType,
+      title: selectedTitle
+    }).then((data) => {
+      console.log(data);
+      onAddConnection();
+    });
+  };
 
   return (
     <Modal show={show} onHide={onClose}>
@@ -42,6 +57,22 @@ const NewLinkModal = ({ show, onClose, documentId, onAddConnection }) => {
             ))}
           </Form.Control>
         </Form.Group>
+
+        <Form.Group controlId="formConnectionType">
+          <Form.Label>Select Connection Type</Form.Label>
+          <Form.Control
+            as="select"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="">Choose...</option>
+            {connectionTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </Form.Control>
+        </Form.Group>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="light" onClick={onClose}>
@@ -49,8 +80,8 @@ const NewLinkModal = ({ show, onClose, documentId, onAddConnection }) => {
         </Button>
         <Button
           variant="dark"
-          onClick={() => onAddConnection(selectedDocumentId)}
-          disabled={!selectedDocumentId}
+          onClick={handleAddConnection}
+          disabled={!selectedDocumentId || !selectedType}
         >
           Add Connection
         </Button>
@@ -63,7 +94,7 @@ NewLinkModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   documentId: PropTypes.string.isRequired,
-  onAddConnection: PropTypes.func.isRequired
+  onAddConnection: PropTypes.func.isRequired,
 };
 
 export default NewLinkModal;

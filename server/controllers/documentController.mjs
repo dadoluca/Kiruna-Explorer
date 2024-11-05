@@ -67,12 +67,14 @@ export const deleteDocument = async (req, res) => {
 
 // Add a new relationship to a document
 export const addRelationship = async (req, res) => {
-  const { documentId, type } = req.body;
+  const { documentId: newDocumentId, type, title } = req.body;
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) return res.status(404).json({ message: 'Document not found' });
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
 
-    const newRelationship = { documentId, type };
+    const newRelationship = { documentId: newDocumentId, documentTitle: title, type}; 
     document.relationships.push(newRelationship);
     await document.save();
 
@@ -81,6 +83,7 @@ export const addRelationship = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Get all relationships of a document
 export const getRelationships = async (req, res) => {
@@ -280,20 +283,29 @@ export const addTagsToDocument = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
-//Retrive all document names 
-export const getAvailableDocuments = async (req,res) => {
+//Retrive all document id and titles 
+export const getAvailableDocuments = async (req, res) => {
   try {
-    const {id: currentDocumentID} = req.params;
+    const { id: currentDocumentID } = req.params;
     const currentDocument = await Document.findById(currentDocumentID);
-    if (!currentDocument) return res.status(400).json({message:'Current document not found'});
+    if (!currentDocument) {
+      return res.status(400).json({ message: 'Current document not found' });
+    }
 
+    // Get IDs of connected documents
     const connectedDocumentIds = currentDocument.relationships.map(rel => rel.documentId);
 
-    const availableDocuments = await Document.find({_id:{$nin:connectedDocumentIds}} , 'title');
+    // Add currentDocumentID to the list of excluded IDs
+    const excludeIds = [...connectedDocumentIds, currentDocumentID];
+
+    // Find available documents excluding connected ones and the current document
+    const availableDocuments = await Document.find(
+      { _id: { $nin: excludeIds } },
+      'title'
+    );
 
     res.json(availableDocuments);
-  } catch(error){
-    res.status(500).json({ message: error.message});
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  };
+};
