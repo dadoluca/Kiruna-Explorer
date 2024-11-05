@@ -8,8 +8,8 @@ import styles from './FormDocument.module.css';
 
 function DocumentInsert() {
     const navigate = useNavigate();
-    const location = useLocation(); // Ottieni la posizione
-    const { coordinates } = location.state || {}; // Estrai le coordinate dallo stato
+    const location = useLocation(); // Get location
+    const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
@@ -22,8 +22,8 @@ function DocumentInsert() {
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
-    const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Imposta le coordinate se disponibili
-    const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Imposta le coordinate se disponibili
+    const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
+    const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
 
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
@@ -41,6 +41,7 @@ function DocumentInsert() {
             return;
         }
 
+        // Create the document object
         const document = {
             title,
             stakeholders: stakeholdersArray,
@@ -51,27 +52,21 @@ function DocumentInsert() {
             connections,
             pages,
             description,
-            coordinates: {
+            areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
+            coordinates: isMunicipal ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
-                coordinates: [parseFloat(longitude), parseFloat(latitude)]
-            },
+                coordinates: [
+                    parseFloat(longitude),
+                    parseFloat(latitude)
+                ]
+            }
         };
 
         try {
             console.log(document);
             await API.createDocument(document);
-            setTitle('');
-            setStakeholders('');
-            setType('');
-            setScale('');
-            setDate('');
-            setPages('Not specified');
-            setLanguage('Swedish');
-            setLongitude(20.2253);
-            setLatitude(67.8558);
-            setDescription('');
-            setCustomType(''); // Reset custom type
-            setCustomLanguage(''); // Reset custom language
+            // Reset form fields after submission
+            resetForm();
             alert("Document added successfully!");
             navigate('/');
         } catch (error) {
@@ -86,14 +81,33 @@ function DocumentInsert() {
         if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
         if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
         if (!scale) newErrors.scale = 'Scale is required';
-        if (!latitude) newErrors.latitude = 'Latitude is required';
-        if (!longitude) newErrors.longitude = 'Longitude is required';
         if (!description) newErrors.description = 'Description is required';
         if (!date) newErrors.date = 'Date is required';
+        
+        // Only validate latitude and longitude if not a municipal document
+        if (!isMunicipal) {
+            if (!latitude) newErrors.latitude = 'Latitude is required';
+            if (!longitude) newErrors.longitude = 'Longitude is required';
+        }
 
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const resetForm = () => {
+        setTitle('');
+        setStakeholders('');
+        setType('');
+        setScale('');
+        setDate('');
+        setPages('Not specified');
+        setLanguage('Swedish');
+        setLongitude(20.2253);
+        setLatitude(67.8558);
+        setDescription('');
+        setCustomType(''); // Reset custom type
+        setCustomLanguage(''); // Reset custom language
     };
 
     return (
@@ -233,66 +247,67 @@ function DocumentInsert() {
                             <Form.Control
                                 type="text" // Change to text to accept custom formats
                                 value={date}
-                                onChange={(ev) => setDate(ev.target.value)} // Update state with the input value
+                                onChange={(ev) => setDate(ev.target.value)}
                                 isInvalid={!!errors.date}
                                 required={true}
-                                placeholder="mm/yyyy or yyyy" // Provide a hint to the user
                             />
                             <Form.Control.Feedback type="invalid">
-                                {errors.date || "Please enter a valid date in mm/yyyy or yyyy format."}
+                                {errors.date}
                             </Form.Control.Feedback>
                         </FloatingLabel>
                     </Col>
                 </Row>
 
-                {/* Latitude and Longitude */}
-                <Row className="align-items-end">
-                    <Col md={6}>
-                        <FloatingLabel label="Latitude" className="mb-3">
-                            <Form.Control
-                                type="number"
-                                value={latitude}
-                                onChange={(ev) => setLatitude(ev.target.value)}
-                                isInvalid={!!errors.latitude}
-                                required
-                                placeholder="67.8558"
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.latitude}</Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Col>
-                    <Col md={6}>
-                        <FloatingLabel label="Longitude" className="mb-3">
-                            <Form.Control
-                                type="number"
-                                value={longitude}
-                                onChange={(ev) => setLongitude(ev.target.value)}
-                                isInvalid={!!errors.longitude}
-                                required
-                                placeholder="20.2253"
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.longitude}</Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Col>
-                </Row>
+                {/* Conditionally render Latitude and Longitude fields */}
+                {!isMunicipal && (
+                    <Row>
+                        <Col md={6}>
+                            <FloatingLabel label="Longitude">
+                                <Form.Control 
+                                    type="text"
+                                    value={longitude}
+                                    onChange={(ev) => setLongitude(ev.target.value)}
+                                    isInvalid={!!errors.longitude}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.longitude}
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Col>
+                        <Col md={6}>
+                            <FloatingLabel label="Latitude">
+                                <Form.Control 
+                                    type="text" 
+                                    value={latitude} 
+                                    onChange={(ev) => setLatitude(ev.target.value)}
+                                    isInvalid={!!errors.latitude}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.latitude}
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Col>
+                    </Row>
+                )}
 
-                <FloatingLabel label="Description" className="mb-3">
-                    <Form.Control
-                        type="text"
+                <FloatingLabel label="Description" className={styles.formField}>
+                    <Form.Control 
+                        as="textarea" 
                         value={description}
                         onChange={(ev) => setDescription(ev.target.value)}
                         isInvalid={!!errors.description}
                         required
                     />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.description}
+                    </Form.Control.Feedback>
                 </FloatingLabel>
 
-                <Row className={`${styles.buttons} mb-3`}>
-                    <Col xs={12} md={6}>
-                        <Button variant="dark" onClick={handleSubmit} className="w-100">Add</Button>
-                    </Col>
-                    <Col xs={12} md={6}>
-                        <Button variant="dark" onClick={() => navigate('/')} className="w-100">Back</Button>
-                    </Col>
-                </Row>
+                <Button variant="dark" className={styles.submitButton} onClick={handleSubmit}>
+                    Submit
+                </Button>
             </Card.Body>
         </Card>
     );

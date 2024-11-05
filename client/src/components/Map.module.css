@@ -1,3 +1,22 @@
+.buttonLink {
+    padding: 0 5px; /* Make the button thinner */
+    background-color: black; /* Black background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+.buttonLink.inverted {
+    background-color: white; /* White background on click */
+    color: black; /* Black text on click */
+}
+
+/* Optional: Add hover effect */
+.buttonLink:hover {
+    background-color: grey; /* Dark grey on hover */
+    color: white; /* Keep text white on hover */
+}
 /* Container for the entire map section */
 .mapContainer {
     position: relative;

@@ -66,9 +66,9 @@ export const validateDocument = [
       return true; // if 'coordinates' is null
   }),
   
-  body('areaId')
-    .isMongoId().withMessage('Area ID must be a valid MongoDB Object ID.')
-    .optional(),
+  //body('areaId')
+  //  .isMongoId().withMessage('Area ID must be a valid MongoDB Object ID.')
+  //  .optional(),
   
   body('description')
     .isString().notEmpty().withMessage('Description is required.'),
