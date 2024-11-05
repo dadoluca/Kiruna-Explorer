@@ -104,6 +104,21 @@ const createDocument = async (document) => {
       throw error;
     }
   };
+
+  const getAvailableDocuments = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/available`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching available documents:", error);
+      throw error;
+    }
+  }
   
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments };
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments };

@@ -293,7 +293,7 @@ export const getAvailableDocuments = async (req,res) => {
 
     res.json(availableDocuments);
   } catch(error){
-    res.status(500).jason({ message: error.message});
+    res.status(500).json({ message: error.message});
   }
 
   };

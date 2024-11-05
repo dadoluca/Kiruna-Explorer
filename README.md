@@ -27,7 +27,7 @@ After pulling the latest code, follow these steps to set up and run the server:
 4. **Run the Server**:
    - Start the server in development mode using:
      ```bash
-     npm run dev
+     node server.mjs
      ```
    - This command uses `nodemon` to automatically restart the server on file changes.
 

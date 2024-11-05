@@ -7,31 +7,16 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import PropTypes from "prop-types";
+import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
+import NewLinkModal from './NewLinkModal';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
-import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
 
 const DetailPlanCard = (props) => {
   const document = props.doc || {};
   const [showModal, setShowModal] = useState(false);
-  const [availableDocuments, setAvailableDocuments] = useState([]);
-  const [selectedDocumentId, setSelectedDocumentId] = useState("");
 
-  // Function to fetch available documents that are not connected to the current document
-  useEffect(() => {
-    async function fetchAvailableDocuments() {
-      try {
-        const response = await fetch(`/api/documents/available?exclude=${document._id}`);
-        const data = await response.json();
-        setAvailableDocuments(data);
-      } catch (error) {
-        console.error("Error fetching available documents:", error);
-      }
-    }
-    if (document._id) {
-      fetchAvailableDocuments();
-    }
-  }, [document._id]);
 
   const handleAddConnection = async () => {
     // Logic to add connection here
@@ -136,36 +121,12 @@ const DetailPlanCard = (props) => {
         </ListGroup>
 
         {/* Modal to select a new document to connect */}
-        <Modal show={showModal} onHide={() => setShowModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add Connection</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form.Group controlId="formDocumentSelect">
-              <Form.Label>Select Document</Form.Label>
-              <Form.Control
-                as="select"
-                value={selectedDocumentId}
-                onChange={(e) => setSelectedDocumentId(e.target.value)}
-              >
-                <option value="">Choose...</option>
-                {availableDocuments.map((doc) => (
-                  <option key={doc._id} value={doc._id}>
-                    {doc.title}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="light" onClick={() => setShowModal(false)}>
-              Close
-            </Button>
-            <Button variant="dark" onClick={handleAddConnection} disabled={!selectedDocumentId}>
-              Add Connection
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <NewLinkModal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          documentId={document._id}
+          onAddConnection={handleAddConnection}
+        />
       </Card.Body>
     </Card>
   );
