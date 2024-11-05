@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDocumentContext } from '../contexts/DocumentContext';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -7,7 +8,8 @@ import API from '../services/api';
 
 const connectionTypes = ['direct consequence', 'collateral consequence', 'projection', 'update'];
 
-const NewLinkModal = ({ show, onClose, documentId, onAddConnection }) => {
+const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnection }) => {
+  const { updateDocument } = useDocumentContext();
   const [availableDocuments, setAvailableDocuments] = useState([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -21,19 +23,35 @@ const NewLinkModal = ({ show, onClose, documentId, onAddConnection }) => {
     }
   }, [documentId]);
 
-  const handleAddConnection = () => {
+  const handleAddConnection = async () => {
     const selectedDocument = availableDocuments.find(doc => doc._id === selectedDocumentId);
     const selectedTitle = selectedDocument ? selectedDocument.title : '';
     
-    API.createConnection({
-      documentId,
-      newDocumentId: selectedDocumentId,
-      type: selectedType,
-      title: selectedTitle
-    }).then((data) => {
-      console.log(data);
+    try {
+      const result1 = await API.createConnection({
+        documentId,
+        newDocumentId: selectedDocumentId,
+        type: selectedType,
+        title: selectedTitle,
+      });
+  
+      updateDocument(result1);
+      console.log(result1);
+  
+      const result2 = await API.createConnection({
+        documentId: selectedDocumentId,
+        newDocumentId: documentId,
+        type: selectedType,
+        title: documentTitle,
+      });
+  
+      updateDocument(result2);
+      console.log(result2);
+  
       onAddConnection();
-    });
+    } catch (error) {
+      console.error("Error creating connections:", error);
+    }
   };
 
   return (

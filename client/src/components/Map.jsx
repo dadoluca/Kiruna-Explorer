@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
+import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
 import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
@@ -24,6 +25,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
+    const { setDocumentList } = useContext(DocumentContext);
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],  // Top-left point
@@ -41,6 +43,7 @@ const MapComponent = () => {
             try {
                 const documents = await API.getDocuments();
                 console.log("Documenti ricevuti:", documents); // Log received documents
+                setDocumentList(documents);
 
                 const validMarkers = [];
                 const invalidDocuments = [];
@@ -167,6 +170,7 @@ const MapComponent = () => {
                             key={`discarded-${index}`}
                             position={markerPosition} // Use calculated position with offset
                             icon={documentIcon}
+                            eventHandlers={{ click: () => setSelectedMarker(doc) }}
                         >
                         <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
                             <DetailPlanCard

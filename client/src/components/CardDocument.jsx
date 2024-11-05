@@ -9,12 +9,15 @@ import Form from 'react-bootstrap/Form';
 import PropTypes from "prop-types";
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
 import NewLinkModal from './NewLinkModal';
+import { useDocumentContext } from '../contexts/DocumentContext';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
-  const document = props.doc || {};
+  const { documents } = useDocumentContext();
+  const document = documents.find(doc => doc._id === props.doc._id) || {};
+
   const [showModal, setShowModal] = useState(false);
 
 
@@ -107,6 +110,7 @@ const DetailPlanCard = (props) => {
           show={showModal}
           onClose={() => setShowModal(false)}
           documentId={document._id}
+          documentTitle={document.title}
           onAddConnection={handleAddConnection}
         />
       </Card.Body>
