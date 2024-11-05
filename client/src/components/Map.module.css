@@ -36,11 +36,12 @@
     background-color: #000000; /* Dark button color */
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.3rem 1rem;
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
     z-index: 1000; /* Ensures button is above the map */
+    font-size: x-large;
 }
 
 /* Button hover effect */

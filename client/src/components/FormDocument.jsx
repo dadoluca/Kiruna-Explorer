@@ -308,9 +308,9 @@ function DocumentInsert() {
                 <Row className="mt-3">
                     <Col>
                         <Button 
-                            variant="secondary" 
+                            variant="light" 
                             onClick={()=>navigate('/')} 
-                            className="w-100"
+                            className='btn btn-light w-100 border-dark'
                         >
                             Back
                         </Button>

@@ -60,7 +60,7 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
         <Modal.Title>Add Connection</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form.Group controlId="formDocumentSelect">
+        <Form.Group controlId="formDocumentSelect" className='mb-3'>
           <Form.Label>Select Document</Form.Label>
           <Form.Control
             as="select"
@@ -76,7 +76,7 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
           </Form.Control>
         </Form.Group>
 
-        <Form.Group controlId="formConnectionType">
+        <Form.Group controlId="formConnectionType" className="mb-3">
           <Form.Label>Select Connection Type</Form.Label>
           <Form.Control
             as="select"
