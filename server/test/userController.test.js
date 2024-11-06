@@ -1,9 +1,8 @@
 import * as chai from 'chai';
 import sinon from 'sinon';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import supertest from 'supertest';
-import app from '../app.mjs'; // import your Express app
+import app from '../app.mjs'; // Import your Express app
 import User from '../models/User.mjs';
 import * as userController from '../controllers/userController.mjs';
 
@@ -29,13 +28,15 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       sinon.stub(User, 'findOne').resolves(null);
       sinon.stub(User.prototype, 'save').resolves();
 
-      await userController.registerUser(req, res);
+      await userController.registerUser(req, res, next);
       expect(res.status.calledWith(201)).to.be.true;
       expect(res.json.calledWith({ message: 'User registered successfully' })).to.be.true;
+      expect(next.called).to.be.false;
     });
 
     it('should return 400 if email already exists', async () => {
@@ -46,12 +47,17 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       sinon.stub(User, 'findOne').resolves({ email: 'johndoe@example.com' });
 
-      await userController.registerUser(req, res);
-      expect(res.status.calledWith(400)).to.be.true;
-      expect(res.json.calledWith({ message: 'Email already in use' })).to.be.true;
+      await userController.registerUser(req, res, next);
+
+      // Check if `next` was called with an error object containing `statusCode` and `message`
+      expect(next.calledOnce).to.be.true;
+      const error = next.firstCall.args[0];
+      expect(error).to.have.property('statusCode', 400);
+      expect(error).to.have.property('message', 'Email already in use');
     });
   });
 
@@ -67,6 +73,7 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       const user = {
         _id: 'userId123',
@@ -78,11 +85,12 @@ describe('UserController', () => {
       sinon.stub(User, 'findOne').resolves(user);
       sinon.stub(jwt, 'sign').returns('fake-jwt-token');
 
-      await userController.loginUser(req, res);
+      await userController.loginUser(req, res, next);
       expect(res.json.calledWith({
         token: 'fake-jwt-token',
         user: { id: 'userId123', name: undefined, role: 'Resident' }
       })).to.be.true;
+      expect(next.called).to.be.false;
     });
 
     it('should return 404 if user not found', async () => {
@@ -91,12 +99,14 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       sinon.stub(User, 'findOne').resolves(null);
 
-      await userController.loginUser(req, res);
-      expect(res.status.calledWith(404)).to.be.true;
-      expect(res.json.calledWith({ message: 'User not found' })).to.be.true;
+      await userController.loginUser(req, res, next);
+      expect(next.calledOnce).to.be.true;
+      expect(next.firstCall.args[0]).to.have.property('statusCode', 404);
+      expect(next.firstCall.args[0]).to.have.property('message', 'User not found');
     });
   });
 
@@ -107,13 +117,15 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
   
       sinon.stub(User, 'findById').resolves({ _id: 'userId123', name: 'John Doe' });
   
-      await userController.getUserById(req, res);
+      await userController.getUserById(req, res, next);
   
       expect(res.status.called).to.be.false;
       expect(res.json.calledWith({ _id: 'userId123', name: 'John Doe' })).to.be.true;
+      expect(next.called).to.be.false;
     });
   
     it('should return 404 if user not found', async () => {
@@ -122,15 +134,19 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
   
       sinon.stub(User, 'findById').resolves(null);
   
-      await userController.getUserById(req, res);
+      await userController.getUserById(req, res, next);
   
-      expect(res.status.calledWith(404)).to.be.true;
-      expect(res.json.calledWith({ message: 'User not found' })).to.be.true;
+      expect(next.calledOnce).to.be.true;
+      const error = next.firstCall.args[0];
+      expect(error).to.have.property('statusCode', 404);
+      expect(error).to.have.property('message', 'User not found');
     });
   });
+  
   
 
   describe('updateUserProfile', () => {
@@ -143,11 +159,13 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       sinon.stub(User, 'findByIdAndUpdate').resolves({ _id: 'userId123', name: 'Updated Name', email: 'updated@example.com' });
 
-      await userController.updateUserProfile(req, res);
+      await userController.updateUserProfile(req, res, next);
       expect(res.json.calledWith({ _id: 'userId123', name: 'Updated Name', email: 'updated@example.com' })).to.be.true;
+      expect(next.called).to.be.false;
     });
 
     it('should return 404 if user not found', async () => {
@@ -156,12 +174,15 @@ describe('UserController', () => {
         status: sinon.stub().returnsThis(),
         json: sinon.stub()
       };
+      const next = sinon.stub();
 
       sinon.stub(User, 'findByIdAndUpdate').resolves(null);
 
-      await userController.updateUserProfile(req, res);
-      expect(res.status.calledWith(404)).to.be.true;
-      expect(res.json.calledWith({ message: 'User not found' })).to.be.true;
+      await userController.updateUserProfile(req, res, next);
+
+      expect(next.calledOnce).to.be.true;
+      expect(next.firstCall.args[0]).to.have.property('statusCode', 404);
+      expect(next.firstCall.args[0]).to.have.property('message', 'User not found');
     });
   });
 });

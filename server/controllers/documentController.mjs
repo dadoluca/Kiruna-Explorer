@@ -22,13 +22,18 @@ export const getAllDocuments = async (req, res) => {
 };
 
 // Get a document by ID
-export const getDocumentById = async (req, res) => {
+export const getDocumentById = async (req, res, next) => {
   try {
-    const document = await Document.findById(req.params.id).populate('relationships.documentId', 'title type');
-    if (!document) return res.status(404).json({ message: 'Document not found' });
+    const document = await Document.findById(req.params.id);
+    if (!document) {
+      const error = new Error('Document not found');
+      error.statusCode = 404;
+      return next(error);
+    }
     res.json(document);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    error.statusCode = 500; // Optional: Set specific status if needed
+    next(error);
   }
 };
 
