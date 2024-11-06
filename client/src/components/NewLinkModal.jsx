@@ -47,7 +47,10 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
   
       updateDocument(result2);
       console.log(result2);
-  
+
+      setSelectedDocumentId("");
+      setSelectedType("");
+      
       onAddConnection();
     } catch (error) {
       console.error("Error creating connections:", error);

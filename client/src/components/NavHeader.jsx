@@ -13,7 +13,7 @@ function NavHeader() {
   return (
     <Navbar bg='dark' data-bs-theme='dark' style={{ height: '9vh', minHeight: '30px'}}>
       <Container fluid>
-        <Link to='/' className='navbar-brand'>Kiruna eXplorer</Link>
+        <Link to='/' className='navbar-brand'>Kiruna Explorer</Link>
         <div>
           {/*loggedIn && 
             <Link to='/profile' className='btn btn-outline-light me-2'>
