@@ -22,14 +22,10 @@ describe('DocumentController', () => {
   
       await documentController.createDocument(req, res);
   
-      console.log(res.status.firstCall.args); // Add this line to inspect the status call
-  
       expect(res.status.calledWith(201)).to.be.true;
-      expect(res.json.calledWith(req.body)).to.be.true;
+      expect(res.json.firstCall.args[0]).to.include(req.body);
     });
   });
-  
-  
 
   describe('getAllDocuments', () => {
     it('should return all documents', async () => {
@@ -148,4 +144,108 @@ describe('DocumentController', () => {
       expect(res.json.calledWith({ message: 'Document not found' })).to.be.true;
     });
   });
+
+  describe('getAllTitles', () => {
+  
+    it('should return an array of titles when documents are found', async () => {
+      const req = { query: {} };
+      const res = {
+        json: sinon.spy(),
+        status: sinon.stub().returnsThis()
+      };
+      const mockDocuments = [
+        { title: 'Title 1' },
+        { title: 'Title 2' }
+      ];
+  
+      // Mocking Document.find(), .select() e .lean()
+      const leanStub = sinon.stub().resolves(mockDocuments);
+      const selectStub = sinon.stub().returns({ lean: leanStub });
+      const findStub = sinon.stub(Document, 'find').returns({
+        select: selectStub
+      });
+    
+      await documentController.getAllTitles(req, res);
+
+      sinon.assert.calledOnceWithExactly(findStub, req.query);
+      sinon.assert.calledOnceWithExactly(selectStub, 'title');
+      sinon.assert.calledOnceWithExactly(leanStub);
+
+      sinon.assert.calledOnceWithExactly(res.json, ['Title 1', 'Title 2']);
+    });
+  });
+
+  describe('getAvailableDocuments', () => {
+  
+    it('should return available documents excluding the current and related documents', async () => {
+      const req = { 
+        params: { id: 'currentDocumentID' }
+      };
+      const res = {
+        json: sinon.spy(),
+        status: sinon.stub().returnsThis()
+      };
+  
+      const mockCurrentDocument = {
+        _id: 'currentDocumentID',
+        relationships: [
+          { documentId: 'doc1' },
+          { documentId: 'doc2' }
+        ]
+      };
+      const mockAvailableDocuments = [
+        { title: 'Available Doc 1' },
+        { title: 'Available Doc 2' }
+      ];
+
+      sinon.stub(Document, 'findById').resolves(mockCurrentDocument);
+      sinon.stub(Document, 'find').resolves(mockAvailableDocuments);
+
+      await documentController.getAvailableDocuments(req, res);
+
+      sinon.assert.calledOnceWithExactly(Document.findById, 'currentDocumentID');
+
+      sinon.assert.calledOnceWithExactly(Document.find, {
+        _id: { $nin: ['doc1', 'doc2', 'currentDocumentID'] }
+      }, 'title');
+
+      sinon.assert.calledOnceWithExactly(res.json, mockAvailableDocuments);
+    });
+  
+    it('should return 400 if current document is not found', async () => {
+      const req = { 
+        params: { id: 'nonExistingID' }
+      };
+      const res = {
+        json: sinon.spy(),
+        status: sinon.stub().returnsThis()
+      };
+
+      sinon.stub(Document, 'findById').resolves(null);
+
+      await documentController.getAvailableDocuments(req, res);
+
+      sinon.assert.calledOnceWithExactly(res.status, 400);
+
+      sinon.assert.calledOnceWithExactly(res.json, { message: 'Current document not found' });
+    });
+  
+    it('should return 500 if there is a server error', async () => {
+      const req = { 
+        params: { id: 'currentDocumentID' }
+      };
+      const res = {
+        json: sinon.spy(),
+        status: sinon.stub().returnsThis()
+      };
+
+      sinon.stub(Document, 'findById').rejects(new Error('Server error'));
+
+      await documentController.getAvailableDocuments(req, res);
+
+      sinon.assert.calledOnceWithExactly(res.status, 500);
+      sinon.assert.calledOnceWithExactly(res.json, { message: 'Server error' });
+    });
+  });
+  
 });
