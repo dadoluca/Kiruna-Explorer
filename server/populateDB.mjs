@@ -20,11 +20,18 @@ async function createDatabase() {
         "type": "Polygon",
         "coordinates": [
           [
-            [20.12, 67.875],
-            [20.42, 67.875],
-            [20.42, 67.79],
-            [20.12, 67.79],
-            [20.12, 67.875]
+            [20.18, 67.88195091],
+            [20.21, 67.85],
+            [20.2, 67.841],
+            [20.23, 67.84037],
+            [20.288, 67.826],
+            [20.304, 67.8365],
+            [20.303, 67.842],
+            [20.315, 67.844],
+            [20.35, 67.835],
+            [20.37, 67.85],
+            [20.3, 67.86],
+            [20.18, 67.88195091]
           ]
         ]
       }
@@ -38,7 +45,7 @@ async function createDatabase() {
       scale: "Text",
       issuance_date: "2007",
       type: "Informative document",
-      connections: 3,
+      connections: 0,
       language: "Swedish",
       pages: "Not Specified",
       areaId: area._id,
@@ -50,7 +57,7 @@ async function createDatabase() {
       scale: "1 : 8.000",
       issuance_date: "20/10/2010",
       type: "Prescriptive document",
-      connections: 8,
+      connections: 0,
       language: "Swedish",
       pages: "1-32",
       areaId: null,
@@ -62,7 +69,7 @@ async function createDatabase() {
       scale: "1 : 7,500",
       issuance_date: "17/03/2014",
       type: "Design document",
-      connections: 7,
+      connections: 0,
       language: "Swedish",
       pages: "111",
       areaId: null,
@@ -74,7 +81,7 @@ async function createDatabase() {
       scale: "1 : 12,000",
       issuance_date: "12/2014",
       type: "Technical document",
-      connections: 7,
+      connections: 0,
       language: "Swedish",
       pages: "1",
       areaId: null,
@@ -86,7 +93,7 @@ async function createDatabase() {
       scale: "1 : 7,500",
       issuance_date: "2015",
       type: "Design document",
-      connections: 13,
+      connections: 0,
       language: "Swedish",
       pages: "1",
       areaId: null,
@@ -98,7 +105,7 @@ async function createDatabase() {
       scale: "blueprints/effects",
       issuance_date: "04/2019",
       type: "Material effect",
-      connections: 2,
+      connections: 0,
       language: "Not specified",
       pages: "Not specified",
       coordinates: {
@@ -113,7 +120,7 @@ async function createDatabase() {
       scale: "blueprints/effects",
       issuance_date: "04/2019",
       type: "Material effect",
-      connections: 3,
+      connections: 0,
       language: "Not specified",
       pages: "Not specified",
       coordinates: {
@@ -128,7 +135,7 @@ async function createDatabase() {
       scale: "blueprints/effects",
       issuance_date: "05/2019",
       type: "Material effect",
-      connections: 2,
+      connections: 0,
       language: "Not specified",
       pages: "Not specified",
       coordinates: {
@@ -143,7 +150,7 @@ async function createDatabase() {
       scale: "blueprints/effects",
       issuance_date: "06/2019",
       type: "Material effect",
-      connections: 2,
+      connections: 0,
       language: "Not specified",
       pages: "Not specified",
       coordinates: {
@@ -158,7 +165,7 @@ async function createDatabase() {
       scale: "1 : 1,000",
       issuance_date: "22/06/2016",
       type: "Prescriptive document",
-      connections: 7,
+      connections: 0,
       language: "Swedish",
       pages: "1-43",
       areaId: area._id,
