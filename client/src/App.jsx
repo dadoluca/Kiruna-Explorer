@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { RouterProvider, createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
+import { DocumentProvider } from './contexts/DocumentContext';
 import RootLayout from './pages/RootLayout';
 import ErrorPage from './pages/ErrorPage';
 import HomePage from './pages/HomePage';
@@ -46,7 +47,11 @@ function App() {
   
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <DocumentProvider>
+      <RouterProvider router={router} />
+    </DocumentProvider>
+  );
 }
 
 export default App

@@ -11,6 +11,7 @@ import {
   getRelationships,
   updateRelationship,
   deleteRelationship,
+  getAvailableDocuments,
   getLinkedDocuments,
   getDocumentsByRelationshipType,
   getRelationshipCount,

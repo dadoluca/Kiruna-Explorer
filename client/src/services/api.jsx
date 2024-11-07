@@ -104,6 +104,41 @@ const createDocument = async (document) => {
       throw error;
     }
   };
+
+  const getAvailableDocuments = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/available`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching available documents:", error);
+      throw error;
+    }
+  }
+  const createConnection = async ({ documentId, newDocumentId, type, title }) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/relationships`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ documentId: newDocumentId, type, title }), 
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to create connection: ${response.statusText}`);
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Error in createConnection:", error);
+      throw error;
+    }
+  };
   
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments };
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments, createConnection };

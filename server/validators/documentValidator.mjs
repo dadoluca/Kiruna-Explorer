@@ -5,11 +5,18 @@ const kirunaPolygon = {
   type: "Polygon",
   coordinates: [
     [
-      [20.12, 67.875],
-      [20.42, 67.875],
-      [20.42, 67.79],
-      [20.12, 67.79],
-      [20.12, 67.875]
+      [20.18, 67.88195091],
+      [20.21, 67.85],
+      [20.2, 67.841],
+      [20.23, 67.84037],
+      [20.288, 67.826],
+      [20.304, 67.8365],
+      [20.303, 67.842],
+      [20.315, 67.844],
+      [20.35, 67.835],
+      [20.37, 67.85],
+      [20.3, 67.86],
+      [20.18, 67.88195091]
     ]
   ]
 };
@@ -66,9 +73,9 @@ export const validateDocument = [
       return true; // if 'coordinates' is null
   }),
   
-  body('areaId')
-    .isMongoId().withMessage('Area ID must be a valid MongoDB Object ID.')
-    .optional(),
+  //body('areaId')
+  //  .isMongoId().withMessage('Area ID must be a valid MongoDB Object ID.')
+  //  .optional(),
   
   body('description')
     .isString().notEmpty().withMessage('Description is required.'),
@@ -133,7 +140,10 @@ export const validateDocument = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.error('Validation errors:', errors.array());
-      return res.status(422).json({ errors: errors.array() });
+      return res.status(422).json({
+        success: false,
+        errors: errors.array()
+      });
     }
     next();
   }
