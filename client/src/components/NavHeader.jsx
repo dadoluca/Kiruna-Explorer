@@ -1,4 +1,3 @@
-
 import { Container, Navbar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import LogoutButton from './LogoutButton';
@@ -11,19 +10,22 @@ function NavHeader() {
   const { loggedIn } = useContext(AuthContext);
 
   return (
-    <Navbar bg='dark' data-bs-theme='dark' style={{ height: '9vh', minHeight: '30px'}}>
+    <Navbar bg="light" data-bs-theme="light" style={{ height: '9vh', minHeight: '30px' }} className={styles.navbar}>
       <Container fluid>
-        <Link to='/' className='navbar-brand'>Kiruna Explorer</Link>
+        <Link to="/" className={`${styles.brand} navbar-brand`}>Kiruna Explorer</Link>
         <div>
           {/*loggedIn && 
             <Link to='/profile' className='btn btn-outline-light me-2'>
               <FaUser />
             </Link>
           */}
-          {loggedIn ? 
-            <LogoutButton/> :
-            <Link to='/login' className={`${styles.customLink} btn`} >Are you an Urban Planner?</Link>
-          }
+          {loggedIn ? (
+            <LogoutButton />
+          ) : (
+            <Link to="/login" className={`${styles.customLink} btn`}>
+              Are you an Urban Planner?
+            </Link>
+          )}
         </div>
       </Container>
     </Navbar>
