@@ -14,6 +14,7 @@ export const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: 'Email already in use' });
     }
+    console.log(req.body);
 
     // Create and save the new user
     const user = new User({ name, email, password, role });
@@ -120,7 +121,11 @@ export const resetPassword = async (req, res) => {
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() }
+      
     });
+    console.log("User found for reset:", user);
+    
+
     if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
 
     user.password = newPassword;

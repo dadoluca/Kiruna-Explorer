@@ -18,7 +18,8 @@ import {
   bulkAddRelationships,
   getRelationshipTree,
   addTagsToDocument,
-  getDocumentsByTag
+  getDocumentsByTag,
+  getAvailableDocuments
 } from '../controllers/documentController.mjs';
 
 const router = express.Router();
