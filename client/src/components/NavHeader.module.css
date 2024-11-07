@@ -12,7 +12,7 @@
 .brand {
     color: #232229;
     font-weight: bold;
-    font-size: 1.8rem; /* Larger font size for more prominence */
+    font-size: 1.3rem; /* Larger font size for more prominence */
     transition: color 0.3s ease;
 }
 
