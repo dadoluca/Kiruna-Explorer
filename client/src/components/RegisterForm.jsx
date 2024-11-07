@@ -42,7 +42,7 @@ function RegisterForm() {
         <Form.Control type='email' value={email} onChange={e => setEmail(e.target.value)} required />
       </Form.Group>
 
-      <Form.Group controlId='password' className='mb-3'>
+      <Form.Group controlId='password' className='mb-4'>
         <Form.Label>Password</Form.Label>
         <Form.Control type='password' value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
       </Form.Group>

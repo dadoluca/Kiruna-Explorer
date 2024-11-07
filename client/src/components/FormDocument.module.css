@@ -8,10 +8,12 @@
 }
 
 /* Title styling */
-.cardTitle {
-    text-align: center;
+.title {
     font-size: 1.5rem;
-    margin-bottom: 0rem;
+    font-weight: bold;
+    -webkit-background-clip: text;
+    color:#232229;
+    margin-bottom: 0rem; 
 }
 
 /* Buttons container */
@@ -26,3 +28,4 @@
     margin-top: 1rem;
     margin-bottom: 1rem;
 }
+

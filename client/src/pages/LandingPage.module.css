@@ -1,0 +1,74 @@
+.landingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4rem 2rem;
+    background: transparent; /*linear-gradient(180deg, rgba(255, 78, 113, 0.4), rgba(178, 181, 255, 0.75)); /* Soft pink to light blue gradient with transparency */
+    height: 91vh;
+    color: #ffffff;
+}
+
+.content {
+    max-width: 500px;
+    margin-left: 5vw;
+    padding: 2rem;
+    text-align: left;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.headerImage {
+    margin-right: 10vw;
+    width: 96%;
+    max-width: 380px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(6, 6, 6, 0.99);
+    transition: transform 0.5s ease;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.headerImage:hover {
+    transform: scale(1.05);
+}
+
+.title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    -webkit-background-clip: text;
+    color:#232229;
+    margin-bottom: 1rem;
+    text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for contrast */
+}
+
+.description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #535157;
+    font-family: 'Roboto', sans-serif; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1); 
+    margin-bottom: 2rem; 
+}
+
+.mapButton {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    color: #ffffff;
+    background: linear-gradient(90deg, #8079ff, #ff5d7d); /* Gradient matching theme */
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+    text-decoration: none; /* Rimuove la sottolineatura */
+    display: inline-block; /* Rende il link come un elemento blocco */
+}
+
+.mapButton:hover {
+    background: linear-gradient(90deg, #453bfd, #f75475);
+    transform: translateY(-3px);
+}
+
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

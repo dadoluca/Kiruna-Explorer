@@ -112,7 +112,7 @@ function DocumentInsert() {
 
     return (
         <Card className={styles.formCard}>
-            <Card.Title className={styles.cardTitle}>Insert Document</Card.Title>
+            <Card.Title className={styles.title}>Insert Document</Card.Title>
             <Card.Body>
                 <FloatingLabel label="Title of the document" className={styles.formField}>
                     <Form.Control 
@@ -309,7 +309,7 @@ function DocumentInsert() {
                     <Col>
                         <Button 
                             variant="light" 
-                            onClick={()=>navigate('/')} 
+                            onClick={()=>navigate('/map')} 
                             className='btn btn-light w-100 border-dark'
                         >
                             Back

@@ -8,9 +8,10 @@ import styles from './NavHeader.module.css';
 
 function NavHeader() {
   const { loggedIn } = useContext(AuthContext);
+  const { handleLogout } = useContext(AuthContext);
 
   return (
-    <Navbar bg="light" data-bs-theme="light" style={{ height: '9vh', minHeight: '30px' }} className={styles.navbar}>
+    <Navbar bg="transparent" style={{ height: '9vh', minHeight: '30px' }} className={styles.navbar}>
       <Container fluid>
         <Link to="/" className={`${styles.brand} navbar-brand`}>Kiruna Explorer</Link>
         <div>
@@ -20,7 +21,7 @@ function NavHeader() {
             </Link>
           */}
           {loggedIn ? (
-            <LogoutButton />
+            <Link className={`${styles.customLink} btn`} onClick={handleLogout} >Logout</Link>
           ) : (
             <Link to="/login" className={`${styles.customLink} btn`}>
               Are you an Urban Planner?

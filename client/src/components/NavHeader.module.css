@@ -1,25 +1,40 @@
 .navbar {
-    border-bottom: 1px solid #ddd;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: transparent;
+    /*border-bottom: 0.2px solid rgba(0, 0, 0, 0.142);  */
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); Slightly stronger shadow for depth */
+    transition: box-shadow 0.3s ease, border-bottom 0.3s ease;
+}
+
+.navbar:hover {
+    /*box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);  Slightly more intense shadow on hover */
 }
 
 .brand {
-    color: #333;
+    color: #232229;
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 1.8rem; /* Larger font size for more prominence */
+    transition: color 0.3s ease;
+}
+
+.brand:hover {
+    color: #ff1563; /* Change color on hover for an interactive feel */
 }
 
 .customLink {
-    color: #333;
-    border: 1px solid #333;
+    color: #232229;
     padding: 8px 16px;
     text-decoration: none;
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-    border-radius: 5px;
+    border-radius: 25px; /* More rounded corners for a modern look */
+    border: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: color 0.3s, transform 0.3s ease;
+    /*border: 1px solid #232229;  Thin border for a clean look */
 }
 
 .customLink:hover {
-    background-color: #333;
-    border-color: #333;
-    color: #fff;
+    color: #ff1563;
+    /*background-color: #232229;*/
+     /*border-color: #ff5d7d; Border changes to match the hover background color */
+    transform: translateY(-3px); /* Button lift effect on hover */
 }

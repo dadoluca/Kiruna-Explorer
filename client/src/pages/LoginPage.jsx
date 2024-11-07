@@ -8,10 +8,9 @@ function LoginPage() {
   return (
     <Container className={styles.loginPage}>
       <Col md="12"> 
-        <h1>Urban Planner Login</h1>
         <Card className={styles.loginCard}>
           <Card.Body>
-            <Card.Title className="text-center mb-4">Login</Card.Title>
+            <Card.Title className={`${styles.title}`}>Urban Planner Login</Card.Title>
             <LoginForm />
           </Card.Body>
         </Card>

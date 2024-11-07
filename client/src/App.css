@@ -1,4 +1,4 @@
 #root {
-  margin: 0 auto;
   text-align: center;
+  background: linear-gradient(180deg, rgba(255, 78, 113, 0.4), rgba(178, 181, 255, 0.75)); /* Soft pink to light blue gradient with transparency */
 }

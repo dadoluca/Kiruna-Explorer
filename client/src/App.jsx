@@ -5,11 +5,12 @@ import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
 import { DocumentProvider } from './contexts/DocumentContext';
 import RootLayout from './pages/RootLayout';
+import LandingPage from './pages/LandingPage';
 import ErrorPage from './pages/ErrorPage';
-import HomePage from './pages/HomePage';
-import  LoginPage  from './pages//LoginPage';
+import MapPage from './pages/MapPage';
+import LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DocumentInsert from './components/FormDocument';
+import DocumentCreationPage from './pages/DocumentCreationPage';
 
 function App() {
   const { loggedIn } = useContext(AuthContext);
@@ -24,19 +25,23 @@ function App() {
       children: [
         {
           path: "/",
-          element: <HomePage />
+          element: <LandingPage />
+        },
+        {
+          path: "/map",
+          element: <MapPage />
         },
         {
           path: "/register",
-          element: loggedIn ? <Navigate to="/" /> : <RegisterPage />,
+          element: loggedIn ? <Navigate to="/map" /> : <RegisterPage />,
         },
         {
           path: "/login",
-          element: loggedIn ? <Navigate to="/" /> : <LoginPage  />,
+          element: loggedIn ? <Navigate to="/map" /> : <LoginPage  />,
         },
         {
           path: "/document-creation",
-          element: <DocumentInsert />
+          element: <DocumentCreationPage />
         },
         {
           path: "*",

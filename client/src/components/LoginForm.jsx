@@ -27,14 +27,14 @@ function LoginForm() {
           <Form.Control type='email' value={email} onChange={ev => setUsername(ev.target.value)} required />
       </Form.Group>
 
-      <Form.Group controlId='password' className='mb-3'>
+      <Form.Group controlId='password' className='mb-4'>
         <Form.Label>Password</Form.Label>
           <Form.Control type='password' value={password} onChange={ev => setPassword(ev.target.value)} required minLength={6} />
         </Form.Group>
 
         <div className={styles.buttonContainer}>
-          <Link className='btn btn-light w-100 border-dark' to={'/'}>Cancel</Link>
-          <Button type='submit' className="btn-dark w-100 ms-2">Login</Button>
+          <Link className='btn btn-light w-100 border-dark mb-3' to={'/'}>Cancel</Link>
+          <Button type='submit' className="btn-dark w-100 ms-2 mb-3">Login</Button>
       </div>
 
       <p className="mt-3 text-center">

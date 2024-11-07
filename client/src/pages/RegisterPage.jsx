@@ -7,10 +7,9 @@ function RegisterPage() {
   return (
     <Container className={styles.registerPage}>
       <Col md="12"> 
-        <h1>Urban Planner Registration</h1>
         <Card className={styles.registerCard}>
           <Card.Body>
-            <Card.Title className="text-center mb-4">Register</Card.Title>
+            <Card.Title className={styles.title}>Urban Planner Registration</Card.Title>
             <RegisterForm />
           </Card.Body>
         </Card>
