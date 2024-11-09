@@ -11,6 +11,7 @@ import {
   getRelationships,
   updateRelationship,
   deleteRelationship,
+  getDocumentsWithSortingPagination, 
   getAvailableDocuments,
   getLinkedDocuments,
   getDocumentsByRelationshipType,
@@ -19,15 +20,18 @@ import {
   bulkAddRelationships,
   getRelationshipTree,
   addTagsToDocument,
-  getDocumentsByTag,
-  getAvailableDocuments
+  getDocumentsByTag
 } from '../controllers/documentController.mjs';
 
 const router = express.Router();
 
 // Document CRUD routes
 router.post('/', validateDocument, createDocument);                 // Create a new document
-router.get('/', getAllDocuments);                 // Get all documents (with optional filters)
+router.get('/', getAllDocuments);
+
+// GET /documents/paginated - Fetch documents with sorting, pagination, and filtering
+router.get('/paginated', getDocumentsWithSortingPagination);
+                 // Get all documents (with optional filters)
 router.get('/all/titles', getAllTitles);          // Get all documents titles (with optional filters)
 router.get('/:id', getDocumentById);              // Get a document by ID
 router.put('/:id', updateDocument);               // Update an existing document by ID
@@ -38,6 +42,9 @@ router.post('/:id/relationships', addRelationship);                     // Add a
 router.get('/:id/relationships', getRelationships);                     // Get all relationships for a document
 router.put('/:id/relationships/:relationshipId', updateRelationship);   // Update a specific relationship
 router.delete('/:id/relationships/:relationshipId', deleteRelationship); // Delete a specific relationship
+
+// GET /documents/paginated - Fetch documents with sorting, pagination, and filtering
+router.get('/paginated', getDocumentsWithSortingPagination);
 
 // extended relationship routes
 //router.get('/:id/linked-documents', getLinkedDocuments);                // Get linked documents by relationship type
@@ -50,8 +57,6 @@ router.delete('/:id/relationships/:relationshipId', deleteRelationship); // Dele
 // Tag management routes
 //router.post('/:id/tags', addTagsToDocument);                           // Add tags to a document
 //router.get('/tags/:tag', getDocumentsByTag);                           // Retrieve documents by a specific tag
-
-router.get('/:id/available', getAvailableDocuments);
 
 
 

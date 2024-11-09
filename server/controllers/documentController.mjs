@@ -315,3 +315,46 @@ export const getAvailableDocuments = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Fetch documents with pagination, sorting, and filtering
+export const getDocumentsWithSortingPagination = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, sortBy = 'title', order = 'asc', filter } = req.query;
+
+    const sortOrder = order === 'desc' ? -1 : 1;
+    let query = {};
+
+    if (filter) {
+      query = { title: { $regex: filter, $options: 'i' } }; // Case-insensitive filter by title
+    }
+
+    const documents = await Document.find(query)
+      .sort({ [sortBy]: sortOrder })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const totalDocuments = await Document.countDocuments(query);
+
+    res.status(200).json({
+      data: documents,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalDocuments / limit),
+        totalDocuments,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Fetch and sort document fields only for display titles, dates, etc.
+export const getDocumentFields = async (req, res, next) => {
+  try {
+    const fields = await Document.find({}, 'title issuance_date').sort({ title: 1 }).lean();
+    res.status(200).json(fields);
+  } catch (error) {
+    next(error);
+  }
+};
+

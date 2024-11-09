@@ -5,18 +5,31 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Register a new user
+// Define your secret key for Urban Planner registration in the environment
+const URBAN_PLANNER_SECRET = process.env.URBAN_PLANNER_SECRET;
+
 export const registerUser = async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, registrationSecret } = req.body;
 
   try {
+    // Check if the email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const error = new Error('Email already in use');
       error.statusCode = 400;
       return next(error);
     }
-    console.log(req.body);
 
+    // Validate registration secret for Urban Planner role
+    if (role === 'Urban Planner') {
+      if (registrationSecret !== URBAN_PLANNER_SECRET) {
+        const error = new Error('Invalid registration secret for Urban Planner');
+        error.statusCode = 403;
+        return next(error);
+      }
+    }
+
+    // Create a new user
     const user = new User({ name, email, password, role });
     await user.save();
 
@@ -26,6 +39,7 @@ export const registerUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // User login
 export const loginUser = async (req, res, next) => {
@@ -146,18 +160,12 @@ export const resetPassword = async (req, res, next) => {
       resetPasswordExpires: { $gt: Date.now() }
       
     });
-<<<<<<< HEAD
-    console.log("User found for reset:", user);
-    
-
-    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
-=======
     if (!user) {
       const error = new Error('Invalid or expired token');
       error.statusCode = 400;
       return next(error);
     }
->>>>>>> 6a8f3ceff78738e014c1b07c82e41a296bd64c13
+
 
     user.password = newPassword;
     user.resetPasswordToken = undefined;
@@ -203,3 +211,5 @@ export const updateUserRole = async (req, res, next) => {
     next(error);
   }
 };
+
+
