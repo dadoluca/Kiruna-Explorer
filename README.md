@@ -220,8 +220,11 @@ To manage documents effectively, we’ve implemented a set of RESTful API endpoi
 - **POST /documents**: Creates a new document with details such as title, stakeholders, scale, issuance date, and optional coordinates or area reference.
 - **GET /documents**: Retrieves all documents with optional query filters (e.g., by type, stakeholders) and pagination support.
 - **GET /documents/all/titles**: Retrieves all documents titles (as an array of strings) with optional query filters.
+- **GET /documents/:id/available**: Retrieves all documents that can be connected to a specific one.
 - **GET /documents/:id**: Retrieves the details of a specific document by its unique `_id`.
 - **PUT /documents/:id**: Updates an existing document’s details, allowing fields like title, description, and relationships to be modified.
+- **PUT /documents/:id/municipality**: Updates a document setting is location to the municipality area.
+- **PUT /documents/:id/coordinates**: Updates a document setting is location to specific coordinates.
 - **DELETE /documents/:id**: Deletes a specific document by its `_id`, removing it from the database.
 
 ## Document Relationship API Endpoints

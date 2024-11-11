@@ -358,3 +358,52 @@ export const getDocumentFields = async (req, res, next) => {
   }
 };
 
+// Update coordinates of an existing document
+export const updateCoordinates = async (req, res) => {
+  try {
+    const { type, coordinates } = req.body;
+
+    if (!['Point', 'Polygon'].includes(type)) {
+      return res.status(400).json({ message: 'Invalid type. Type must be either "Point" or "Polygon".' });
+    }
+
+    // Ensure areaId is removed when updating coordinates
+    const updatedDocument = await Document.findByIdAndUpdate(
+      req.params.id,
+      { 
+        coordinates: { type, coordinates }, 
+        $unset: { areaId: "" } // Remove areaId completely (set as undefined)
+      },
+      { new: true } // Option to return updated document
+    );
+
+    if (!updatedDocument) return res.status(404).json({ message: 'Document not found' });
+
+    res.json(updatedDocument);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Set the document's area to the Municipality
+export const setToMunicipality = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    // Set areaId to null and coordinates to an empty array when setting to municipality
+    const updatedDocument = await Document.findByIdAndUpdate(
+      req.params.id,
+      { 
+        areaId: null,  // Set areaId to null to represent municipality
+        coordinates: []
+      },
+      { new: true }
+    );
+
+    res.json(updatedDocument);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

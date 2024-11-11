@@ -20,7 +20,9 @@ import {
   bulkAddRelationships,
   getRelationshipTree,
   addTagsToDocument,
-  getDocumentsByTag
+  getDocumentsByTag,
+  updateCoordinates,
+  setToMunicipality
 } from '../controllers/documentController.mjs';
 
 const router = express.Router();
@@ -42,9 +44,14 @@ router.post('/:id/relationships', addRelationship);                     // Add a
 router.get('/:id/relationships', getRelationships);                     // Get all relationships for a document
 router.put('/:id/relationships/:relationshipId', updateRelationship);   // Update a specific relationship
 router.delete('/:id/relationships/:relationshipId', deleteRelationship); // Delete a specific relationship
+router.get('/:id/available', getAvailableDocuments);
 
 // GET /documents/paginated - Fetch documents with sorting, pagination, and filtering
 router.get('/paginated', getDocumentsWithSortingPagination);
+
+// Document geolocalization routes
+router.put('/:id/coordinates', updateCoordinates);
+router.put('/:id/municipality', setToMunicipality);
 
 // extended relationship routes
 //router.get('/:id/linked-documents', getLinkedDocuments);                // Get linked documents by relationship type

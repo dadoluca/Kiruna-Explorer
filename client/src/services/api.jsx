@@ -139,6 +139,45 @@ const createDocument = async (document) => {
       throw error;
     }
   };
+
+  const updateDocumentCoordinates = async (documentId, type, coordinates) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/coordinates`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type, coordinates })
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to update coordinates: ${response.statusText}`);
+      }
+      const updatedDocument = await response.json();
+      return updatedDocument;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+  
+  const setDocumentToMunicipality = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/municipality`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to clear areaId: ${response.statusText}`);
+      }
+      const updatedDocument = await response.json();
+      return updatedDocument;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
   
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments, createConnection };
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality };
