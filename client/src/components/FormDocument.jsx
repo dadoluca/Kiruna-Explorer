@@ -5,11 +5,13 @@ import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
 import API from '../services/api';
 import styles from './FormDocument.module.css';
+import { useDocumentContext } from '../contexts/DocumentContext';
 
 function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
     const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
+    const { documents } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
@@ -18,7 +20,6 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [date, setDate] = useState('');
-    const [connections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
@@ -28,9 +29,35 @@ function DocumentInsert() {
 
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
+    const [connections, setConnections] = useState([]);
+
     const handleStakeholders = (ev) => {
         setStakeholders(ev.target.value);
         setStakeholdersArray(ev.target.value.split(','));
+    };
+
+    const handleAddConnection = () => {
+        setConnections(prev => [
+          ...prev,
+          {
+            selectedDocumentId: '',
+            selectedType: '',
+          }
+        ]);
+    };
+
+    const handleChange = (index, field, value) => {
+        const newConnections = [...connections];
+        newConnections[index][field] = value;
+    
+        setConnections(newConnections);
+    };
+
+    const handleRemoveConnection = (index) => {
+        const newConnections = [...connections];
+        newConnections.splice(index, 1);
+    
+        setConnections(newConnections);
     };
 
     const handleSubmit = async () => {
@@ -49,7 +76,7 @@ function DocumentInsert() {
             scale,
             issuance_date: date,
             language: customLanguage || language, // Use custom language if provided
-            connections,
+            connections: 0,
             pages,
             description,
             areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
@@ -64,7 +91,26 @@ function DocumentInsert() {
 
         try {
             console.log(document);
-            await API.createDocument(document);
+            const newDoc = await API.createDocument(document);
+
+            await Promise.all(connections.map(async (connection) => {
+                const selectedDocument = documents.find(doc => doc._id === connection.selectedDocumentId);
+                const selectedTitle = selectedDocument ? selectedDocument.title : '';
+
+                await API.createConnection({
+                    documentId: newDoc._id,
+                    newDocumentId: connection.selectedDocumentId,
+                    type: connection.selectedType,
+                    title: selectedTitle
+                });
+                await API.createConnection({
+                    documentId: connection.selectedDocumentId,
+                    newDocumentId: newDoc._id,
+                    type: connection.selectedType,
+                    title: document.title
+                });
+            }));
+
             // Reset form fields after submission
             resetForm();
             alert("Document added successfully!");
@@ -90,6 +136,17 @@ function DocumentInsert() {
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
 
+        if (connections && connections.length > 0) {
+            connections.forEach((connection, index) => {
+                if (!connection.selectedDocumentId) {
+                    newErrors[`connections[${index}].selectedDocumentId`] = 'Document is required for each connection';
+                }
+                if (!connection.selectedType) {
+                    newErrors[`connections[${index}].selectedType`] = 'Type is required for each connection';
+                }
+            });
+        }
+
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -108,6 +165,12 @@ function DocumentInsert() {
         setDescription('');
         setCustomType(''); // Reset custom type
         setCustomLanguage(''); // Reset custom language
+        setConnections([]);
+    };
+
+    const getAvailableOptions = (index) => {
+        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
+        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
     };
 
     return (
@@ -213,7 +276,7 @@ function DocumentInsert() {
                 <Row>
                     <Col md={6}>
                         <FloatingLabel label="Connections" className="mb-3">
-                            <Form.Control type="number" value={connections} disabled required />
+                            <Form.Control type="number" value={0} disabled required />
                         </FloatingLabel>
                     </Col>
                     <Col md={6}>
@@ -304,6 +367,69 @@ function DocumentInsert() {
                         {errors.description}
                     </Form.Control.Feedback>
                 </FloatingLabel>
+
+                {connections.map((connection, index) => (
+                    <div key={index} className="mb-3">
+                        <FloatingLabel label="Select Document" className="mb-3">
+                            <Form.Control
+                                as="select"
+                                value={connection.selectedDocumentId} 
+                                onChange={(ev) => handleChange(index, 'selectedDocumentId', ev.target.value)} 
+                                isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
+                            >
+                                <option value="">Select Document</option>
+                                {getAvailableOptions(index).map((doc) => (
+                                    <option key={doc._id} value={doc._id}>
+                                        {doc.title}
+                                    </option>
+                                ))}
+                                {/* Display selected document title within the select field */}
+                                {connection.selectedDocumentId && (
+                                    <option value={connection.selectedDocumentId}>
+                                        {documents.find(doc => doc._id === connection.selectedDocumentId)?.title}
+                                    </option>
+                                )}
+                            </Form.Control>
+                            <Form.Control.Feedback type="invalid">
+                                {errors[`connections[${index}].documentId`]}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+
+                        <FloatingLabel label="Connection Type" className="mb-3">
+                            <Form.Control
+                                as="select"
+                                value={connection.selectedType} 
+                                onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
+                                isInvalid={!!errors[`connections[${index}].selectedType`]} 
+                            >
+                                <option value="">Select Connection Type</option>
+                                <option value="direct consequence">Direct Consequence</option>
+                                <option value="collateral consequence">Collateral Consequence</option>
+                                <option value="projection">Projection</option>
+                                <option value="update">Update</option>
+                            </Form.Control>
+                            <Form.Control.Feedback type="invalid">
+                                {errors[`connections[${index}].type`]}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+
+                        <Button
+                            variant="light"
+                            onClick={() => handleRemoveConnection(index)}
+                            size="sm"
+                            className="mb-3"
+                        >
+                            Remove Connection
+                        </Button>
+                    </div>
+                ))}
+                <Button
+                    variant="light"
+                    onClick={handleAddConnection}
+                    size="sm"
+                >
+                    Add Connection
+                </Button>
 
                 <Row className="mt-3">
                     <Col>
