@@ -370,14 +370,13 @@ function DocumentInsert() {
 
                 {connections.map((connection, index) => (
                     <div key={index} className="mb-3">
-                        <FloatingLabel label="Select Document" className="mb-3">
-                            <Form.Control
-                                as="select"
+                        <FloatingLabel label="Document to connect" className="mb-3">
+                            <Form.Select
                                 value={connection.selectedDocumentId} 
                                 onChange={(ev) => handleChange(index, 'selectedDocumentId', ev.target.value)} 
                                 isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
                             >
-                                <option value="">Select Document</option>
+                                <option value="">Select a Document</option>
                                 {getAvailableOptions(index).map((doc) => (
                                     <option key={doc._id} value={doc._id}>
                                         {doc.title}
@@ -389,27 +388,26 @@ function DocumentInsert() {
                                         {documents.find(doc => doc._id === connection.selectedDocumentId)?.title}
                                     </option>
                                 )}
-                            </Form.Control>
+                            </Form.Select>
                             <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].documentId`]}
+                                {errors[`connections[${index}].selectedDocumentId`]}
                             </Form.Control.Feedback>
                         </FloatingLabel>
 
                         <FloatingLabel label="Connection Type" className="mb-3">
-                            <Form.Control
-                                as="select"
+                            <Form.Select
                                 value={connection.selectedType} 
                                 onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
                                 isInvalid={!!errors[`connections[${index}].selectedType`]} 
                             >
-                                <option value="">Select Connection Type</option>
+                                <option value="">Select a Connection Type</option>
                                 <option value="direct consequence">Direct Consequence</option>
                                 <option value="collateral consequence">Collateral Consequence</option>
                                 <option value="projection">Projection</option>
                                 <option value="update">Update</option>
-                            </Form.Control>
+                            </Form.Select>
                             <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].type`]}
+                                {errors[`connections[${index}].selectedType`]}
                             </Form.Control.Feedback>
                         </FloatingLabel>
 
@@ -427,6 +425,7 @@ function DocumentInsert() {
                     variant="light"
                     onClick={handleAddConnection}
                     size="sm"
+                    className="mb-3"
                 >
                     Add Connection
                 </Button>
