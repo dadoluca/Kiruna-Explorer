@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
@@ -8,6 +8,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
 import API from '../services/api';
 import L from 'leaflet';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const documentIcon = new L.Icon({
     iconUrl: '/google-docs.png',
@@ -90,7 +92,7 @@ const MapComponent = () => {
                 if (isSelecting && loggedIn) {
                     // Here we are setting new document coordinates
                     setMouseCoords(e.latlng);
-                    navigate('/document-creation', { state: { coordinates: e.latlng } }); 
+                    navigate('/document-creation', { state: { coordinates: e.latlng } });
                     setIsSelecting(false);
                 }
             }
@@ -111,23 +113,6 @@ const MapComponent = () => {
 
     return (
         <div className={styles.mapContainer}>
-            {isSelecting && (
-                <div className={styles.coordinatesBar}>
-                    {mouseCoords.lat && mouseCoords.lng ? (
-                        <>
-                            Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the {"  "}
-                            <Button
-                                className={styles.buttonLink}
-                                onClick={handleAssignToMunicipalArea}
-                            >
-                                Entire Municipality
-                            </Button>
-                        </>
-                    ) : (
-                        'Muovi il mouse sulla mappa per vedere le coordinate'
-                    )}
-                </div>
-            )}
 
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <MapMouseEvents />
@@ -157,6 +142,7 @@ const MapComponent = () => {
                                 onClose={() => setSelectedMarker(null)}
                             />
                         </Popup>
+                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker */}
                     </Marker>
                 ))}
 
@@ -175,22 +161,47 @@ const MapComponent = () => {
                             icon={documentIcon}
                             eventHandlers={{ click: () => setSelectedMarker(doc) }}
                         >
-                        <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
-                            <DetailPlanCard
-                                doc={selectedMarker}
-                                onClose={() => setSelectedMarker(null)}
-                            />
-                        </Popup>
+                            <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
+                                <DetailPlanCard
+                                    doc={selectedMarker}
+                                    onClose={() => setSelectedMarker(null)}
+                                />
+                            </Popup>
+                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker */}
                         </Marker>
                     );
                 })}
             </MapContainer>
 
             {loggedIn && (
-                <Button className={styles.addButton} onClick={() => setIsSelecting(true)}>
-                    +
-                </Button>
-            )}
+            <Button 
+            className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
+            onClick={() => setIsSelecting(prev => !prev)}  // Toggle open/close on click
+        >       
+                    {isSelecting ? (
+                        <>
+                            <div className={styles.coordinatesBar}>
+                                {mouseCoords.lat && mouseCoords.lng ? (
+                                    <>
+                                        Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the {"  "}
+                                        <Button
+                                            className={styles.buttonLink}
+                                            onClick={handleAssignToMunicipalArea}
+                                        >
+                                            Entire Municipality
+                                        </Button>
+                                    </>
+                                ) : (
+                                    'Move the mouse over the map to see coordinates'
+                                )}
+                            </div>
+                            <div className={styles.spazio} ></div>
+                            <FontAwesomeIcon icon={faTimes} /> {/* "X" icon for closing */}
+                        </>
+                    ) : (
+                        <FontAwesomeIcon icon={faPlus} /> // "+" icon for opening
+                    )}
+                </Button>)}
         </div>
     );
 };

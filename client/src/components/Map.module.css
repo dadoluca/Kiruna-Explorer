@@ -1,51 +1,89 @@
-.buttonLink {
-    padding: 0 5px; /* Make the button thinner */
-    background-color: black; /* Black background */
-    color: white; /* White text */
-    border: none; /* Remove border */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: all 0.3s ease; /* Smooth transition */
-}
-
-.buttonLink.inverted {
-    background-color: white; /* White background on click */
-    color: black; /* Black text on click */
-}
-
-/* Optional: Add hover effect */
-.buttonLink:hover {
-    background-color: grey; /* Dark grey on hover */
-    color: white; /* Keep text white on hover */
-}
-/* Container for the entire map section */
 .mapContainer {
     position: relative;
     margin: 0 auto;
-    width: 94%;
-    height: 88vh;
-    max-width: 100%;
-    /*border: 3px solid black;  Black border around the map */
-    border-radius: 8px;
+    width: 100%;
+    height: 91vh;
+    border-top: 2px solid black; /* Solo bordo superiore */
     overflow: hidden;
 }
 
-/* Map button styled for bottom-right placement */
+
+/* Pulsante per aggiunta in basso a destra */
 .addButton {
     position: absolute;
     bottom: 15px;
     right: 10px;
-    background-color: #000000; /* Dark button color */
-    color: white;
+    background-color: #333333; /* Grigio scuro */
+    color: #ffffff; /* Testo bianco */
     border: none;
-    padding: 0.3rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-    z-index: 1000; /* Ensures button is above the map */
-    font-size: x-large;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare quando chiuso */
+    width: 3rem; /* Larghezza e altezza per il cerchio */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 1000;
 }
 
-/* Button hover effect */
+/* Effetto hover su .addButton */
 .addButton:hover {
-    background-color: #495057; /* Slightly lighter shade on hover */
+    background-color: #495057; /* Colore più chiaro su hover */
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Stato espanso del pulsante */
+.addButton.expanded {
+    width: auto; /* Larghezza espansa */
+    height: 3rem; /* Altezza invariata */
+    border-radius: 1.5rem; /* Bordi curvi con altezza uguale al pulsante chiuso */
+    padding: 0.5rem 1rem;
+    justify-content: flex-start; /* Allinea il contenuto a sinistra */
+    font-family: 'Source Code Pro', monospace;
+}
+
+.spazio{
+    width: 0.5rem;
+}
+
+
+/* Effetto click su .addButton */
+.addButton:active {
+    background-color: #444444;
+    transform: scale(0.97);
+}
+
+/* Stile per il pulsante "Entire Municipality" */
+.buttonLink {
+    padding: 8px 10px; /* Margine leggermente maggiore per evidenziare */
+    background: linear-gradient(90deg, #8079ff, #ff5d7d); /* Gradient matching theme */
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    font-weight: bold; /* Testo in grassetto */
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2); /* Ombra più evidente */
+}
+
+/* Effetto hover per .buttonLink */
+.buttonLink:hover {
+    background-color: #0056b3; /* Blu più scuro su hover */
+    transform: scale(1.05); /* Leggera espansione su hover */
+}
+
+.addButton.expanded .icon {
+    margin-right: 0.8rem; /* Aggiungi spazio tra l'icona e il testo */
+}
+
+/* Stato invertito per il clic */
+.buttonLink.inverted {
+    background-color: white; /* Sfondo bianco al clic */
+    color: black; /* Testo nero al clic */
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.25); /* Ombra più accentuata */
 }
