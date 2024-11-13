@@ -1,5 +1,5 @@
 import express from 'express';
-import { validateDocument } from '../validators/documentValidator.mjs';
+import { validateDocument, validateCoordinates } from '../validators/documentValidator.mjs';
 import { 
   createDocument, 
   getAllDocuments, 
@@ -50,7 +50,7 @@ router.get('/:id/available', getAvailableDocuments);
 router.get('/paginated', getDocumentsWithSortingPagination);
 
 // Document geolocalization routes
-router.put('/:id/coordinates', updateCoordinates);
+router.put('/:id/coordinates', validateCoordinates, updateCoordinates);
 router.put('/:id/municipality', setToMunicipality);
 
 // extended relationship routes

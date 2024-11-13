@@ -148,3 +148,37 @@ export const validateDocument = [
     next();
   }
 ];
+
+export const validateCoordinates = [
+  body('type')
+    .isString()
+    .isIn(['Point']),
+  
+  body('coordinates')
+    .isArray()
+    .custom(value => {
+      if (value.length !== 2) {
+        throw new Error('Coordinates array must contain exactly 2 elements.');
+      }
+
+      const point = turf.point(value);
+      const polygon = turf.polygon(kirunaPolygon.coordinates);
+      if (!turf.booleanPointInPolygon(point, polygon)) {
+        throw new Error('Coordinates must be within the municipality area of Kiruna.');
+      }
+
+      return true;
+    }),
+
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.error('Validation errors:', errors.array());
+        return res.status(422).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+      next();
+    }
+];
