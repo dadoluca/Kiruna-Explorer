@@ -3,6 +3,10 @@ import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
+import DatePicker from "react-datepicker";
+import { format } from "date-fns";
+import "react-datepicker/dist/react-datepicker.css";
 import API from '../services/api';
 import styles from './FormDocument.module.css';
 
@@ -17,7 +21,8 @@ function DocumentInsert() {
     const [type, setType] = useState('');
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
-    const [date, setDate] = useState('');
+    const [customScale, setCustomScale] = useState(''); // New state for custom scale 
+    const [date, setDate] = useState(null);
     const [connections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
@@ -26,6 +31,9 @@ function DocumentInsert() {
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
 
+    const [activeButton, setActiveButton] = useState(null);
+    const [dateFormat, setDateFormat] = useState(false);
+    const [formattedDate, setFormattedDate] = useState("");
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
     const handleStakeholders = (ev) => {
@@ -47,7 +55,7 @@ function DocumentInsert() {
             stakeholders: stakeholdersArray,
             type: customType || type, // Use custom type if provided
             scale,
-            issuance_date: date,
+            issuance_date: formattedDate,
             language: customLanguage || language, // Use custom language if provided
             connections,
             pages,
@@ -73,6 +81,20 @@ function DocumentInsert() {
             console.error("Failed to create a new document:", error);
         }
     };
+
+    const handleDateFormat = (format) => {
+        setActiveButton(format);
+        if (format === 1){setDateFormat("yyyy-MM-dd");}
+        else if (format === 2){setDateFormat("yyyy-MM");}
+        else if (format === 3){setDateFormat("yyyy");}
+    };
+
+    const handleDataChange = (date) => {
+        setDate(date);
+        const dateString = format(date, dateFormat);
+        setFormattedDate(dateString.replace(/-/g, '/'));
+        console.log(formattedDate)
+    }
 
     const validateForm = () => {
         let newErrors = {};
@@ -101,6 +123,7 @@ function DocumentInsert() {
         setType('');
         setScale('');
         setDate('');
+        setFormattedDate('');
         setPages('Not specified');
         setLanguage('Swedish');
         setLongitude(20.2253);
@@ -228,36 +251,81 @@ function DocumentInsert() {
                 </Row>
 
                 <Row className="mb-3">
-                    <Col md={6}>
-                        <FloatingLabel label="Scale">
-                            <Form.Control 
-                                type="text" 
+                    <Col md={3}>
+                        <FloatingLabel label="Scale" className="mb-3">
+                            <Form.Select 
                                 value={scale}
-                                onChange={(ev) => setScale(ev.target.value)}
-                                isInvalid={!!errors.scale}
-                                required={true}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.scale}
-                            </Form.Control.Feedback>
+                                onChange={(ev) => {
+                                    setScale(ev.target.value);
+                                    if (ev.target.value !== "Add Custom...") {
+                                        setCustomScale('');
+                                    }
+                                }}
+                            >
+                                <option value="1:1">1:1</option>
+                                <option value="1:2">1:2</option>
+                                <option value="1:5">1:5</option>
+                                <option value="1:10">1:10</option>
+                                <option value="1:20">1:20</option>
+                                <option value="1:50">1:50</option>
+                                <option value="1:100">1:100</option>
+                                <option value="1:500">1:500</option>
+                                <option value="1:1000">1:1000</option>
+                                <option>Add Custom...</option>
+                            </Form.Select>
                         </FloatingLabel>
-                    </Col>
-                    <Col md={6}>
-                        <FloatingLabel label="Issuance date">
-                            <Form.Control
-                                type="text" // Change to text to accept custom formats
-                                value={date}
-                                onChange={(ev) => setDate(ev.target.value)}
-                                isInvalid={!!errors.date}
-                                required={true}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.date}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
+                        <Form.Control.Feedback type="invalid">
+                            {errors.scale}
+                        </Form.Control.Feedback>
                     </Col>
                 </Row>
-
+                {/* Custom Scale Input */}
+                {scale === "Add Custom..." && (
+                <FloatingLabel label="Custom Scale" className="mb-3">
+                    <Form.Control 
+                        type="text" 
+                        value={customScale} 
+                        onChange={(ev) => setCustomScale(ev.target.value)} 
+                    />
+                </FloatingLabel>
+                )}
+            
+                <Row className="mb-3 d-flex">
+                    <Col>
+                    <div className="d-flex gap-2">
+                                <Button
+                                        variant={activeButton === 1 ? 'success' : 'dark'}
+                                        size="sm"
+                                        onClick={()=>handleDateFormat(1)}
+                                >
+                                    YYYY-MM-DD
+                                </Button>
+                                <Button
+                                        variant={activeButton === 2 ? 'success' : 'dark'}
+                                        size="sm"
+                                        onClick={()=>handleDateFormat(2)}
+                                >
+                                    YYYY-MM
+                                </Button>
+                                <Button
+                                    variant={activeButton === 3 ? 'success' : 'dark'}
+                                    size="sm"
+                                    onClick={()=>handleDateFormat(3)}
+                                >
+                                    YYYY
+                                </Button>
+                        </div>
+                    </Col>
+                    <Col>
+                        <DatePicker
+                                selected={date}
+                                onChange={(date) => handleDataChange(date)}
+                                dateFormat={dateFormat}
+                                showPopperArrow={false}
+                        />
+                    </Col>
+                </Row>
+    
                 {/* Conditionally render Latitude and Longitude fields */}
                 {!isMunicipal && (
                     <Row>
