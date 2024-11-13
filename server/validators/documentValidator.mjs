@@ -37,8 +37,8 @@ export const validateDocument = [
   body('issuance_date')
     .notEmpty()
     .isString()
-    .matches(/^(?:\d{2}\/\d{2}\/\d{4}|\d{2}\/\d{4}|\d{4})$/) // dd/mm/yyyy, mm/yyyy, yyyy
-    .withMessage('Invalid date format. Use dd/mm/yyyy, mm/yyyy, or yyyy.'),
+    .matches(/^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})$/)
+    .withMessage('Invalid date format. Use yyyy-mm-dd, yyyy-mm, or yyyy.'),
   
   body('type')
     .isString().withMessage('Type must be a string.')

@@ -49,7 +49,7 @@ The `documents` collection contains all documents.
 - **title**: (String) The document title.
 - **stakeholders**: (Array) List of organizations or entities involved in the document (e.g. ["LKAB", "Kiruna kommun"]).
 - **scale**: (String) It is the relationship between the dimensions drawn on a plan or architectural drawing and the actual dimensions of the building (e.g. "1 : 1,000" or "blueprints/effects").
-- **issuance_date**: (String) Date the document was issued. Valid formats: `"dd/mm/yyyy"`, `"mm/yyyy"`, `"yyyy"`
+- **issuance_date**: (String) Date the document was issued. Valid formats: `"yyyy-mm-dd"`, `"yyyy-mm"`, `"yyyy"`
 - **type**: (String) The document type (e.g. "Prescriptive document" or "Material effect").
 - **connections**: (Number) The number of connections this document has to others.
 - **language**: (String) Language of the document content. Can be empty.
