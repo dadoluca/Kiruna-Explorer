@@ -1,0 +1,6 @@
+.DocumentCreationPage {
+    display: flex;
+    align-items: center;    
+    justify-content: center;
+    height: 91vh; /*navbar max 9 vh*/
+  }
