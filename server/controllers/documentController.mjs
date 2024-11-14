@@ -1,4 +1,8 @@
 import Document from '../models/Document.mjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 
 // Create a new document
 export const createDocument = async (req, res) => {
@@ -405,5 +409,174 @@ export const setToMunicipality = async (req, res) => {
     res.json(updatedDocument);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+// Retrieve resources for a specific document
+export const getResourcesForDocument = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id).select('original_resources');
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    res.json({ success: true, resources: document.original_resources });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Upload a new resource
+export const uploadResource = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    // Find the document by ID
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    // Check if file information exists in the request
+    if (!req.file || !req.file.filename || !req.file.mimetype) {
+      return res.status(400).json({ message: 'File upload failed or invalid file type' });
+    }
+
+    // Construct file metadata
+    const resource = {
+      filename: req.file.filename,
+      url: `/uploads/${req.file.filename}`, // or your URL format
+      type: req.file.mimetype,
+    };
+
+    // Add resource to document's original_resources array
+    document.original_resources.push(resource);
+    await document.save();
+
+    res.status(201).json({ message: 'Resource uploaded successfully', resource });
+  } catch (error) {
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+
+// Delete a resource
+export const deleteResource = async (req, res) => {
+  const { id, resourceId } = req.params;
+  try {
+    const document = await Document.findById(id);
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    document.original_resources = document.original_resources.filter(res => res._id.toString() !== resourceId);
+    await document.save();
+
+    res.status(200).json({ message: 'Resource deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all resources of a document
+export const getResources = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id, 'original_resources');
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    res.status(200).json(document.original_resources);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update metadata of a resource
+export const updateResourceMetadata = async (req, res) => {
+  const { id, resourceId } = req.params;
+  const { filename, type } = req.body;
+
+  try {
+    const document = await Document.findById(id);
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    const resource = document.original_resources.id(resourceId);
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    if (filename) resource.filename = filename;
+    if (type) resource.type = type;
+    await document.save();
+
+    res.status(200).json(resource);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a document with resources
+export const createDocumentWithResources = async (req, res) => {
+  try {
+    const { resources, ...documentData } = req.body;
+    const document = new Document(documentData);
+
+    if (resources && resources.length) {
+      document.original_resources = resources;
+    }
+
+    await document.save();
+    res.status(201).json(document);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Update document with additional resources
+export const updateDocumentWithResources = async (req, res) => {
+  try {
+    const { resources, ...documentData } = req.body;
+    const document = await Document.findByIdAndUpdate(req.params.id, documentData, { new: true });
+
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    if (resources && resources.length) {
+      document.original_resources.push(...resources);
+      await document.save();
+    }
+
+    res.status(200).json(document);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+// Download a specific resource file for a document
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export const downloadResource = async (req, res) => {
+  const { id, filename } = req.params;
+  try {
+    // Find the document by ID and check if the resource exists
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    // Find the resource in the document's original_resources array
+    const resource = document.original_resources.find(res => res.filename === filename);
+    if (!resource) {
+      return res.status(404).json({ success: false, message: 'Resource not found' });
+    }
+
+    // Define the full path to the resource file
+    const filePath = path.join(__dirname, '..', 'uploads', filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: 'File does not exist on server' });
+    }
+
+    // Set headers for download
+    res.download(filePath, resource.filename, (err) => {
+      if (err) {
+        res.status(500).json({ success: false, message: 'Error downloading file' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
