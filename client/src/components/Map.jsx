@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip 
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
-import { Button } from 'react-bootstrap';
+// import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
 import API from '../services/api';
@@ -31,7 +31,7 @@ const MapComponent = () => {
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],  // Top-left point
-        [67.850, 20.2100],  // Clockwise
+        [67.850, 20.2100],      // Clockwise
         [67.8410, 20.2000],
         [67.84037, 20.230],
         [67.8260, 20.288],
@@ -43,23 +43,37 @@ const MapComponent = () => {
         [67.860, 20.300]
     ];
 
+    // Function to check if a point is inside the polygon (Ray-casting algorithm)
+    const isPointInPolygon = (point, vs) => {
+        const [x, y] = [point.lat, point.lng];
+        let inside = false;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+            const [xi, yi] = vs[i];
+            const [xj, yj] = vs[j];
+            const intersect = ((yi > y) !== (yj > y)) &&
+                (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    };
+
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
                 const documents = await API.getDocuments();
-                console.log("Documenti ricevuti:", documents); // Log received documents
+                console.log("Documenti ricevuti:", documents);
                 setDocumentList(documents);
 
                 const validMarkers = [];
                 const invalidDocuments = [];
 
                 documents.forEach(doc => {
-                    const coordinates = doc.coordinates?.coordinates || null; // Handle structure
+                    const coordinates = doc.coordinates?.coordinates || null;
                     const [longitude, latitude] = coordinates || [];
-                    console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`); // Log coordinate check
+                    console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
 
                     if (!coordinates || longitude == null || latitude == null) {
-                        invalidDocuments.push(doc); // Add to discarded documents
+                        invalidDocuments.push(doc);
                     } else {
                         validMarkers.push({
                             ...doc,
@@ -69,11 +83,11 @@ const MapComponent = () => {
                     }
                 });
 
-                console.log("Documenti validi:", validMarkers); // Log valid documents
-                console.log("Documenti scartati:", invalidDocuments); // Log discarded documents
+                console.log("Documenti validi:", validMarkers);
+                console.log("Documenti scartati:", invalidDocuments);
 
                 setMarkers(validMarkers);
-                setMunicipalArea(invalidDocuments); // Set discarded documents in municipalArea
+                setMunicipalArea(invalidDocuments);
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -86,37 +100,35 @@ const MapComponent = () => {
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
-                setMouseCoords({ lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) });
+                const { lat, lng } = e.latlng;
+                if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
+                    setMouseCoords({ lat: lat.toFixed(5), lng: lng.toFixed(5) });
+                } else {
+                    setMouseCoords({ lat: null, lng: null });
+                }
             },
             click: (e) => {
                 if (isSelecting && loggedIn) {
-                    // Here we are setting new document coordinates
-                    setMouseCoords(e.latlng);
-                    navigate('/document-creation', { state: { coordinates: e.latlng } });
-                    setIsSelecting(false);
+                    const { lat, lng } = e.latlng;
+                    if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
+                        navigate('/document-creation', { state: { coordinates: e.latlng } });
+                        setIsSelecting(false);
+                    }
                 }
             }
         });
         return null;
     };
 
-    // Handle polygon click event
-    const handlePolygonClick = () => {
-        console.log("Hai cliccato sul bordo del poligono!");
-        alert("Bordo del poligono cliccato!");
-    };
-
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
-        navigate('/document-creation', { state: { isMunicipal: true } }); // Indicate assignment to the entire area
+        navigate('/document-creation', { state: { isMunicipal: true } });
     };
 
     return (
         <div className={styles.mapContainer}>
-
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <MapMouseEvents />
-
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -124,9 +136,9 @@ const MapComponent = () => {
 
                 <Polygon
                     positions={kirunaPolygonCoordinates}
-                    color="gray"        // Border color
-                    fillColor="#D3D3D3" // Light gray fill color
-                    fillOpacity={0.4}   // Light effect opacity
+                    color="gray"
+                    fillColor="#D3D3D3"
+                    fillOpacity={0.4}
                 />
 
                 {markers.map((marker, index) => (
@@ -142,22 +154,20 @@ const MapComponent = () => {
                                 onClose={() => setSelectedMarker(null)}
                             />
                         </Popup>
-                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker */}
+                        <Tooltip direction="bottom">{marker.title}</Tooltip>
                     </Marker>
                 ))}
 
-                {/* Display discarded documents as markers at distinct locations */}
                 {municipalArea.map((doc, index) => {
-                    // Calculate offsets to place each marker slightly apart
-                    const offset = 0.001 * index; // Change this value to adjust the distance
+                    const offset = 0.001 * index;
                     const markerPosition = [
-                        67.881950910 - offset, // Offset latitude
-                        20.18 + 5 * (offset)  // Offset longitude
+                        67.881950910 - offset,
+                        20.18 + 5 * offset
                     ];
                     return (
                         <Marker
                             key={`discarded-${index}`}
-                            position={markerPosition} // Use calculated position with offset
+                            position={markerPosition}
                             icon={documentIcon}
                             eventHandlers={{ click: () => setSelectedMarker(doc) }}
                         >
@@ -167,41 +177,50 @@ const MapComponent = () => {
                                     onClose={() => setSelectedMarker(null)}
                                 />
                             </Popup>
-                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker */}
+                            <Tooltip direction="bottom">{doc.title}</Tooltip>
                         </Marker>
                     );
                 })}
             </MapContainer>
 
             {loggedIn && (
-            <Button 
-            className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-            onClick={() => setIsSelecting(prev => !prev)}  // Toggle open/close on click
-        >       
+                <button
+                    className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
+                    onClick={() => setIsSelecting(prev => !prev)}
+                >
                     {isSelecting ? (
                         <>
                             <div className={styles.coordinatesBar}>
                                 {mouseCoords.lat && mouseCoords.lng ? (
                                     <>
-                                        Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the {"  "}
-                                        <Button
+                                        Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
+                                        <button
                                             className={styles.buttonLink}
                                             onClick={handleAssignToMunicipalArea}
                                         >
                                             Entire Municipality
-                                        </Button>
+                                        </button>
                                     </>
                                 ) : (
-                                    'Move the mouse over the map to see coordinates'
+                                    <>
+                                        Move the mouse inside the area or chose the {"  "}
+                                        <button
+                                            className={styles.buttonLink}
+                                            onClick={handleAssignToMunicipalArea}
+                                        >
+                                            Entire Municipality
+                                        </button>
+                                    </>
                                 )}
                             </div>
-                            <div className={styles.spazio} ></div>
-                            <FontAwesomeIcon icon={faTimes} /> {/* "X" icon for closing */}
+                            <div className={styles.spazio}></div>
+                            <FontAwesomeIcon icon={faTimes} />
                         </>
                     ) : (
-                        <FontAwesomeIcon icon={faPlus} /> // "+" icon for opening
+                        <FontAwesomeIcon icon={faPlus} />
                     )}
-                </Button>)}
+                </button>
+            )}
         </div>
     );
 };

@@ -47,25 +47,25 @@ function DocumentInsert() {
 
     const handleAddConnection = () => {
         setConnections(prev => [
-          ...prev,
-          {
-            selectedDocumentId: '',
-            selectedType: '',
-          }
+            ...prev,
+            {
+                selectedDocumentId: '',
+                selectedType: '',
+            }
         ]);
     };
 
     const handleChange = (index, field, value) => {
         const newConnections = [...connections];
         newConnections[index][field] = value;
-    
+
         setConnections(newConnections);
     };
 
     const handleRemoveConnection = (index) => {
         const newConnections = [...connections];
         newConnections.splice(index, 1);
-    
+
         setConnections(newConnections);
     };
 
@@ -131,9 +131,9 @@ function DocumentInsert() {
 
     const handleDateFormat = (format) => {
         setActiveButton(format);
-        if (format === 1){setDateFormat("yyyy-MM-dd");}
-        else if (format === 2){setDateFormat("yyyy-MM");}
-        else if (format === 3){setDateFormat("yyyy");}
+        if (format === 1) { setDateFormat("yyyy-MM-dd"); }
+        else if (format === 2) { setDateFormat("yyyy-MM"); }
+        else if (format === 3) { setDateFormat("yyyy"); }
     };
 
     const handleDataChange = (date) => {
@@ -152,7 +152,7 @@ function DocumentInsert() {
         if (!scale) newErrors.scale = 'Scale is required';
         if (!description) newErrors.description = 'Description is required';
         if (!date) newErrors.date = 'Date is required';
-        
+
         // Only validate latitude and longitude if not a municipal document
         if (!isMunicipal) {
             if (!latitude) newErrors.latitude = 'Latitude is required';
@@ -197,13 +197,82 @@ function DocumentInsert() {
         return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
     };
 
+    // Le coordinate del poligono di Kiruna
+    const kirunaPolygonCoordinates = [
+        [67.881950910, 20.18],  // Top-left point
+        [67.850, 20.2100],      // Clockwise
+        [67.8410, 20.2000],
+        [67.84037, 20.230],
+        [67.8260, 20.288],
+        [67.8365, 20.304],
+        [67.842, 20.303],
+        [67.844, 20.315],
+        [67.8350, 20.350],
+        [67.850, 20.370],
+        [67.860, 20.300]
+    ];
+
+    // Funzione per verificare se il punto è all'interno del poligono (Algoritmo di Ray-casting)
+    const isPointInPolygon = (point, vs) => {
+        const [x, y] = [point.lat, point.lng];
+        let inside = false;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+            const [xi, yi] = vs[i];
+            const [xj, yj] = vs[j];
+            const intersect = ((yi > y) !== (yj > y)) &&
+                (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    };
+
+    // Funzione per validare le coordinate
+    const validateCoordinates = (lat, lng) => {
+        // Converte in numeri e verifica che siano numeri validi
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+    
+        if (isNaN(latitude) || isNaN(longitude)) {
+            return "Coordinates must be valid numbers.";
+        }
+    
+        // Verifica se la latitudine e la longitudine sono nei limiti
+        if (latitude < -90 || latitude > 90) {
+            return "Latitude must be between -90 and 90.";
+        }
+        if (longitude < -180 || longitude > 180) {
+            return "Longitude must be between -180 and 180.";
+        }
+    
+        // Verifica se il punto è all'interno del poligono
+        const point = { lat: latitude, lng: longitude };
+        if (!isPointInPolygon(point, kirunaPolygonCoordinates)) {
+            return "The point is not inside the Kiruna polygon.";
+        }
+    
+        return null; // nessun errore
+    };
+    
+    // Utilizzo nel form
+    const handleCoordinateChange = (ev, coordinateType) => {
+        const value = ev.target.value;
+        if (coordinateType === "latitude") {
+            setLatitude(value);
+        } else if (coordinateType === "longitude") {
+            setLongitude(value);
+        }
+
+        const error = validateCoordinates(latitude, longitude); // Esegui la validazione
+        setErrors({ ...errors, [coordinateType]: error });
+    }
+
     return (
         <Card className={styles.formCard}>
             <Card.Title className={styles.title}>Insert Document</Card.Title>
             <Card.Body>
                 <FloatingLabel label="Title of the document" className={styles.formField}>
-                    <Form.Control 
-                        type="text" 
+                    <Form.Control
+                        type="text"
                         value={title}
                         onChange={(ev) => setTitle(ev.target.value)}
                         isInvalid={!!errors.title}
@@ -217,7 +286,7 @@ function DocumentInsert() {
                 <Row>
                     <Col md={6}>
                         <FloatingLabel label="Document Type" className="mb-3">
-                            <Form.Select 
+                            <Form.Select
                                 value={type}
                                 onChange={(ev) => {
                                     setType(ev.target.value);
@@ -242,7 +311,7 @@ function DocumentInsert() {
                     </Col>
                     <Col md={6}>
                         <FloatingLabel label="Language" className="mb-3">
-                            <Form.Select 
+                            <Form.Select
                                 value={language}
                                 onChange={(ev) => {
                                     setLanguage(ev.target.value);
@@ -263,10 +332,10 @@ function DocumentInsert() {
                 {/* Custom Document Type Input */}
                 {type === "Add Custom..." && (
                     <FloatingLabel label="Custom Document Type" className="mb-3">
-                        <Form.Control 
-                            type="text" 
-                            value={customType} 
-                            onChange={(ev) => setCustomType(ev.target.value)} 
+                        <Form.Control
+                            type="text"
+                            value={customType}
+                            onChange={(ev) => setCustomType(ev.target.value)}
                         />
                     </FloatingLabel>
                 )}
@@ -274,18 +343,18 @@ function DocumentInsert() {
                 {/* Custom Language Input */}
                 {language === "Add Custom..." && (
                     <FloatingLabel label="Custom Language" className="mb-3">
-                        <Form.Control 
-                            type="text" 
-                            value={customLanguage} 
-                            onChange={(ev) => setCustomLanguage(ev.target.value)} 
+                        <Form.Control
+                            type="text"
+                            value={customLanguage}
+                            onChange={(ev) => setCustomLanguage(ev.target.value)}
                         />
                     </FloatingLabel>
                 )}
 
                 {/* Stakeholders */}
                 <FloatingLabel label="Stakeholders" className={styles.formField}>
-                    <Form.Control 
-                        type="text" 
+                    <Form.Control
+                        type="text"
                         value={stakeholders}
                         onChange={handleStakeholders}
                         isInvalid={!!errors.stakeholders}
@@ -295,7 +364,7 @@ function DocumentInsert() {
                         {errors.stakeholders}
                     </Form.Control.Feedback>
                 </FloatingLabel>
-                
+
                 {/* Connections - Non-editable field with value set to 1 */}
                 <Row>
                     <Col md={6}>
@@ -305,10 +374,10 @@ function DocumentInsert() {
                     </Col>
                     <Col md={6}>
                         <FloatingLabel label="Pages" className="mb-3">
-                            <Form.Control 
-                                type="text" 
-                                value={pages} 
-                                onChange={(ev) => setPages(ev.target.value)} 
+                            <Form.Control
+                                type="text"
+                                value={pages}
+                                onChange={(ev) => setPages(ev.target.value)}
                             />
                         </FloatingLabel>
                     </Col>
@@ -317,7 +386,7 @@ function DocumentInsert() {
                 <Row className="mb-3">
                     <Col md={3}>
                         <FloatingLabel label="Scale" className="mb-3">
-                            <Form.Select 
+                            <Form.Select
                                 value={scale}
                                 onChange={(ev) => {
                                     setScale(ev.target.value);
@@ -345,88 +414,88 @@ function DocumentInsert() {
                 </Row>
                 {/* Custom Scale Input */}
                 {scale === "Add Custom..." && (
-                <FloatingLabel label="Custom Scale" className="mb-3">
-                    <Form.Control 
-                        type="text" 
-                        value={customScale} 
-                        onChange={(ev) => setCustomScale(ev.target.value)} 
-                    />
-                </FloatingLabel>
+                    <FloatingLabel label="Custom Scale" className="mb-3">
+                        <Form.Control
+                            type="text"
+                            value={customScale}
+                            onChange={(ev) => setCustomScale(ev.target.value)}
+                        />
+                    </FloatingLabel>
                 )}
-            
+
                 <Row className="mb-3 d-flex">
                     <Col>
-                    <div className="d-flex gap-2">
-                                <Button
-                                        variant={activeButton === 1 ? 'success' : 'dark'}
-                                        size="sm"
-                                        onClick={()=>handleDateFormat(1)}
-                                >
-                                    YYYY-MM-DD
-                                </Button>
-                                <Button
-                                        variant={activeButton === 2 ? 'success' : 'dark'}
-                                        size="sm"
-                                        onClick={()=>handleDateFormat(2)}
-                                >
-                                    YYYY-MM
-                                </Button>
-                                <Button
-                                    variant={activeButton === 3 ? 'success' : 'dark'}
-                                    size="sm"
-                                    onClick={()=>handleDateFormat(3)}
-                                >
-                                    YYYY
-                                </Button>
+                        <div className="d-flex gap-2">
+                            <Button
+                                variant={activeButton === 1 ? 'success' : 'dark'}
+                                size="sm"
+                                onClick={() => handleDateFormat(1)}
+                            >
+                                YYYY-MM-DD
+                            </Button>
+                            <Button
+                                variant={activeButton === 2 ? 'success' : 'dark'}
+                                size="sm"
+                                onClick={() => handleDateFormat(2)}
+                            >
+                                YYYY-MM
+                            </Button>
+                            <Button
+                                variant={activeButton === 3 ? 'success' : 'dark'}
+                                size="sm"
+                                onClick={() => handleDateFormat(3)}
+                            >
+                                YYYY
+                            </Button>
                         </div>
                     </Col>
                     <Col>
                         <DatePicker
-                                selected={date}
-                                onChange={(date) => handleDataChange(date)}
-                                dateFormat={dateFormat}
-                                showPopperArrow={false}
+                            selected={date}
+                            onChange={(date) => handleDataChange(date)}
+                            dateFormat={dateFormat}
+                            showPopperArrow={false}
                         />
                     </Col>
                 </Row>
-    
-                {/* Conditionally render Latitude and Longitude fields */}
+
                 {!isMunicipal && (
-                    <Row>
-                        <Col md={6}>
-                            <FloatingLabel label="Longitude">
-                                <Form.Control 
-                                    type="text"
-                                    value={longitude}
-                                    onChange={(ev) => setLongitude(ev.target.value)}
-                                    isInvalid={!!errors.longitude}
-                                    required
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.longitude}
-                                </Form.Control.Feedback>
-                            </FloatingLabel>
-                        </Col>
-                        <Col md={6}>
-                            <FloatingLabel label="Latitude">
-                                <Form.Control 
-                                    type="text" 
-                                    value={latitude} 
-                                    onChange={(ev) => setLatitude(ev.target.value)}
-                                    isInvalid={!!errors.latitude}
-                                    required
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.latitude}
-                                </Form.Control.Feedback>
-                            </FloatingLabel>
-                        </Col>
-                    </Row>
-                )}
+                <Row>
+                    <Col md={6}>
+                        <FloatingLabel label="Longitude">
+                            <Form.Control 
+                                type="text"
+                                value={longitude}
+                                onChange={(ev) => handleCoordinateChange(ev, "longitude")}
+                                isInvalid={!!errors.longitude}
+                                required
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.longitude}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
+                    <Col md={6}>
+                        <FloatingLabel label="Latitude">
+                            <Form.Control 
+                                type="text" 
+                                value={latitude} 
+                                onChange={(ev) => handleCoordinateChange(ev, "latitude")}
+                                isInvalid={!!errors.latitude}
+                                required
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.latitude}
+                            </Form.Control.Feedback>
+                        </FloatingLabel>
+                    </Col>
+                </Row>
+            )}
+
 
                 <FloatingLabel label="Description" className={styles.formField}>
-                    <Form.Control 
-                        as="textarea" 
+                    <Form.Control
+                        as="textarea"
                         value={description}
                         onChange={(ev) => setDescription(ev.target.value)}
                         isInvalid={!!errors.description}
@@ -441,8 +510,8 @@ function DocumentInsert() {
                     <div key={index} className="mb-3">
                         <FloatingLabel label="Document to connect" className="mb-3">
                             <Form.Select
-                                value={connection.selectedDocumentId} 
-                                onChange={(ev) => handleChange(index, 'selectedDocumentId', ev.target.value)} 
+                                value={connection.selectedDocumentId}
+                                onChange={(ev) => handleChange(index, 'selectedDocumentId', ev.target.value)}
                                 isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
                             >
                                 <option value="">Select a Document</option>
@@ -465,9 +534,9 @@ function DocumentInsert() {
 
                         <FloatingLabel label="Connection Type" className="mb-3">
                             <Form.Select
-                                value={connection.selectedType} 
+                                value={connection.selectedType}
                                 onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
-                                isInvalid={!!errors[`connections[${index}].selectedType`]} 
+                                isInvalid={!!errors[`connections[${index}].selectedType`]}
                             >
                                 <option value="">Select a Connection Type</option>
                                 <option value="direct consequence">Direct Consequence</option>
@@ -494,39 +563,39 @@ function DocumentInsert() {
                 <Row className='mt-4'>
                     <Col md={6}>
                         <Button
-                        variant="light"
-                        onClick={handleAddConnection}
-                        size="sm"
-                        className="mb-3"
+                            variant="light"
+                            onClick={handleAddConnection}
+                            size="sm"
+                            className="mb-3"
                         >
                             <i class="bi bi-link-45deg"></i>Add Connection
                         </Button>
                     </Col>
                     <Col md={6}>
                         <Button
-                        variant="light"
-                        //onClick={() => navigate('/resources')}
-                        size="sm"
-                        className="mb-3"
+                            variant="light"
+                            //onClick={() => navigate('/resources')}
+                            size="sm"
+                            className="mb-3"
                         >
-                            <i class="bi bi-file-earmark-medical-fill"></i> Add resources 
+                            <i class="bi bi-file-earmark-medical-fill"></i> Add resources
                         </Button>
                     </Col>
                 </Row>
                 <Row className="mt-3">
                     <Col>
-                        <Button 
-                            variant="light" 
-                            onClick={()=>navigate('/map')} 
+                        <Button
+                            variant="light"
+                            onClick={() => navigate('/map')}
                             className='btn btn-light w-100 border-dark'
                         >
                             Back
                         </Button>
                     </Col>
                     <Col>
-                        <Button 
-                            variant="dark" 
-                            onClick={handleSubmit} 
+                        <Button
+                            variant="dark"
+                            onClick={handleSubmit}
                             className="w-100"
                         >
                             Submit
