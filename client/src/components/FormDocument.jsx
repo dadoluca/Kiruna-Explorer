@@ -3,10 +3,10 @@ import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import API from '../services/api';
 import styles from './FormDocument.module.css';
 import { useDocumentContext } from '../contexts/DocumentContext';
@@ -490,15 +490,29 @@ function DocumentInsert() {
                         </Button>
                     </div>
                 ))}
-                <Button
-                    variant="light"
-                    onClick={handleAddConnection}
-                    size="sm"
-                    className="mb-3"
-                >
-                    Add Connection
-                </Button>
 
+                <Row className='mt-4'>
+                    <Col md={6}>
+                        <Button
+                        variant="light"
+                        onClick={handleAddConnection}
+                        size="sm"
+                        className="mb-3"
+                        >
+                            <i class="bi bi-link-45deg"></i>Add Connection
+                        </Button>
+                    </Col>
+                    <Col md={6}>
+                        <Button
+                        variant="light"
+                        //onClick={() => navigate('/resources')}
+                        size="sm"
+                        className="mb-3"
+                        >
+                            <i class="bi bi-file-earmark-medical-fill"></i> Add resources 
+                        </Button>
+                    </Col>
+                </Row>
                 <Row className="mt-3">
                     <Col>
                         <Button 
