@@ -139,7 +139,7 @@ function DocumentInsert() {
     const handleDataChange = (date) => {
         setDate(date);
         const dateString = format(date, dateFormat);
-        setFormattedDate(dateString.replace(/-/g, '/'));
+        setFormattedDate(dateString);
         console.log(formattedDate)
     }
 
