@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
@@ -10,6 +10,8 @@ import API from '../services/api';
 import L from 'leaflet';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
+import Legend from './Legend';
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -18,10 +20,22 @@ const multipleDocumentsIcon = new L.Icon({
     popupAnchor: [0, -32]
 });
 
-const markerPosition = [
-    67.8636, 
-    20.280 
-];
+const createClusterIcon = (cluster) => {
+    const count = cluster.getChildCount();
+
+    // Determine size based on count
+    let clusterClass = styles.clusterSmall;
+    if (count > 20) clusterClass = styles.clusterLarge;
+    else if (count > 10) clusterClass = styles.clusterMedium;
+
+    return L.divIcon({
+        html: `<div class="${styles.clusterIcon} ${clusterClass}">${count}</div>`,
+        className: '', // Use only custom class
+        iconSize: L.point(40, 40, true),
+    });
+};
+
+const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
     const navigate = useNavigate();
@@ -30,7 +44,8 @@ const MapComponent = () => {
     const [municipalArea, setMunicipalArea] = useState([]); // Array for discarded documents
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    //const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const { setDocumentList } = useContext(DocumentContext);
 
@@ -88,6 +103,7 @@ const MapComponent = () => {
     }, []);
 
     // Hook for mouse movement and updating coordinates
+    /*
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
@@ -103,7 +119,23 @@ const MapComponent = () => {
             }
         });
         return null;
+    };*/
+    // Mouse tracking without triggering re-renders
+    const MapMouseEvents = () => {
+        useMapEvents({
+            mousemove: (e) => {
+                mouseCoordsRef.current = { lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) };
+            },
+            click: (e) => {
+                if (isSelecting && loggedIn) {
+                    navigate('/document-creation', { state: { coordinates: e.latlng } });
+                    setIsSelecting(false);
+                }
+            }
+        });
+        return null;
     };
+
 
     // Handle polygon click event
     const handlePolygonClick = () => {
@@ -134,7 +166,7 @@ const MapComponent = () => {
                     fillOpacity={0.4}   // Light effect opacity
                 />
 
-                {markers.map((marker, index) => (
+                {/*markers.map((marker, index) => (
                     <Marker
                         key={index}
                         position={[marker.latitude, marker.longitude]}
@@ -154,9 +186,56 @@ const MapComponent = () => {
                                 onClose={() => setSelectedMarker(null)}
                             />
                         </Popup>
-                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker */}
+                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker }
                     </Marker>
-                ))}
+                ))*/}
+
+                <MarkerClusterGroup 
+                    showCoverageOnHover={false}
+                    disableClusteringAtZoom={16}
+                    iconCreateFunction={createClusterIcon} // Apply custom cluster icon
+                >
+                    {markers.map((marker, index) => (
+                        <Marker
+                            key={index}
+                            position={[marker.latitude, marker.longitude]}
+                            icon={
+                                new L.Icon({
+                                    iconUrl: marker.icon,
+                                    iconSize: [28, 28],
+                                    iconAnchor: [16, 32],
+                                    popupAnchor: [0, -32]
+                                })
+                            }
+                            eventHandlers={{
+                                click: () => setSelectedMarker({
+                                    doc: marker,
+                                    position: [marker.latitude, marker.longitude]
+                                })
+                            }}
+                        >
+                            <Tooltip direction="bottom">{marker.title}</Tooltip>
+                        </Marker>
+                    ))}
+                </MarkerClusterGroup>
+
+
+                {selectedMarker && (
+                    <Popup
+                        position={selectedMarker.position}
+                        onClose={() => setSelectedMarker(null)}
+                        maxWidth={800}
+                        minWidth={500}
+                        maxHeight={500}
+                        className={styles.popup}
+                    >
+                        <DetailPlanCard
+                            doc={selectedMarker.doc}
+                            onClose={() => setSelectedMarker(null)}
+                        />
+                    </Popup>
+                )}
+
 
                 {/* Display discarded documents as markers at distinct locations */}
                 {/*municipalArea.map((doc, index) => {
@@ -183,6 +262,7 @@ const MapComponent = () => {
                         </Marker>
                     );
                 })*/}
+                {municipalArea.length > 0 &&
                 <Marker
                     position={markerPosition} // Use calculated position with offset
                     icon={multipleDocumentsIcon}
@@ -197,8 +277,10 @@ const MapComponent = () => {
                     * */}
 
                     <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
-                </Marker>
+                </Marker>}
             </MapContainer>
+
+            <Legend markers={markers} />
 
             {loggedIn && (
             <Button 
