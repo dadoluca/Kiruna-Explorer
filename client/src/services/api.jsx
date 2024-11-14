@@ -85,22 +85,49 @@ const createDocument = async (document) => {
     }
   }
 
-  const getDocuments = async () => {
+  // Returns a list of documents
+  // Optional filters example: { title: "Example Document", issuance_date: "2023-10-12" }
+  const getDocuments = async (filters = {}) => {
     try {
-      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/`, {
+      const url = new URL(DOCUMENTS_API_BASE_URL);
+      Object.keys(filters).forEach(key => url.searchParams.append(key, filters[key]));
+  
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response);
+  
       if (response.ok) {
-        return await response.json(); // List of documents
+        return await response.json();
       } else {
         throw new Error(`Failed to retrieve documents: ${response.statusText}`);
       }
     } catch (error) {
       console.error("Error in getDocuments:", error);
+      throw error;
+    }
+  };
+
+  const getDocumentById = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        return await response.json();
+      } else if (response.status === 404) {
+        throw new Error('Document not found');
+      } else {
+        throw new Error(`Failed to retrieve document: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error in getDocumentById:", error);
       throw error;
     }
   };
@@ -140,6 +167,7 @@ const createDocument = async (document) => {
     }
   };
 
+  // type should be 'Point'
   const updateDocumentCoordinates = async (documentId, type, coordinates) => {
     try {
       const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/coordinates`, {
@@ -155,7 +183,7 @@ const createDocument = async (document) => {
       const updatedDocument = await response.json();
       return updatedDocument;
     } catch (error) {
-      console.error(error);
+      console.error("Error updating coordinates:", error);
       throw error;
     }
   }
@@ -174,10 +202,55 @@ const createDocument = async (document) => {
       const updatedDocument = await response.json();
       return updatedDocument;
     } catch (error) {
-      console.error(error);
+      console.error("Error setting municipality area:", error);
       throw error;
     }
   }
-  
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality };
+  // Fetch documents with pagination, sorting, and filtering
+  const fetchDocuments = async (page, limit, sortBy, order, filter) => {
+    const url = new URL(`${DOCUMENTS_API_BASE_URL}/fetch/pagination`, window.location.origin);
+
+    url.searchParams.append('page', page);
+    url.searchParams.append('limit', limit);
+    url.searchParams.append('sortBy', sortBy);
+    url.searchParams.append('order', order);
+    if (filter) url.searchParams.append('filter', filter);
+  
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch documents');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
+  }
+  
+  // Fetch documents' titles and dates, sorted by title
+  const fetchDocumentFields = async () => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/fetch/fields`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch document fields');
+      }
+      const fields = await response.json();
+      return fields;
+    } catch (error) {
+      console.error('Error fetching document fields:', error);
+    }
+  }
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields };
