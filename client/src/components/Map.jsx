@@ -11,12 +11,17 @@ import L from 'leaflet';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-const documentIcon = new L.Icon({
-    iconUrl: '/google-docs.png',
-    iconSize: [32, 32],
+const multipleDocumentsIcon = new L.Icon({
+    iconUrl: '/multiple_docs.png',  // Point to backend URL
+    iconSize: [40, 40],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
 });
+
+const markerPosition = [
+    67.8636, 
+    20.280 
+];
 
 const MapComponent = () => {
     const navigate = useNavigate();
@@ -133,7 +138,14 @@ const MapComponent = () => {
                     <Marker
                         key={index}
                         position={[marker.latitude, marker.longitude]}
-                        icon={documentIcon}
+                        icon={
+                            new L.Icon({
+                                iconUrl: marker.icon,  // Point to backend URL
+                                iconSize: [28, 28],
+                                iconAnchor: [16, 32],
+                                popupAnchor: [0, -32]
+                            })
+                        }
                         eventHandlers={{ click: () => setSelectedMarker(marker) }}
                     >
                         <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
@@ -147,7 +159,7 @@ const MapComponent = () => {
                 ))}
 
                 {/* Display discarded documents as markers at distinct locations */}
-                {municipalArea.map((doc, index) => {
+                {/*municipalArea.map((doc, index) => {
                     // Calculate offsets to place each marker slightly apart
                     const offset = 0.001 * index; // Change this value to adjust the distance
                     const markerPosition = [
@@ -167,10 +179,25 @@ const MapComponent = () => {
                                     onClose={() => setSelectedMarker(null)}
                                 />
                             </Popup>
-                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker */}
+                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker }
                         </Marker>
                     );
-                })}
+                })*/}
+                <Marker
+                    position={markerPosition} // Use calculated position with offset
+                    icon={multipleDocumentsIcon}
+                    eventHandlers={{ click: () => setSelectedMarker(doc) }}
+                >
+                    {/*
+                    *
+                    *
+                    * TODO: insert here the visualization of the list of document
+                    * 
+                    * 
+                    * */}
+
+                    <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
+                </Marker>
             </MapContainer>
 
             {loggedIn && (
