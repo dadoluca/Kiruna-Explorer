@@ -139,6 +139,21 @@ const MapComponent = () => {
             }
         });
         return null;
+    };*/
+    // Mouse tracking without triggering re-renders
+    const MapMouseEvents = () => {
+        useMapEvents({
+            mousemove: (e) => {
+                mouseCoordsRef.current = { lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) };
+            },
+            click: (e) => {
+                if (isSelecting && loggedIn) {
+                    navigate('/document-creation', { state: { coordinates: e.latlng } });
+                    setIsSelecting(false);
+                }
+            }
+        });
+        return null;
     };
 
     // Handle polygon click event
@@ -168,32 +183,9 @@ const MapComponent = () => {
                     fillOpacity={0.4}
                 />
 
-                {/*markers.map((marker, index) => (
-                    <Marker
-                        key={index}
-                        position={[marker.latitude, marker.longitude]}
-                        icon={
-                            new L.Icon({
-                                iconUrl: marker.icon,  // Point to backend URL
-                                iconSize: [28, 28],
-                                iconAnchor: [16, 32],
-                                popupAnchor: [0, -32]
-                            })
-                        }
-                        eventHandlers={{ click: () => setSelectedMarker(marker) }}
-                    >
-                        <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
-                            <DetailPlanCard
-                                doc={selectedMarker}
-                                onClose={() => setSelectedMarker(null)}
-                            />
-                        </Popup>
-                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker */}
-                    </Marker>
-                ))}
 
                 {/* Display discarded documents as markers at distinct locations */}
-                {municipalArea.map((doc, index) => {
+                {/*municipalArea.map((doc, index) => {
                     // Calculate offsets to place each marker slightly apart
                     const offset = 0.001 * index; // Change this value to adjust the distance
                     const markerPosition = [
@@ -213,10 +205,56 @@ const MapComponent = () => {
                                     onClose={() => setSelectedMarker(null)}
                                 />
                             </Popup>
-                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker */}
+                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker }
                         </Marker>
                     );
                 })*/}
+
+                <MarkerClusterGroup 
+                    showCoverageOnHover={false}
+                    disableClusteringAtZoom={16}
+                    iconCreateFunction={createClusterIcon} // Apply custom cluster icon
+                >
+                    {markers.map((marker, index) => (
+                        <Marker
+                            key={index}
+                            position={[marker.latitude, marker.longitude]}
+                            icon={
+                                new L.Icon({
+                                    iconUrl: marker.icon,
+                                    iconSize: [28, 28],
+                                    iconAnchor: [16, 32],
+                                    popupAnchor: [0, -32]
+                                })
+                            }
+                            eventHandlers={{
+                                click: () => setSelectedMarker({
+                                    doc: marker,
+                                    position: [marker.latitude, marker.longitude]
+                                })
+                            }}
+                        >
+                            <Tooltip direction="bottom">{marker.title}</Tooltip>
+                        </Marker>
+                    ))}
+                </MarkerClusterGroup>
+
+                {selectedMarker && (
+                    <Popup
+                        position={selectedMarker.position}
+                        onClose={() => setSelectedMarker(null)}
+                        maxWidth={800}
+                        minWidth={500}
+                        maxHeight={500}
+                        className={styles.popup}
+                    >
+                        <DetailPlanCard
+                            doc={selectedMarker.doc}
+                            onClose={() => setSelectedMarker(null)}
+                        />
+                    </Popup>
+                )}
+
                 {municipalArea.length > 0 &&
                 <Marker
                     position={markerPosition} // Use calculated position with offset
