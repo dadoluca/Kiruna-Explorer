@@ -17,16 +17,19 @@ import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
+import ResourceForm from './FormResource';
+import API from '../services/api';
 
 const DetailPlanCard = (props) => {
   const navigate = useNavigate();
+
+  const [showForm, setShowForm] = useState(false);
 
   const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
-
 
   const handleAddConnection = async () => {
     setShowModal(false);
@@ -121,11 +124,14 @@ const DetailPlanCard = (props) => {
           onAddConnection={handleAddConnection}
         />
 
+        {/* Form to add resources to an existing document */}
+        {showForm && <ResourceForm id={document._id} />}
+
         <Row>
           <Col>
           <Button
               variant="light"
-              onClick={() => navigate('/resource-creation')}
+              onClick={() => navigate('/')}       //TO DO
               size="sm"
               className="mb-3"
             >
@@ -135,7 +141,7 @@ const DetailPlanCard = (props) => {
           <Col>
             <Button
               variant="light"
-              onClick={() => navigate('/resource-creation')}
+              onClick={() => setShowForm(true)}
               size="sm"
               className="mb-3"
             >

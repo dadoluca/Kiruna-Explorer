@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -39,6 +40,7 @@ function DocumentInsert() {
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
     const [connections, setConnections] = useState([]);
+    const [resources, setResources] = useState([]);
 
     const handleStakeholders = (ev) => {
         setStakeholders(ev.target.value);
@@ -55,11 +57,32 @@ function DocumentInsert() {
         ]);
     };
 
+    const handleAddResource = () => {
+        setResources(prev => [
+          ...prev,
+          {
+            selectedDocumentId: '',
+            selectedType: '',
+          }
+        ]);
+    };
+
+    const handleRemoveResource = (index) => {
+        const newResources = [...resources];
+        newResources.splice(index, 1);
+
+        setResources(newResources);
+    };
+
     const handleChange = (index, field, value) => {
         const newConnections = [...connections];
         newConnections[index][field] = value;
     
         setConnections(newConnections);
+    };
+
+    const handleChangeResource = (e) =>{
+        setResources(e.target.files[0]);
     };
 
     const handleRemoveConnection = (index) => {
@@ -119,6 +142,9 @@ function DocumentInsert() {
                     title: document.title
                 });
             }));
+
+            //Upload resources
+            await API.addResources(newDoc._id, resources);
 
             // Reset form fields after submission
             resetForm();
@@ -491,6 +517,26 @@ function DocumentInsert() {
                     </div>
                 ))}
 
+                {resources.map((resource, index) => (
+                    <div key={index} className="mb-3">
+                        <FloatingLabel label="Resource to add" className="mb-3">
+                        <Form.Control
+                            type="file"
+                            onChange={(ev) => handleChangeResource}    //da sistemare
+                        />
+                        </FloatingLabel>
+
+                        <Button
+                            variant="light"
+                            onClick={() => handleRemoveResource(index)}
+                            size="sm"
+                            className="mb-3"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                ))}
+
                 <Row className='mt-4'>
                     <Col md={6}>
                         <Button
@@ -505,7 +551,7 @@ function DocumentInsert() {
                     <Col md={6}>
                         <Button
                         variant="light"
-                        onClick={() => navigate('/resource-creation')}
+                        onClick={handleAddResource}
                         size="sm"
                         className="mb-3"
                         >

@@ -1,7 +1,6 @@
 const SERVER_BASE_URL = 'http://localhost:5001';
 const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`; 
-const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`; 
-
+const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`;
 
 const logIn = async (credentials) => {
     const response = await fetch(USERS_API_BASE_URL + '/login', {
@@ -253,4 +252,41 @@ const createDocument = async (document) => {
     }
   }
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields };
+  //Resources APIs
+  const getResources = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch resources');
+      }
+      const resources = await response.json();
+      return resources;
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  }
+
+  const addResources = async(documentId, files) => {
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('file', files[i]);
+      }
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "POST",
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add resources');
+      }
+    } catch (error) {
+      console.error('Error adding resources:', error);
+    }
+  }
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources };

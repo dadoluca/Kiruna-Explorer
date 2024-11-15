@@ -45,10 +45,6 @@ function App() {
           element: <DocumentCreationPage />
         },
         {
-          path: "/resource-creation",
-          element: <ResourceCreationPage/>
-        },
-        {
           path: "*",
           element: <Navigate to="/" />
         }

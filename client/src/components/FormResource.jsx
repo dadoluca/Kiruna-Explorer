@@ -1,15 +1,18 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import PropTypes from "prop-types";
 import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import styles from './FormDocument.module.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import API from '../services/api';
 
 
-function ResourceForm(){
+function ResourceForm(props){
     const navigate = useNavigate();
+    const documentId = props.id;
 
     const [files, setFiles] = useState([]);
     const [error, setError] = useState('');
@@ -19,13 +22,19 @@ function ResourceForm(){
       setFiles(selectedFiles);
     };
   
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
       event.preventDefault();
   
-      if (files.length === 0) {
-        setError('Per favore, allega almeno un documento.');
-        return;
-      }
+      try {
+        //Upload resources
+        await API.addResources(documentId, files);
+
+        // Reset form fields after submission
+        alert("Resources added successfully!");
+        navigate('/map');
+    } catch (error) {
+        console.error("Failed to add resources to the document:", error);
+    }
 
       console.log(files);
       setError('');
@@ -39,7 +48,7 @@ function ResourceForm(){
                 {error && <Alert variant="danger">{error}</Alert>}
                 <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="formFileMultiple" className="mb-3">
-                    <Form.Label>Select resources</Form.Label>
+                    <Form.Label>Add resources</Form.Label>
                     <Form.Control
                     type="file"
                     multiple
@@ -50,7 +59,7 @@ function ResourceForm(){
                         <Col>
                             <Button 
                                 variant="light" 
-                                onClick={()=>navigate('/document-creation')} 
+                                onClick={()=>navigate('/map')}  
                                 className='btn btn-light w-100 border-dark'
                             >
                                 Back
@@ -70,6 +79,10 @@ function ResourceForm(){
             </Card.Body>
       </Card>
     );
+};
+
+ResourceForm.propTypes = {
+    id: PropTypes.string
 };
 
 export default ResourceForm;
