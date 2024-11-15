@@ -136,7 +136,7 @@ const MapComponent = () => {
                         icon={documentIcon}
                         eventHandlers={{ click: () => setSelectedMarker(marker) }}
                     >
-                        <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
+                        <Popup interactive={true} maxWidth={800} minWidth={500} maxHeight={700} className={styles.popup}>
                             <DetailPlanCard
                                 doc={selectedMarker}
                                 onClose={() => setSelectedMarker(null)}

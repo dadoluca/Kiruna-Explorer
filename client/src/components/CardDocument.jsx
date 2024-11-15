@@ -17,19 +17,18 @@ import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
-import ResourceForm from './FormResource';
-import API from '../services/api';
+import NewResourceModal from './NewResourceModal';
+import ResourcesModal from './ResourcesModal';
 
 const DetailPlanCard = (props) => {
   const navigate = useNavigate();
-
-  const [showForm, setShowForm] = useState(false);
 
   const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalResource, setShowModalResource] = useState(false); 
 
   const handleAddConnection = async () => {
     setShowModal(false);
@@ -102,8 +101,6 @@ const DetailPlanCard = (props) => {
             />}
           </ListGroup.Item>
 
-
-
           <ListGroup.Item className={styles.listItem}>
             <FaLanguage className={styles.icon} />
             <strong> Language: </strong> {document.language || "N/A"}
@@ -124,8 +121,13 @@ const DetailPlanCard = (props) => {
           onAddConnection={handleAddConnection}
         />
 
-        {/* Form to add resources to an existing document */}
-        {showForm && <ResourceForm id={document._id} />}
+        {/* Modal to add resources to an existing document */}
+        <NewResourceModal
+          show={showModalResource}
+          onClose={() => setShowModalResource(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
 
         <Row>
           <Col>
@@ -141,7 +143,7 @@ const DetailPlanCard = (props) => {
           <Col>
             <Button
               variant="light"
-              onClick={() => setShowForm(true)}
+              onClick={() => setShowModalResource(true)}
               size="sm"
               className="mb-3"
             >
