@@ -7,7 +7,30 @@ import { fileURLToPath } from 'url';
 // Create a new document
 export const createDocument = async (req, res) => {
   try {
-    const document = new Document(req.body);
+    const documentData = req.body;
+    
+    // Define the icon URL based on the document type
+    let icon_url;
+    switch (documentData.type) {
+      case 'Design Doc.':
+        icon_url = '/icons/design_doc.png';
+        break;
+      case 'Informative Doc.':
+        icon_url = '/icons/informative_icon.png';
+        break;
+      case 'Prescriptive Doc.':
+        icon_url = '/icons/prescriptive_icon.png';
+        break;
+      case 'Technical Doc.':
+        icon_url = '/icons/technical_icon.png';
+        break;
+      case 'default':
+      default:
+        icon_url = '/icons/default_doc.png';
+    }
+    
+    const document = new Document({ ...documentData, icon: icon_url });
+    
     await document.save();
     res.status(201).json(document);
   } catch (error) {

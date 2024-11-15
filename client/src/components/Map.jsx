@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
@@ -10,13 +10,32 @@ import API from '../services/api';
 import L from 'leaflet';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
+import Legend from './Legend';
 
-const documentIcon = new L.Icon({
-    iconUrl: '/google-docs.png',
-    iconSize: [32, 32],
+const multipleDocumentsIcon = new L.Icon({
+    iconUrl: '/multiple_docs.png',  // Point to backend URL
+    iconSize: [40, 40],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
 });
+
+const createClusterIcon = (cluster) => {
+    const count = cluster.getChildCount();
+
+    // Determine size based on count
+    let clusterClass = styles.clusterSmall;
+    if (count > 20) clusterClass = styles.clusterLarge;
+    else if (count > 10) clusterClass = styles.clusterMedium;
+
+    return L.divIcon({
+        html: `<div class="${styles.clusterIcon} ${clusterClass}">${count}</div>`,
+        className: '', // Use only custom class
+        iconSize: L.point(40, 40, true),
+    });
+};
+
+const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
     const navigate = useNavigate();
@@ -25,7 +44,8 @@ const MapComponent = () => {
     const [municipalArea, setMunicipalArea] = useState([]); // Array for discarded documents
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    //const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const { setDocumentList } = useContext(DocumentContext);
 
@@ -97,6 +117,7 @@ const MapComponent = () => {
     }, []);
 
     // Hook for mouse movement and updating coordinates
+    /*
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
@@ -120,6 +141,12 @@ const MapComponent = () => {
         return null;
     };
 
+    // Handle polygon click event
+    const handlePolygonClick = () => {
+        console.log("Hai cliccato sul bordo del poligono!");
+        alert("Bordo del poligono cliccato!");
+    };
+
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
@@ -141,11 +168,18 @@ const MapComponent = () => {
                     fillOpacity={0.4}
                 />
 
-                {markers.map((marker, index) => (
+                {/*markers.map((marker, index) => (
                     <Marker
                         key={index}
                         position={[marker.latitude, marker.longitude]}
-                        icon={documentIcon}
+                        icon={
+                            new L.Icon({
+                                iconUrl: marker.icon,  // Point to backend URL
+                                iconSize: [28, 28],
+                                iconAnchor: [16, 32],
+                                popupAnchor: [0, -32]
+                            })
+                        }
                         eventHandlers={{ click: () => setSelectedMarker(marker) }}
                     >
                         <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
@@ -154,12 +188,14 @@ const MapComponent = () => {
                                 onClose={() => setSelectedMarker(null)}
                             />
                         </Popup>
-                        <Tooltip direction="bottom">{marker.title}</Tooltip>
+                        <Tooltip direction="bottom">{marker.title}</Tooltip> {/* Tooltip with offset below the marker */}
                     </Marker>
                 ))}
 
+                {/* Display discarded documents as markers at distinct locations */}
                 {municipalArea.map((doc, index) => {
-                    const offset = 0.001 * index;
+                    // Calculate offsets to place each marker slightly apart
+                    const offset = 0.001 * index; // Change this value to adjust the distance
                     const markerPosition = [
                         67.881950910 - offset,
                         20.18 + 5 * offset
@@ -177,11 +213,29 @@ const MapComponent = () => {
                                     onClose={() => setSelectedMarker(null)}
                                 />
                             </Popup>
-                            <Tooltip direction="bottom">{doc.title}</Tooltip>
+                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker */}
                         </Marker>
                     );
-                })}
+                })*/}
+                {municipalArea.length > 0 &&
+                <Marker
+                    position={markerPosition} // Use calculated position with offset
+                    icon={multipleDocumentsIcon}
+                    eventHandlers={{ click: () => setSelectedMarker(doc) }}
+                >
+                    {/*
+                    *
+                    *
+                    * TODO: insert here the visualization of the list of document
+                    * 
+                    * 
+                    * */}
+
+                    <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
+                </Marker>}
             </MapContainer>
+
+            <Legend markers={markers} />
 
             {loggedIn && (
                 <button

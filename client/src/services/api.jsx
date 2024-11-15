@@ -98,9 +98,13 @@ const createDocument = async (document) => {
           'Content-Type': 'application/json',
         },
       });
-  
       if (response.ok) {
-        return await response.json();
+        let data = await response.json();
+        data = data.map(doc => ({
+          ...doc,
+          icon: `${SERVER_BASE_URL}${doc.icon_url}`,
+        }));  
+        return data; // List of documents
       } else {
         throw new Error(`Failed to retrieve documents: ${response.statusText}`);
       }
