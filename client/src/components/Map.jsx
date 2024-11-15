@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
+import DrawingMap from './DrawingMap';
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -44,10 +45,11 @@ const MapComponent = () => {
     const [municipalArea, setMunicipalArea] = useState([]); // Array for discarded documents
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    //const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const { setDocumentList } = useContext(DocumentContext);
+    const [customArea, setCustomArea] = useState(null);
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],  // Top-left point
@@ -162,6 +164,11 @@ const MapComponent = () => {
         alert("Bordo del poligono cliccato!");
     };
 
+    const handlePolygonDrawn = (polygonLayer) => {
+        setCustomArea(polygonLayer);
+        console.log("Poligono ricevuto nel padre:", polygonLayer.getLatLngs());
+    };
+
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
@@ -171,6 +178,7 @@ const MapComponent = () => {
         <div className={styles.mapContainer}>
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <MapMouseEvents />
+                <DrawingMap onPolygonDrawn={handlePolygonDrawn}/>
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
