@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate} from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import { Row, Col } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
-import Form from 'react-bootstrap/Form';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import PropTypes from "prop-types";
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
@@ -29,6 +26,7 @@ const DetailPlanCard = (props) => {
 
   const [showModal, setShowModal] = useState(false);
   const [showModalResource, setShowModalResource] = useState(false); 
+  const [showResources, setShowResources] = useState(false);
 
   const handleAddConnection = async () => {
     setShowModal(false);
@@ -129,26 +127,34 @@ const DetailPlanCard = (props) => {
           documentTitle={document.title}
         />
 
+        {/* Modal to show resources */}
+        <ResourcesModal
+          show={showResources}
+          onClose={() => setShowResources(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
+
         <Row>
           <Col>
           <Button
               variant="light"
-              onClick={() => navigate('/')}       //TO DO
+              onClick={() => setShowResources(true)}     
               size="sm"
               className="mb-3"
             >
-                <i class="bi bi-folder2-open"></i> Show resources 
+                <i className="bi bi-folder2-open"></i> Show resources 
             </Button>
           </Col>
           <Col>
-            <Button
+          {loggedIn && <Button
               variant="light"
               onClick={() => setShowModalResource(true)}
               size="sm"
               className="mb-3"
             >
-                <i class="bi bi-file-earmark-medical-fill"></i> Add resources 
-            </Button>
+                <i className="bi bi-file-earmark-medical-fill"></i> Add resources 
+            </Button>}
           </Col>
         </Row>
       </Card.Body>

@@ -61,8 +61,7 @@ function DocumentInsert() {
         setResources(prev => [
           ...prev,
           {
-            selectedDocumentId: '',
-            selectedType: '',
+            selectedResource: '',
           }
         ]);
     };
@@ -81,8 +80,11 @@ function DocumentInsert() {
         setConnections(newConnections);
     };
 
-    const handleChangeResource = (e) =>{
-        setResources(e.target.files[0]);
+    const handleChangeResource = (index, e) =>{
+        const newResources = [...resources];
+        newResources[index] = e.target.files[0];
+
+        setResources(newResources);
     };
 
     const handleRemoveConnection = (index) => {
@@ -143,7 +145,6 @@ function DocumentInsert() {
                 });
             }));
 
-            //Upload resources
             await API.addResources(newDoc._id, resources);
 
             // Reset form fields after submission
@@ -522,7 +523,7 @@ function DocumentInsert() {
                         <FloatingLabel label="Resource to add" className="mb-3">
                         <Form.Control
                             type="file"
-                            onChange={(ev) => handleChangeResource}    //da sistemare
+                            onChange={(ev) => handleChangeResource(index, ev)}    //da sistemare
                         />
                         </FloatingLabel>
 

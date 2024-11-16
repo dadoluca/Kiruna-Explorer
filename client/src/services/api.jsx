@@ -287,6 +287,23 @@ const createDocument = async (document) => {
     } catch (error) {
       console.error('Error adding resources:', error);
     }
-  }
+}
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources };
+const downloadResource = async (documentId, filename) => {
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources/${filename}/download`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to download resource');
+    }
+    return response.blob();
+  } catch (error) {
+    console.error('Error downloading resource:', error);
+  }
+}
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource };

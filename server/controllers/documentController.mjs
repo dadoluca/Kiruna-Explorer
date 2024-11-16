@@ -444,6 +444,7 @@ export const uploadResource = async (req, res, next) => {
     // Construct file metadata
     const resource = {
       filename: req.file.filename,
+      originalFilename: req.file.originalname,
       url: `/uploads/${req.file.filename}`, // or your URL format
       type: req.file.mimetype,
     };

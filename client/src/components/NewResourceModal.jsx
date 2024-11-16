@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useDocumentContext } from '../contexts/DocumentContext';
 import Modal from 'react-bootstrap/Modal';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
 import PropTypes from 'prop-types';
 import ResourceForm from './FormResource';
 import API from '../services/api';
 
 const NewResourceModal = ({ show, onClose, documentId, documentTitle }) => {
-    const { updateDocument } = useDocumentContext();
     const [resources, setResources] = useState([]);
     
     useEffect(() => {
