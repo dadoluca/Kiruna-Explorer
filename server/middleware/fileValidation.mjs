@@ -14,7 +14,7 @@ export const validateFile = (req, res, next) => {
   
     // Define maximum allowed file size (in bytes) and allowed file types
     const maxSize = 15 * 1024 * 1024; // 15 MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   
     // Validate file size
     if (file.size > maxSize) {

@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -39,6 +40,7 @@ function DocumentInsert() {
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
     const [connections, setConnections] = useState([]);
+    const [resources, setResources] = useState([]);
 
     const handleStakeholders = (ev) => {
         setStakeholders(ev.target.value);
@@ -55,11 +57,34 @@ function DocumentInsert() {
         ]);
     };
 
+    const handleAddResource = () => {
+        setResources(prev => [
+          ...prev,
+          {
+            selectedResource: '',
+          }
+        ]);
+    };
+
+    const handleRemoveResource = (index) => {
+        const newResources = [...resources];
+        newResources.splice(index, 1);
+
+        setResources(newResources);
+    };
+
     const handleChange = (index, field, value) => {
         const newConnections = [...connections];
         newConnections[index][field] = value;
 
         setConnections(newConnections);
+    };
+
+    const handleChangeResource = (index, e) =>{
+        const newResources = [...resources];
+        newResources[index] = e.target.files[0];
+
+        setResources(newResources);
     };
 
     const handleRemoveConnection = (index) => {
@@ -119,6 +144,8 @@ function DocumentInsert() {
                     title: document.title
                 });
             }));
+
+            await API.addResources(newDoc._id, resources);
 
             // Reset form fields after submission
             resetForm();
@@ -268,7 +295,7 @@ function DocumentInsert() {
 
     return (
         <Card className={styles.formCard}>
-            <Card.Title className={styles.title}>Insert Document</Card.Title>
+            <Card.Title className={styles.title}><i class="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
             <Card.Body>
                 <FloatingLabel label="Title of the document" className={styles.formField}>
                     <Form.Control
@@ -560,6 +587,26 @@ function DocumentInsert() {
                     </div>
                 ))}
 
+                {resources.map((resource, index) => (
+                    <div key={index} className="mb-3">
+                        <FloatingLabel label="Resource to add" className="mb-3">
+                        <Form.Control
+                            type="file"
+                            onChange={(ev) => handleChangeResource(index, ev)}    //da sistemare
+                        />
+                        </FloatingLabel>
+
+                        <Button
+                            variant="light"
+                            onClick={() => handleRemoveResource(index)}
+                            size="sm"
+                            className="mb-3"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                ))}
+
                 <Row className='mt-4'>
                     <Col md={6}>
                         <Button
@@ -573,10 +620,10 @@ function DocumentInsert() {
                     </Col>
                     <Col md={6}>
                         <Button
-                            variant="light"
-                            //onClick={() => navigate('/resources')}
-                            size="sm"
-                            className="mb-3"
+                        variant="light"
+                        onClick={handleAddResource}
+                        size="sm"
+                        className="mb-3"
                         >
                             <i class="bi bi-file-earmark-medical-fill"></i> Add resources
                         </Button>

@@ -1,28 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate} from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
+import { Row, Col } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
-import Form from 'react-bootstrap/Form';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import PropTypes from "prop-types";
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
 import NewLinkModal from './NewLinkModal';
 import { useDocumentContext } from '../contexts/DocumentContext';
 import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CardDocument.module.css';
+import NewResourceModal from './NewResourceModal';
+import ResourcesModal from './ResourcesModal';
 
 const DetailPlanCard = (props) => {
+  const navigate = useNavigate();
+
   const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
-
+  const [showModalResource, setShowModalResource] = useState(false); 
+  const [showResources, setShowResources] = useState(false);
 
   const handleAddConnection = async () => {
     setShowModal(false);
@@ -95,8 +99,6 @@ const DetailPlanCard = (props) => {
             />}
           </ListGroup.Item>
 
-
-
           <ListGroup.Item className={styles.listItem}>
             <FaLanguage className={styles.icon} />
             <strong> Language: </strong> {document.language || "N/A"}
@@ -116,6 +118,45 @@ const DetailPlanCard = (props) => {
           documentTitle={document.title}
           onAddConnection={handleAddConnection}
         />
+
+        {/* Modal to add resources to an existing document */}
+        <NewResourceModal
+          show={showModalResource}
+          onClose={() => setShowModalResource(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
+
+        {/* Modal to show resources */}
+        <ResourcesModal
+          show={showResources}
+          onClose={() => setShowResources(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
+
+        <Row>
+          <Col>
+          <Button
+              variant="light"
+              onClick={() => setShowResources(true)}     
+              size="sm"
+              className="mb-3"
+            >
+                <i className="bi bi-folder2-open"></i> Show resources 
+            </Button>
+          </Col>
+          <Col>
+          {loggedIn && <Button
+              variant="light"
+              onClick={() => setShowModalResource(true)}
+              size="sm"
+              className="mb-3"
+            >
+                <i className="bi bi-file-earmark-medical-fill"></i> Add resources 
+            </Button>}
+          </Col>
+        </Row>
       </Card.Body>
     </Card>
   );

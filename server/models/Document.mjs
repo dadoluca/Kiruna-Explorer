@@ -23,6 +23,7 @@ relationshipSchema.index({ documentId: 1 }, { unique: true });
 // Schema for resource attachments
 const resourceSchema = new mongoose.Schema({
   filename: { type: String, required: true },
+  originalFilename: { type: String, required: true },
   url: { type: String, required: true },
   type: { type: String, required: true }
 });
@@ -54,6 +55,7 @@ const documentSchema = new mongoose.Schema({
   original_resources: [
     {
       filename: { type: String, required: true },
+      originalFilename: { type: String, required: true },
       url: { type: String, required: true },
       type: { type: String, required: true }
     }
