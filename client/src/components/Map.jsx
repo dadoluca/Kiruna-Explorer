@@ -12,6 +12,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
+import { Button } from 'react-bootstrap';
+import ScrollableDocumentsList from './ListDocument';
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -44,9 +46,10 @@ const MapComponent = () => {
     const [municipalArea, setMunicipalArea] = useState([]); // Array for discarded documents
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    //const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
+    const [isListing, setIsListing] = useState(false); // Listing state
     const { setDocumentList } = useContext(DocumentContext);
 
     const kirunaPolygonCoordinates = [
@@ -275,6 +278,8 @@ const MapComponent = () => {
 
             <Legend markers={markers} />
 
+            <ScrollableDocumentsList markers={markers}/>
+
             {loggedIn && (
                 <button
                     className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
@@ -313,6 +318,7 @@ const MapComponent = () => {
                     )}
                 </button>
             )}
+
         </div>
     );
 };
