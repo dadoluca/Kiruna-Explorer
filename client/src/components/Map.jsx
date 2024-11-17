@@ -49,7 +49,7 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
-    const [isListing, setIsListing] = useState(false); // Listing state
+    const [isListing, setIsListing] = useState(true); // Listing state SET TO TRUE FOR TESTING
     const { setDocumentList } = useContext(DocumentContext);
 
     const kirunaPolygonCoordinates = [
@@ -278,7 +278,7 @@ const MapComponent = () => {
 
             <Legend markers={markers} />
 
-            <ScrollableDocumentsList markers={markers}/>
+            {isListing && <ScrollableDocumentsList markers={markers}/>}
 
             {loggedIn && (
                 <button
