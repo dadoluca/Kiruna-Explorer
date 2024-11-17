@@ -12,6 +12,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
   const [drawControl, setDrawControl] = useState(null);
   const listenerRef = useRef(null);  // Reference to store the listener state
   const drawnItems = useRef(new L.FeatureGroup()).current;  // L.FeatureGroup to store drawn features
+  const previousPolygonRef = useRef(null);  // Reference to store the previous valid polygon
 
   useEffect(() => {
     // Add the drawnItems layer to the map
@@ -67,6 +68,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
 
     // Check if the drawn polygon is within the limit area
     if (turf.booleanWithin(drawnPolygon, limitPolygon)) {
+      previousPolygonRef.current = drawnPolygon;  // Store the valid polygon
       drawnItems.clearLayers();
       drawnItems.addLayer(layer);
       setDrawnPolygon(layer);
@@ -74,7 +76,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
     } else {
       drawnItems.clearLayers();
       setDrawnPolygon(null);
-      alert('The drawn polygon is outside the allowed limit area. Please draw within the designated area.');
+      alert('The drawn area is outside the municipality area.');
       console.log('Polygon outside the limit area.');
     }
   };
@@ -95,12 +97,19 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
 
       // Check if the edited polygon is within the limit area
       if (turf.booleanWithin(drawnPolygon, limitPolygon)) {
+        previousPolygonRef.current = drawnPolygon;  // Store the valid edited polygon
         setDrawnPolygon(layer);
         console.log('Polygon edited within the limit area:', layer.getLatLngs());
       } else {
-        drawnItems.removeLayer(layer);
-        setDrawnPolygon(null);
-        alert('The edited polygon is outside the allowed limit area. Please draw within the designated area.');
+        // If the edited polygon is out of bounds, revert to the previous valid one
+        drawnItems.clearLayers();
+        if (previousPolygonRef.current) {
+          // Restore the previous valid polygon
+          const prevLayer = L.polygon(previousPolygonRef.current.geometry.coordinates[0].map(coord => [coord[1], coord[0]]));
+          drawnItems.addLayer(prevLayer);
+          setDrawnPolygon(prevLayer);
+        }
+        alert('The edited area is outside the municipality area. Reverting to the previous valid area.');
         console.log('Polygon outside the limit area after editing.');
       }
     });
