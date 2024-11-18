@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: width 6s ease-in-out, background-color 6s ease-in-out, box-shadow 6s ease-in-out; /* Durata e transizione più fluida */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
     cursor: pointer;
     z-index: 1000;
     transform-origin: right; /* Ancoraggio a destra */
@@ -33,10 +33,45 @@
     overflow: hidden; 
 }
 
+.listButton {
+    position: absolute;
+    bottom: 70px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
+    right: 10px; /* Allineamento a destra come addButton */
+    background-color: #333333; /* Colore grigio leggermente più chiaro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare */
+    width: 3rem; /* Dimensioni uguali a addButton */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo */
+    overflow: hidden;
+}
+
+.listButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+.listButton.hidden {
+    opacity: 0; /* Trasparente */
+    visibility: hidden; /* Non cliccabile */
+}
+
 /* Effetto hover su .addButton */
 .addButton:hover {
-    background-color: #495057; /* Colore più chiaro su hover */
-    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.4);
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
 }
 
 /* Stato espanso del pulsante */
@@ -96,6 +131,24 @@
 
 .spazio{
     width: 0.5rem;
+}
+
+.closeButton {
+    background-color: transparent; /* Sfondo trasparente */
+    border: none; /* Nessun bordo */
+    color: red; /* Colore del testo */
+    font-size: 0.8rem; /* Testo piccolo */
+    width: 20px; /* Larghezza del bottone */
+    height: 20px; /* Altezza del bottone */
+    display: flex; /* Per centrare il contenuto */
+    align-items: center; /* Centrare verticalmente */
+    justify-content: center; /* Centrare orizzontalmente */
+    border-radius: 50%; /* Bordo arrotondato */
+    cursor: pointer; /* Cambia il cursore in mano */
+    position: absolute; /* Per posizionarlo su una card */
+    top: 10px; /* Posizionamento dall'alto */
+    right: 10px; /* Posizionamento da destra */
+    transition: background-color 0.2s, transform 0.2s; /* Animazioni */
 }
 
 
@@ -174,4 +227,11 @@
 
 .styles.popup {
     overflow-y: auto;
+}
+
+.buttonGroupUI {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    gap: 10px; 
 }

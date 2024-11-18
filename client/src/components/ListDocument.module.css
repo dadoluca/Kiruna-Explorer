@@ -3,18 +3,40 @@
     top: 10px;
     left: 10px;
     width: 300px;
-    overflow-y: auto;
+    max-height: 700px; /* Limita l'altezza per abilitare lo scorrimento */
+    overflow-y: auto; /* Aggiunge la barra di scorrimento verticale */
     background-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     padding: 10px;
-    border-radius: 5px;
-    z-index: 1000; 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-family: 'Source Code Pro', monospace;
+    scrollbar-width: thin; /* Stile per Firefox */
+    scrollbar-color: #aaa rgba(255, 255, 255, 0.5); /* Stile per Firefox */
 }
 
-.scrollbarTitle{
+/* Stile per Chrome, Edge e Safari */
+.scrollableCardList::-webkit-scrollbar {
+    width: 8px; /* Larghezza della barra */
+}
+
+.scrollableCardList::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.5); /* Sfondo della traccia */
+    border-radius: 4px; /* Arrotondamento della traccia */
+}
+
+.scrollableCardList::-webkit-scrollbar-thumb {
+    background-color: #aaa; /* Colore della barra di scorrimento */
+    border-radius: 4px; /* Arrotondamento della barra */
+    border: 1px solid rgba(255, 255, 255, 0.7); /* Bordo attorno alla barra */
+}
+
+.scrollableCardList::-webkit-scrollbar-thumb:hover {
+    background-color: #888; /* Cambia colore al passaggio del mouse */
+}
+
+.scrollbarTitle {
     font-size: 1.2rem;
     font-weight: bold;
     margin-bottom: 10px;
