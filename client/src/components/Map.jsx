@@ -35,6 +35,32 @@ const createClusterIcon = (cluster) => {
     });
 };
 
+const MemoizedMarker = React.memo(
+    ({ marker, onClick }) => {
+        return (
+            <Marker
+                position={[marker.latitude, marker.longitude]}
+                icon={new L.Icon({
+                    iconUrl: marker.icon,
+                    iconSize: [28, 28],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })}
+                eventHandlers={{
+                    click: onClick
+                }}
+            >
+                <Tooltip direction="bottom">{marker.title}</Tooltip>
+            </Marker>
+        );
+    },
+    (prevProps, nextProps) => {
+        // Check if the important properties have changed (e.g., coordinates)
+        return prevProps.marker.latitude === nextProps.marker.latitude &&
+            prevProps.marker.longitude === nextProps.marker.longitude;
+    }
+);
+
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
@@ -45,10 +71,10 @@ const MapComponent = () => {
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null });
-    const mouseCoordsRef = useRef({ lat: null, lng: null });
     const { setDocumentList } = useContext(DocumentContext);
     const [isSelecting, setIsSelecting] = useState(false); // New state for selection mode
     const [changingDocument, setChangingDocument] = useState(null);
+    const [debounceTimeout, setDebounceTimeout] = useState(null);
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
@@ -123,10 +149,13 @@ const MapComponent = () => {
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                mouseCoordsRef.current = { 
+                if (isSelecting && loggedIn && changingDocument == null) {
+                    const newCoords = { 
                     lat: e.latlng.lat.toFixed(5), 
                     lng: e.latlng.lng.toFixed(5) 
-                };
+                    };
+                    setMouseCoords(newCoords);
+                }
             },
             click: (e) => {
                 // Naviga alla creazione documento se in modalità selezione
@@ -242,25 +271,15 @@ const MapComponent = () => {
                     disableClusteringAtZoom={16}
                     iconCreateFunction={createClusterIcon}
                 >
-                    {markers.map((marker, index) => (
-                        <Marker
-                            key={index}
-                            position={[marker.latitude, marker.longitude]}
-                            icon={new L.Icon({
-                                iconUrl: marker.icon,
-                                iconSize: [28, 28],
-                                iconAnchor: [16, 32],
-                                popupAnchor: [0, -32]
+                    {markers.map((marker) => (
+                        <MemoizedMarker
+                            key={marker._id}
+                            marker={marker}
+                            onClick={() => setSelectedMarker({
+                                doc: marker,
+                                position: [marker.latitude, marker.longitude]
                             })}
-                            eventHandlers={{
-                                click: () => setSelectedMarker({
-                                    doc: marker,
-                                    position: [marker.latitude, marker.longitude]
-                                })
-                            }}
-                        >
-                            <Tooltip direction="bottom">{marker.title}</Tooltip>
-                        </Marker>
+                        />
                     ))}
                 </MarkerClusterGroup>
 
@@ -303,9 +322,11 @@ const MapComponent = () => {
             <Legend markers={markers} />
 
             {loggedIn && (
-                <button
+                <div
                     className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
                     onClick={() => setIsSelecting(prev => !prev)}
+                    role="button"
+                    tabIndex={0}
                 >
                     {isSelecting ? (
                         <>
@@ -332,7 +353,7 @@ const MapComponent = () => {
                     ) : (
                         <FontAwesomeIcon icon={faPlus} />
                     )}
-                </button>
+                </div>
             )}
         </div>
     );
