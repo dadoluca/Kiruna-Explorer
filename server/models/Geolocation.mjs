@@ -11,7 +11,7 @@ const areaSchema = new mongoose.Schema({
   properties: {
     name: {
       type: String,
-      required: true
+      required: false
     }
   },
   geometry: {
