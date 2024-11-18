@@ -5,6 +5,7 @@ import supertest from 'supertest';
 import app from '../app.mjs';  // Assuming app.mjs is your Express app setup
 import Document from '../models/Document.mjs';
 import * as documentController from '../controllers/documentController.mjs';
+import fs from 'fs'; // Import the 'fs' module
 
 const request = supertest(app);
 
@@ -248,4 +249,341 @@ describe('DocumentController', () => {
     });
   });
   
+  describe('downloadResource', () => {
+    it('should download a resource file', async () => {
+      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
+      const res = { download: sinon.stub() };
+
+      const document = {
+        _id: 'docId123',
+        original_resources: [{ filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' }]
+      };
+      sinon.stub(Document, 'findById').resolves(document);
+      sinon.stub(fs, 'existsSync').returns(true);
+
+      await documentController.downloadResource(req, res);
+
+      expect(res.download.calledWithMatch('/uploads/file1.pdf')).to.be.true;
+    });
+
+    it('should return 404 if file does not exist on server', async () => {
+      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const document = {
+        _id: 'docId123',
+        original_resources: [{ filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' }]
+      };
+      sinon.stub(Document, 'findById').resolves(document);
+      sinon.stub(fs, 'existsSync').returns(false);
+
+      await documentController.downloadResource(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ message: 'File does not exist on server' })).to.be.true;
+    });
+  });
+
+  describe('uploadResource', () => {
+    it('should upload a resource and associate it with a document', async () => {
+      const req = {
+        params: { id: 'docId123' },
+        file: {
+          filename: 'example.pdf',
+          originalname: 'Original File Name.pdf',
+          mimetype: 'application/pdf',
+        },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const mockDocument = {
+        _id: 'docId123',
+        original_resources: [],
+        save: sinon.stub().resolves(),
+      };
+  
+      sinon.stub(Document, 'findById').resolves(mockDocument);
+  
+      await documentController.uploadResource(req, res);
+  
+      // Check that the resource was added to the document
+      expect(mockDocument.original_resources).to.have.lengthOf(1);
+      expect(mockDocument.original_resources[0]).to.deep.equal({
+        filename: 'example.pdf',
+        originalFilename: 'Original File Name.pdf',
+        url: '/uploads/example.pdf',
+        type: 'application/pdf',
+      });
+  
+      // Check the response
+      expect(res.status.calledWith(201)).to.be.true;
+      expect(res.json.calledWith({
+        message: 'Resource uploaded successfully',
+        resource: {
+          filename: 'example.pdf',
+          originalFilename: 'Original File Name.pdf',
+          url: '/uploads/example.pdf',
+          type: 'application/pdf',
+        },
+      })).to.be.true;
+    });
+  
+    it('should return 404 if the document is not found', async () => {
+      const req = {
+        params: { id: 'nonexistentDocId' },
+        file: { filename: 'example.pdf', mimetype: 'application/pdf' },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves(null);
+  
+      await documentController.uploadResource(req, res);
+  
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ message: 'Document not found' })).to.be.true;
+    });
+  
+    it('should return 400 if the file is invalid', async () => {
+      const req = {
+        params: { id: 'docId123' },
+        file: null, // Simulate missing file
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves({ _id: 'docId123', original_resources: [] });
+  
+      await documentController.uploadResource(req, res);
+  
+      expect(res.status.calledWith(400)).to.be.true;
+      expect(res.json.calledWith({ message: 'File upload failed or invalid file type' })).to.be.true;
+    });
+  });
+  
+  
+  
+  // Test for getDocumentsWithSortingPagination
+  describe('getDocumentsWithSortingPagination', () => {
+    it('should return paginated documents with sorting and filtering', async () => {
+      const req = { query: { page: 1, limit: 2, sortBy: 'title', order: 'asc', filter: 'Test' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const documents = [{ title: 'Test Document 1' }, { title: 'Test Document 2' }];
+      sinon.stub(Document, 'find').returns({
+        sort: sinon.stub().returnsThis(),
+        skip: sinon.stub().returnsThis(),
+        limit: sinon.stub().resolves(documents),
+      });
+      sinon.stub(Document, 'countDocuments').resolves(10);
+
+      await documentController.getDocumentsWithSortingPagination(req, res);
+
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.called).to.be.true;
+      const response = res.json.firstCall.args[0];
+      expect(response).to.have.property('data').that.is.an('array');
+      expect(response.pagination).to.deep.equal({
+        currentPage: 1,
+        totalPages: 5,
+        totalDocuments: 10,
+      });
+    });
+  });
+
+  // Test for getDocumentFields
+  describe('getDocumentFields', () => {
+    it('should fetch specified fields of documents', async () => {
+      const req = {};
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const fields = [{ title: 'Doc 1', issuance_date: '2023-01-01' }];
+      sinon.stub(Document, 'find').resolves(fields);
+
+      await documentController.getDocumentFields(req, res);
+
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWith(fields)).to.be.true;
+    });
+  });
+
+  // Test for updateCoordinates
+  describe('updateCoordinates', () => {
+    it('should update coordinates of a document', async () => {
+      const req = { params: { id: 'docId123' }, body: { type: 'Point', coordinates: [100, 100] } };
+      const res = { json: sinon.stub() };
+
+      const updatedDocument = { _id: 'docId123', coordinates: { type: 'Point', coordinates: [100, 100] } };
+      sinon.stub(Document, 'findByIdAndUpdate').resolves(updatedDocument);
+
+      await documentController.updateCoordinates(req, res);
+
+      expect(res.json.calledWith(updatedDocument)).to.be.true;
+    });
+
+    it('should return 404 if document not found', async () => {
+      const req = { params: { id: 'nonexistentId' }, body: { type: 'Point', coordinates: [100, 100] } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      sinon.stub(Document, 'findByIdAndUpdate').resolves(null);
+
+      await documentController.updateCoordinates(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ message: 'Document not found' })).to.be.true;
+    });
+  });
+
+  // Test for setToMunicipality
+  describe('setToMunicipality', () => {
+    it('should set document to municipality', async () => {
+      const req = { params: { id: 'docId123' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const mockDocument = {
+        _id: 'docId123',
+        save: sinon.stub().resolves(),
+      };
+  
+      sinon.stub(Document, 'findById').resolves(mockDocument);
+      sinon.stub(Document, 'findByIdAndUpdate').resolves({
+        _id: 'docId123',
+        areaId: null,
+        coordinates: [],
+      });
+  
+      await documentController.setToMunicipality(req, res);
+  
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(
+        res.json.calledWith({
+          _id: 'docId123',
+          areaId: null,
+          coordinates: [],
+        })
+      ).to.be.true;
+    });
+  
+    it('should return 404 if the document is not found', async () => {
+      const req = { params: { id: 'nonexistentId' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves(null);
+  
+      await documentController.setToMunicipality(req, res);
+  
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ message: 'Document not found' })).to.be.true;
+    });
+  
+    it('should return 400 if there is a validation error', async () => {
+      const req = { params: { id: 'invalidId' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').rejects(new Error('Invalid document ID'));
+  
+      await documentController.setToMunicipality(req, res);
+  
+      expect(res.status.calledWith(400)).to.be.true;
+      expect(res.json.calledWith({ message: 'Invalid document ID' })).to.be.true;
+    });
+  });
+  
+
+  // Test for getResourcesForDocument
+  describe('getResourcesForDocument', () => {
+    it('should fetch resources for a document', async () => {
+      const req = { params: { id: 'docId123' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = { _id: 'docId123', original_resources: [{ filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' }] };
+      sinon.stub(Document, 'findById').resolves(document);
+  
+      await documentController.getResourcesForDocument(req, res);
+  
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWith({ success: true, resources: document.original_resources })).to.be.true;
+    });
+  
+    it('should return 404 if document is not found', async () => {
+      const req = { params: { id: 'nonexistentId' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves(null);
+  
+      await documentController.getResourcesForDocument(req, res);
+  
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ success: false, message: 'Document not found' })).to.be.true;
+    });
+  
+    it('should return 500 if there is a server error', async () => {
+      const req = { params: { id: 'docId123' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').rejects(new Error('Server error'));
+  
+      await documentController.getResourcesForDocument(req, res);
+  
+      expect(res.status.calledWith(500)).to.be.true;
+      expect(res.json.calledWith({ success: false, message: 'Server error' })).to.be.true;
+    });
+  });
+  
+
+  // Test for uploadResource
+  describe('uploadResource', () => {
+    it('should upload a resource and add it to a document', async () => {
+      const req = {
+        params: { id: 'docId123' },
+        file: { filename: 'file1.pdf', mimetype: 'application/pdf' },
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const document = { _id: 'docId123', original_resources: [], save: sinon.stub().resolves() };
+      sinon.stub(Document, 'findById').resolves(document);
+
+      await documentController.uploadResource(req, res);
+
+      expect(res.status.calledWith(201)).to.be.true;
+      expect(res.json.calledWithMatch({
+        message: 'Resource uploaded successfully',
+        resource: { filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' },
+      })).to.be.true;
+    });
+  });
+
+  // Test for deleteResource
+  describe('deleteResource', () => {
+    it('should delete a resource from a document', async () => {
+      const req = { params: { id: 'docId123', resourceId: 'resId123' } };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const document = {
+        _id: 'docId123',
+        original_resources: [{ _id: 'resId123', filename: 'file1.pdf' }],
+        save: sinon.stub().resolves(),
+      };
+      sinon.stub(Document, 'findById').resolves(document);
+
+      await documentController.deleteResource(req, res);
+
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWith({ message: 'Resource deleted successfully' })).to.be.true;
+    });
+  });
+
+  // Test for downloadResource
+  describe('downloadResource', () => {
+    it('should download a resource file', async () => {
+      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
+      const res = { download: sinon.stub(), status: sinon.stub().returnsThis(), json: sinon.stub() };
+
+      const document = { _id: 'docId123', original_resources: [{ filename: 'file1.pdf' }] };
+      sinon.stub(Document, 'findById').resolves(document);
+      sinon.stub(fs, 'existsSync').returns(true);
+
+      await documentController.downloadResource(req, res);
+
+      expect(res.download.calledWithMatch('/uploads/file1.pdf')).to.be.true;
+    });
+  });
 });
