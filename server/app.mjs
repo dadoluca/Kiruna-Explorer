@@ -25,4 +25,7 @@ app.use('/users', userRoutes);
 // Error Handling Middleware - should be added after all routes
 app.use(errorHandler);
 
+//To serve icon images
+app.use(express.static('public'));
+
 export default app;

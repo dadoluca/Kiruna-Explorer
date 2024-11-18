@@ -1,7 +1,6 @@
 const SERVER_BASE_URL = 'http://localhost:5001';
 const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`; 
-const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`; 
-
+const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`;
 
 const logIn = async (credentials) => {
     const response = await fetch(USERS_API_BASE_URL + '/login', {
@@ -85,22 +84,53 @@ const createDocument = async (document) => {
     }
   }
 
-  const getDocuments = async () => {
+  // Returns a list of documents
+  // Optional filters example: { title: "Example Document", issuance_date: "2023-10-12" }
+  const getDocuments = async (filters = {}) => {
     try {
-      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/`, {
+      const url = new URL(DOCUMENTS_API_BASE_URL);
+      Object.keys(filters).forEach(key => url.searchParams.append(key, filters[key]));
+  
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response);
       if (response.ok) {
-        return await response.json(); // List of documents
+        let data = await response.json();
+        data = data.map(doc => ({
+          ...doc,
+          icon: `${SERVER_BASE_URL}${doc.icon_url}`,
+        }));  
+        return data; // List of documents
       } else {
         throw new Error(`Failed to retrieve documents: ${response.statusText}`);
       }
     } catch (error) {
       console.error("Error in getDocuments:", error);
+      throw error;
+    }
+  };
+
+  const getDocumentById = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        return await response.json();
+      } else if (response.status === 404) {
+        throw new Error('Document not found');
+      } else {
+        throw new Error(`Failed to retrieve document: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error in getDocumentById:", error);
       throw error;
     }
   };
@@ -140,6 +170,7 @@ const createDocument = async (document) => {
     }
   };
 
+  // type should be 'Point'
   const updateDocumentCoordinates = async (documentId, type, coordinates) => {
     try {
       const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/coordinates`, {
@@ -155,7 +186,7 @@ const createDocument = async (document) => {
       const updatedDocument = await response.json();
       return updatedDocument;
     } catch (error) {
-      console.error(error);
+      console.error("Error updating coordinates:", error);
       throw error;
     }
   }
@@ -174,10 +205,109 @@ const createDocument = async (document) => {
       const updatedDocument = await response.json();
       return updatedDocument;
     } catch (error) {
-      console.error(error);
+      console.error("Error setting municipality area:", error);
       throw error;
     }
   }
-  
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality };
+  // Fetch documents with pagination, sorting, and filtering
+  const fetchDocuments = async (page, limit, sortBy, order, filter) => {
+    const url = new URL(`${DOCUMENTS_API_BASE_URL}/fetch/pagination`, window.location.origin);
+
+    url.searchParams.append('page', page);
+    url.searchParams.append('limit', limit);
+    url.searchParams.append('sortBy', sortBy);
+    url.searchParams.append('order', order);
+    if (filter) url.searchParams.append('filter', filter);
+  
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch documents');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
+  }
+  
+  // Fetch documents' titles and dates, sorted by title
+  const fetchDocumentFields = async () => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/fetch/fields`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch document fields');
+      }
+      const fields = await response.json();
+      return fields;
+    } catch (error) {
+      console.error('Error fetching document fields:', error);
+    }
+  }
+
+  //Resources APIs
+  const getResources = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch resources');
+      }
+      const resources = await response.json();
+      return resources;
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  }
+
+  const addResources = async(documentId, files) => {
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('file', files[i]);
+      }
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "POST",
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add resources');
+      }
+    } catch (error) {
+      console.error('Error adding resources:', error);
+    }
+}
+
+const downloadResource = async (documentId, filename) => {
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources/${filename}/download`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to download resource');
+    }
+    return response.blob();
+  } catch (error) {
+    console.error('Error downloading resource:', error);
+  }
+}
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource };

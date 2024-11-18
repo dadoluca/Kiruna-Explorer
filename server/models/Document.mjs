@@ -23,49 +23,52 @@ relationshipSchema.index({ documentId: 1 }, { unique: true });
 // Schema for resource attachments
 const resourceSchema = new mongoose.Schema({
   filename: { type: String, required: true },
+  originalFilename: { type: String, required: true },
   url: { type: String, required: true },
   type: { type: String, required: true }
 });
 
 // Main Document schema
 const documentSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    stakeholders: { type: [String], required: true },
-    scale: String,
-    issuance_date: String,
-    type: String,
-    connections: { type: Number, default: 0 },
-    language: String,
-    pages: String,
-    coordinates: {
-      type: { type: String, enum: ['Point', 'Polygon'] },
-      coordinates: { type: Array }
-    },
-    areaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Area' },
-    description: String,
-    relationships: [
-      {
-        documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
-        documentTitle: { type: String },
-        type: { type: String, enum: ['direct consequence', 'collateral consequence', 'projection', 'update'] }
-      }
-    ],
-    original_resources: [
-      {
-        filename: String,
-        url: String,
-        type: String
-      }
-    ],
-    attachments: [
-      {
-        filename: String,
-        url: String,
-        type: String
-      }
-    ],
-    tags: { type: [String], default: [] } // New tags field for categorization
-  });
+  title: { type: String, required: true },
+  stakeholders: { type: [String], required: true },
+  scale: String,
+  issuance_date: String,
+  type: String,
+  connections: { type: Number, default: 0 },
+  language: String,
+  pages: String,
+  coordinates: {
+    type: { type: String, enum: ['Point', 'Polygon'] },
+    coordinates: { type: Array }
+  },
+  areaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Area' },
+  description: String,
+  icon_url: String,
+  relationships: [
+    {
+      documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
+      documentTitle: { type: String },
+      type: { type: String, enum: ['direct consequence', 'collateral consequence', 'projection', 'update'] }
+    }
+  ],
+  original_resources: [
+    {
+      filename: { type: String, required: true },
+      originalFilename: { type: String, required: true },
+      url: { type: String, required: true },
+      type: { type: String, required: true }
+    }
+  ],
+  attachments: [
+    {
+      filename: { type: String, required: true },
+      url: { type: String, required: true },
+      type: { type: String, required: true }
+    }
+  ],
+  tags: { type: [String], default: [] }
+});
 
 // Index for faster querying by relationships
 documentSchema.index({ 'relationships.documentId': 1 });

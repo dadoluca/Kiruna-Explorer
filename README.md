@@ -221,6 +221,8 @@ To manage documents effectively, we’ve implemented a set of RESTful API endpoi
 - **GET /documents**: Retrieves all documents with optional query filters (e.g., by type, stakeholders) and pagination support.
 - **GET /documents/all/titles**: Retrieves all documents titles (as an array of strings) with optional query filters.
 - **GET /documents/:id/available**: Retrieves all documents that can be connected to a specific one.
+- **GET /documents/fetch/pagination**: Retrieves documents with pagination, sorting, and filtering.
+- **GET /documents/fetch/fields**: Retrieves all documents' titles and dates, sorted by titles in alphabetical order.
 - **GET /documents/:id**: Retrieves the details of a specific document by its unique `_id`.
 - **PUT /documents/:id**: Updates an existing document’s details, allowing fields like title, description, and relationships to be modified.
 - **PUT /documents/:id/municipality**: Updates a document setting is location to the municipality area.
