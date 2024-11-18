@@ -74,8 +74,12 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
       setDrawnPolygon(layer);
       console.log('Polygon drawn within the limit area:', layer.getLatLngs());
     } else {
-      drawnItems.clearLayers();
-      setDrawnPolygon(null);
+      drawnItems.removeLayer(layer);
+      if (previousPolygonRef.current) {
+        // Restore the previous valid polygon
+        const prevLayer = L.polygon(previousPolygonRef.current.geometry.coordinates[0].map(coord => [coord[1], coord[0]]));
+        setDrawnPolygon(prevLayer);
+      }
       alert('The drawn area is outside the municipality area.');
       console.log('Polygon outside the limit area.');
     }
