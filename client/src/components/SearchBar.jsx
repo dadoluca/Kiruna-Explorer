@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
-import styles from './SearchBar.module.css'; // CSS module for styling
-import { DocumentContext } from '../contexts/DocumentContext'; // Assuming your context is defined elsewhere
-
+import styles from './SearchBar.module.css'; 
+import { DocumentContext } from '../contexts/DocumentContext'; 
+import { FaSearch } from "react-icons/fa"; // Import the search icon
+  
 const SearchBar = ({ onFilter }) => {
   const { documents } = useContext(DocumentContext); // Fetch documents from context
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,8 +48,11 @@ const SearchBar = ({ onFilter }) => {
           onChange={handleSearchChange}
           className={styles.input}
         />
-        <button type="submit" className={styles.button}>Search</button>
+        <button type="button" className={styles.button}>
+          <FaSearch className={styles.searchIcon} /> 
+        </button>      
       </form>
+
       {suggestions.length > 0 && (
         <ul className={styles.suggestions}>
           {suggestions.map((title, index) => (

@@ -181,8 +181,9 @@ const MapComponent = () => {
     };
 
     return (
+        <>
+        <SearchBar onFilter={handleFilter} />
         <div className={styles.mapContainer}>
-            <SearchBar onFilter={handleFilter} />
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <MapMouseEvents />
                 <TileLayer
@@ -331,6 +332,7 @@ const MapComponent = () => {
             )}
 
         </div>
+        </>
     );
 };
 

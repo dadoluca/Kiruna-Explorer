@@ -1,59 +1,75 @@
 .searchBar {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto 20px;
-  }
-  
-  .form {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .input {
-    flex: 1;
-    padding: 8px 12px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .button {
-    padding: 8px 16px;
-    font-size: 14px;
-    background-color: #bf00ff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .button:hover {
-    background-color: #0056b3;
-  }
-  
-  .suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    max-height: 150px;
-    overflow-y: auto;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    z-index: 1000;
-  }
-  
-  .suggestionItem {
-    padding: 8px 12px;
-    cursor: pointer;
-  }
-  
-  .suggestionItem:hover {
-    background-color: #f1f1f1;
-  }
-  
+  position: relative;
+  width: 100%;
+  max-width: 600px; /* Increase width for a modern look */
+  margin: 0 auto 20px;
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff; /* Light pink background to match the modern design */
+  border-radius: 30px; /* Fully rounded corners */
+  padding: 5px 15px; /* Add padding for a spacious look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a soft shadow for depth */
+}
+
+.input {
+  flex: 1;
+  border: none; /* Remove default border */
+  outline: none; /* Remove default focus outline */
+  background: transparent; /* Match background */
+  font-size: 16px; /* Slightly larger font size */
+  padding: 10px; /* Add padding for better appearance */
+  color: #333; /* Dark text for readability */
+}
+
+.input::placeholder {
+  color: #999; /* Lighter placeholder for modern feel */
+}
+
+.button {
+  background-color: transparent; /* Transparent background for icon */
+  border: none; /* Remove default button border */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0; /* Remove padding for icon alignment */
+}
+
+.button img {
+  width: 20px; /* Adjust the icon size */
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(46%) sepia(77%) saturate(1375%) hue-rotate(351deg) brightness(91%) contrast(92%);
+  /* Match the orange icon color */
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white; /* White background for the suggestions box */
+  border: 1px solid #ccc; /* Light border for separation */
+  border-radius: 30px; /* Match the rounded search bar corners */
+  max-height: 200px; /* Limit height for better usability */
+  overflow-y: auto; /* Enable scrolling for long lists */
+  list-style: none;
+  margin: 8px 0; /* Add some spacing from the search bar */
+  padding: 10px; /* Add padding for a spacious look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
+  z-index: 1000; /* Ensure the suggestions box is above other elements */
+}
+
+.suggestionItem {
+  padding: 10px 15px; /* Add padding for clickable area */
+  cursor: pointer;
+  border-radius: 15px; /* Slightly round individual items */
+  transition: background-color 0.2s ease; /* Smooth hover effect */
+}
+
+.suggestionItem:hover {
+  background-color: #f9f9f9; /* Light hover background for feedback */
+}
