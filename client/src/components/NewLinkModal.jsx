@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import PropTypes from 'prop-types';
 import API from '../services/api';
+import Select from 'react-select';
 
 const connectionTypes = ['direct consequence', 'collateral consequence', 'projection', 'update'];
 
@@ -90,24 +91,19 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
           <div key={index} className="mb-3">
             <Form.Group controlId={`formDocumentSelect-${index}`} className="mb-3">
               <Form.Label>Select Document</Form.Label>
-              <Form.Control
-                as="select"
-                value={connection.selectedDocumentId || ''}
-                onChange={(e) => handleChange(index, 'selectedDocumentId', e.target.value)}
-              >
-                <option value="">Choose...</option>
-                {getAvailableOptions(index).map((doc) => (
-                  <option key={doc._id} value={doc._id}>
-                    {doc.title}
-                  </option>
-                ))}
-                {/* Display selected document title within the select field */}
-                {connection.selectedDocumentId && (
-                  <option value={connection.selectedDocumentId}>
-                    {availableDocuments.find(doc => doc._id === connection.selectedDocumentId)?.title}
-                  </option>
-                )}
-              </Form.Control>
+              <Select
+                value={connection.selectedDocumentId
+                  ? { value: connection.selectedDocumentId, label: availableDocuments.find(doc => doc._id === connection.selectedDocumentId)?.title }
+                  : null}
+                onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption ? selectedOption.value : '')}
+                options={getAvailableOptions(index).map(doc => ({
+                  value: doc._id,
+                  label: doc.title
+                }))}
+                placeholder="Choose..."
+                getOptionLabel={(e) => e.label}
+                isClearable={true}
+              />
             </Form.Group>
 
             <Form.Group controlId={`formConnectionType-${index}`} className="mb-3">
