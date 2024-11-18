@@ -7,7 +7,6 @@
   "scripts": {
     "start": "node server.js",
     "test": "mocha --require @babel/register",
-    "start": "node server.js",
     "dev": "nodemon server.js",
     "setupFilesAfterEnv": "server/test/setup.js"
   },
@@ -33,6 +32,7 @@
     "mocha": "^10.8.2",
     "mongodb-memory-server": "^10.1.2",
     "nodemon": "^3.1.7",
-    "sinon": "^19.0.2"
+    "sinon": "^19.0.2",
+    "supertest": "^7.0.0"
   }
 }
