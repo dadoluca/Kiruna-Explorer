@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import documentRoutes from './routes/documentRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
+import geolocationRoutes from './routes/geolocationRoutes.mjs';
 import { errorHandler } from './middleware/errorMiddleware.mjs';
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(express.json());
 // Routes
 app.use('/documents', documentRoutes);
 app.use('/users', userRoutes);
+app.use('/areas', geolocationRoutes);
 
 // Error Handling Middleware - should be added after all routes
 app.use(errorHandler);
