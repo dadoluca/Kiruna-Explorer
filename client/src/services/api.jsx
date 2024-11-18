@@ -1,6 +1,7 @@
 const SERVER_BASE_URL = 'http://localhost:5001';
 const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`; 
-const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`; 
+const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`;
+const AREAS_API_BASE_URL = `${SERVER_BASE_URL}/areas`; 
 
 
 const logIn = async (credentials) => {
@@ -257,4 +258,24 @@ const createDocument = async (document) => {
     }
   }
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields };
+  const getAllAreas = async () => {
+    try {
+      const response = await fetch(`${AREAS_API_BASE_URL}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error(`Failed to retrieve areas: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error in getAllAreas:", error);
+      throw error;
+    }
+  };
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getAllAreas };
