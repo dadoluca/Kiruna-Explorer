@@ -14,6 +14,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
 import { Button } from 'react-bootstrap';
 import ScrollableDocumentsList from './ListDocument';
+import SearchBar from './SearchBar';
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -50,7 +51,15 @@ const MapComponent = () => {
     const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state
-    const { setDocumentList } = useContext(DocumentContext);
+    const { documents, setDocumentList } = useContext(DocumentContext);
+    
+    
+    const [filteredDocuments, setFilteredDocuments] = useState([]);
+  
+    // Handler to update filtered documents
+    const handleFilter = (documents) => {
+        setFilteredDocuments(documents);
+    };
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],  // Top-left point
@@ -172,6 +181,7 @@ const MapComponent = () => {
 
     return (
         <div className={styles.mapContainer}>
+            <SearchBar onFilter={handleFilter} />
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <MapMouseEvents />
                 <TileLayer
