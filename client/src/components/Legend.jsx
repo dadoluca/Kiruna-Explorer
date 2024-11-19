@@ -12,7 +12,8 @@ const Legend = ({ markers }) => {
     }, {});
 
     return (
-        <div className={styles.legendContainer}>
+        <>
+        {markers.length > 0 && <div className={styles.legendContainer}>
             <h4 className={styles.legendTitle}>Document Types</h4>
             <ul className={styles.legendList}>
                 {Object.entries(documentTypes).map(([docType, icon], index) => (
@@ -22,7 +23,7 @@ const Legend = ({ markers }) => {
                     </li>
                 ))}
             </ul>
-        </div>
+        </div>}</>
     );
 };
 

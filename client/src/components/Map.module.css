@@ -1,9 +1,13 @@
+.mapPage{
+    height: 89vh;
+}
+
 .mapContainer {
     position: relative;
     margin: 0 auto;
-    width: 100%;
-    height: 94vh;
-    border-top: 2px solid black; /* Solo bordo superiore */
+    width: 97%;
+    /*border-top: 2px solid black;  Solo bordo superiore */
+    border-radius: 10px;
     overflow: hidden;
 }
 

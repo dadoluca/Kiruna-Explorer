@@ -16,20 +16,25 @@ const ScrollableDocumentsList = (props) => {
         <div className={styles.scrollableCardList}>
             <h4 className={styles.scrollbarTitle}>Document Types</h4>
             {markers.map((marker, index) => (
-                    <Card >
-                    <Card.Img variant="top" src={marker.icon} />
-                    <Card.Header>{marker.type}</Card.Header>
-                    <Card.Body>
+              <Card key={marker.id || index}> {/* Use marker.id if it exists; fallback to index */}
+                  <Card.Img variant="top" src={marker.icon} />
+                  <Card.Header>{marker.type}</Card.Header>
+                  <Card.Body>
                       <Card.Title>{marker.title}</Card.Title>
                       <Card.Text>
-                        {marker.description}
+                          {marker.description}
                       </Card.Text>
-                    </Card.Body>
-                    <Card.Footer>
-                      <Button variant="dark" onClick={() => handleVisualization(marker.title, marker.description)}>Visualize document <i className="bi bi-arrows-angle-expand"></i></Button>
-                    </Card.Footer>
-                  </Card>
-            ))}
+                  </Card.Body>
+                  <Card.Footer>
+                      <Button 
+                          variant="dark" 
+                          onClick={() => handleVisualization(marker.title, marker.description)}
+                      >
+                          Visualize document <i className="bi bi-arrows-angle-expand"></i>
+                      </Button>
+                  </Card.Footer>
+              </Card>
+          ))}
         </div>
     );
 };

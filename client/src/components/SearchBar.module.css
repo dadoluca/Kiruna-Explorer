@@ -1,8 +1,8 @@
 .searchBar {
   position: relative;
-  width: 100%;
-  max-width: 600px; /* Increase width for a modern look */
-  margin: 0 auto 20px;
+  width: 60%;
+  /*max-width: 600px; /* Increase width for a modern look */
+  margin: 0 auto 15px;
 }
 
 .form {
@@ -11,7 +11,7 @@
   gap: 8px;
   background-color: #fff; /* Light pink background to match the modern design */
   border-radius: 30px; /* Fully rounded corners */
-  padding: 5px 15px; /* Add padding for a spacious look */
+  padding: 2px 15px; /* Add padding for a spacious look */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a soft shadow for depth */
 }
 

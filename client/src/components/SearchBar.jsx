@@ -26,8 +26,8 @@ const SearchBar = ({ onFilter }) => {
   const handleSuggestionClick = (title) => {
     setSearchTerm(title);
     setSuggestions([]);
-    const filteredDocs = documents.filter(doc => doc.title === title);
-    onFilter(filteredDocs); // Call parent handler with filtered documents
+    //const filteredDocs = documents.filter(doc => doc.title === title);
+    onFilter(title); // Call parent handler with filtered documents
   };
 
   const handleSearchSubmit = (e) => {
@@ -35,7 +35,7 @@ const SearchBar = ({ onFilter }) => {
     const filteredDocs = documents.filter(doc =>
       doc.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    onFilter(filteredDocs);
+    onFilter(filteredDocs.title || "All");
   };
 
   return (
