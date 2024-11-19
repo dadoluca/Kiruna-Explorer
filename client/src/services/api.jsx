@@ -258,6 +258,15 @@ const createDocument = async (document) => {
     }
   }
 
+  /* Example: points = [
+                [
+                  [67.881950910, 20.18],
+                  [67.850, 20.2100],   
+                  [67.8410, 20.2000],
+                  [67.84037, 20.230],
+                  [67.8260, 20.288] (can be closed or not)
+                ]
+              ]; */
   const createArea = async (points, name = null) => {
     try {
       const area = {
