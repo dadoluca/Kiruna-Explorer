@@ -161,9 +161,9 @@ const MapComponent = () => {
 
     return (
         <div className={styles.mapPage}>
-            {loggedIn && <SearchBar onFilter={handleFilterByTitle} /> }
             <div className={styles.mapContainer} >
-                <MapContainer center={position} zoom={13} style={loggedIn ? { height: '78vh', width: '100%' }: { height: '88vh', width: '100%'}}>
+                {loggedIn && <SearchBar onFilter={handleFilterByTitle} /> }
+                <MapContainer center={position} zoom={13} className={styles.mapContainer}>
                     <MapMouseEvents />
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
