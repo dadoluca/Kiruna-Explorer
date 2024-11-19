@@ -6,6 +6,7 @@ import app from '../app.mjs';  // Assuming app.mjs is your Express app setup
 import Document from '../models/Document.mjs';
 import * as documentController from '../controllers/documentController.mjs';
 import fs from 'fs'; // Import the 'fs' module
+import path from 'path';
 
 const request = supertest(app);
 
@@ -29,26 +30,41 @@ describe('DocumentController', () => {
   });
 
   describe('getAllDocuments', () => {
-    it('should return all documents', async () => {
+    it('should return all documents when no query is provided', async () => {
       const documents = [{ title: 'Doc1' }, { title: 'Doc2' }];
       const req = { query: {} };
       const res = { json: sinon.stub() };
-
+  
       sinon.stub(Document, 'find').resolves(documents);
-
+  
       await documentController.getAllDocuments(req, res);
-
+  
+      expect(Document.find.calledWith({})).to.be.true;
       expect(res.json.calledWith(documents)).to.be.true;
     });
-
+  
+    it('should filter documents based on query parameters', async () => {
+      const query = { title: 'Example Document', issuance_date: '2023-10-12' };
+      const filteredDocuments = [{ title: 'Example Document', issuance_date: '2023-10-12' }];
+      const req = { query };
+      const res = { json: sinon.stub() };
+  
+      sinon.stub(Document, 'find').resolves(filteredDocuments);
+  
+      await documentController.getAllDocuments(req, res);
+  
+      expect(Document.find.calledWith(query)).to.be.true;
+      expect(res.json.calledWith(filteredDocuments)).to.be.true;
+    });
+  
     it('should return 500 if there is a server error', async () => {
       const req = { query: {} };
       const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
-
+  
       sinon.stub(Document, 'find').rejects(new Error('Server error'));
-
+  
       await documentController.getAllDocuments(req, res);
-
+  
       expect(res.status.calledWith(500)).to.be.true;
       expect(res.json.calledWith({ message: 'Server error' })).to.be.true;
     });
@@ -251,36 +267,115 @@ describe('DocumentController', () => {
   
   describe('downloadResource', () => {
     it('should download a resource file', async () => {
-      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
-      const res = { download: sinon.stub() };
-
-      const document = {
-        _id: 'docId123',
-        original_resources: [{ filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' }]
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
       };
+      const res = { download: sinon.stub(), status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+  
       sinon.stub(Document, 'findById').resolves(document);
+  
       sinon.stub(fs, 'existsSync').returns(true);
 
       await documentController.downloadResource(req, res);
 
-      expect(res.download.calledWithMatch('/uploads/file1.pdf')).to.be.true;
+      const expectedPath = path.resolve('uploads', 'example.pdf');
+      expect(res.download.calledWith(expectedPath, 'example.pdf')).to.be.true;
     });
-
-    it('should return 404 if file does not exist on server', async () => {
-      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
-      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
-
-      const document = {
-        _id: 'docId123',
-        original_resources: [{ filename: 'file1.pdf', url: '/uploads/file1.pdf', type: 'application/pdf' }]
+  
+    it('should return 404 if the document is not found', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
       };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves(null);
+  
+      await documentController.downloadResource(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'Document not found'
+      })).to.be.true;
+    });
+  
+    it('should return 404 if the resource is not found in the document', async () => {
+      const req = {
+        params: { id: '12345', filename: 'nonexistent.pdf' }
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+  
       sinon.stub(Document, 'findById').resolves(document);
+  
+      await documentController.downloadResource(req, res);
+  
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'Resource not found'
+      })).to.be.true;
+    });
+  
+    it('should return 404 if the file does not exist on the server', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+
+      sinon.stub(Document, 'findById').resolves(document);
+
       sinon.stub(fs, 'existsSync').returns(false);
 
       await documentController.downloadResource(req, res);
 
       expect(res.status.calledWith(404)).to.be.true;
-      expect(res.json.calledWith({ message: 'File does not exist on server' })).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'File does not exist on server'
+      })).to.be.true;
+    });
+  
+    it('should return 500 if there is an error during download', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
+      const res = { download: sinon.stub(), status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+
+      sinon.stub(Document, 'findById').resolves(document);
+
+      sinon.stub(fs, 'existsSync').returns(true);
+
+      res.download.callsFake((filePath, filename, callback) => {
+        callback(new Error('Download error'));
+      });
+
+      await documentController.downloadResource(req, res);
+  
+      expect(res.status.calledWith(500)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'Error downloading file'
+      })).to.be.true;
     });
   });
 
@@ -394,14 +489,39 @@ describe('DocumentController', () => {
     it('should fetch specified fields of documents', async () => {
       const req = {};
       const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
-
-      const fields = [{ title: 'Doc 1', issuance_date: '2023-01-01' }];
-      sinon.stub(Document, 'find').resolves(fields);
-
-      await documentController.getDocumentFields(req, res);
-
-      expect(res.status.calledWith(200)).to.be.true;
+      const next = sinon.stub();
+  
+      const fields = [
+        { title: 'A Document', issuance_date: '2023-01-01' },
+        { title: 'B Document', issuance_date: '2023-02-01' },
+      ];
+      sinon.stub(Document, 'find').returns({
+        sort: sinon.stub().returns({
+          lean: sinon.stub().resolves(fields),
+        }),
+      });
+  
+      await documentController.getDocumentFields(req, res, next);
+  
+      expect(Document.find.calledWith({}, 'title issuance_date')).to.be.true;
+      expect(res.status.calledWith(200)).to.be.true; 
       expect(res.json.calledWith(fields)).to.be.true;
+      expect(next.called).to.be.false;
+    });
+  
+    it('should call next with an error if an exception occurs', async () => {
+      const req = {};
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+      const next = sinon.stub();
+  
+      const error = new Error('Database error');
+      sinon.stub(Document, 'find').throws(error);
+  
+      await documentController.getDocumentFields(req, res, next);
+  
+      expect(next.calledWith(error)).to.be.true;
+      expect(res.status.called).to.be.false;
+      expect(res.json.called).to.be.false;
     });
   });
 
@@ -435,31 +555,32 @@ describe('DocumentController', () => {
   // Test for setToMunicipality
   describe('setToMunicipality', () => {
     it('should set document to municipality', async () => {
-      const req = { params: { id: 'docId123' } };
+      const req = { params: { id: '12345' } };
       const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
-  
-      const mockDocument = {
-        _id: 'docId123',
-        save: sinon.stub().resolves(),
+
+      const document = { _id: '12345', title: 'Test Document' };
+      const updatedDocument = { 
+        _id: '12345', 
+        title: 'Test Document', 
+        areaId: null, 
+        coordinates: [] 
       };
-  
-      sinon.stub(Document, 'findById').resolves(mockDocument);
-      sinon.stub(Document, 'findByIdAndUpdate').resolves({
-        _id: 'docId123',
-        areaId: null,
-        coordinates: [],
-      });
-  
+
+      sinon.stub(Document, 'findById').resolves(document);
+
+      sinon.stub(Document, 'findByIdAndUpdate').resolves(updatedDocument);
+
       await documentController.setToMunicipality(req, res);
-  
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(
-        res.json.calledWith({
-          _id: 'docId123',
-          areaId: null,
-          coordinates: [],
-        })
-      ).to.be.true;
+
+      expect(Document.findById.calledWith('12345')).to.be.true;
+
+      expect(Document.findByIdAndUpdate.calledWith(
+        '12345',
+        { areaId: null, coordinates: [] },
+        { new: true }
+      )).to.be.true;
+
+      expect(res.json.calledWith(updatedDocument)).to.be.true;
     });
   
     it('should return 404 if the document is not found', async () => {
@@ -574,7 +695,93 @@ describe('DocumentController', () => {
   // Test for downloadResource
   describe('downloadResource', () => {
     it('should download a resource file', async () => {
-      const req = { params: { id: 'docId123', filename: 'file1.pdf' } };
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
+      const res = { download: sinon.stub(), status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+  
+      sinon.stub(Document, 'findById').resolves(document);
+  
+      sinon.stub(fs, 'existsSync').returns(true);
+
+      await documentController.downloadResource(req, res);
+
+      const expectedPath = path.resolve('uploads', 'example.pdf');
+      expect(res.download.calledWith(expectedPath, 'example.pdf')).to.be.true;
+    });
+  
+    it('should return 404 if the document is not found', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      sinon.stub(Document, 'findById').resolves(null);
+  
+      await documentController.downloadResource(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'Document not found'
+      })).to.be.true;
+    });
+  
+    it('should return 404 if the resource is not found in the document', async () => {
+      const req = {
+        params: { id: '12345', filename: 'nonexistent.pdf' }
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+  
+      sinon.stub(Document, 'findById').resolves(document);
+  
+      await documentController.downloadResource(req, res);
+  
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'Resource not found'
+      })).to.be.true;
+    });
+  
+    it('should return 404 if the file does not exist on the server', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
+      const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
+  
+      const document = {
+        _id: '12345',
+        original_resources: [{ filename: 'example.pdf' }]
+      };
+
+      sinon.stub(Document, 'findById').resolves(document);
+
+      sinon.stub(fs, 'existsSync').returns(false);
+
+      await documentController.downloadResource(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({
+        success: false,
+        message: 'File does not exist on server'
+      })).to.be.true;
+    });
+  
+    it('should return 500 if there is an error during download', async () => {
+      const req = {
+        params: { id: '12345', filename: 'example.pdf' }
+      };
       const res = { download: sinon.stub(), status: sinon.stub().returnsThis(), json: sinon.stub() };
 
       const document = { _id: 'docId123', original_resources: [{ filename: 'file1.pdf' }] };
