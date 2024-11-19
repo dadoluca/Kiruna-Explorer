@@ -2,7 +2,7 @@
     position: absolute;
     top: 10px;
     left: 10px;
-    width: 300px;
+    width: 350px;
     max-height: 700px; /* Limita l'altezza per abilitare lo scorrimento */
     overflow-y: auto; /* Aggiunge la barra di scorrimento verticale */
     background-color: rgba(255, 255, 255, 0.9);
@@ -41,4 +41,27 @@
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
+}
+
+.closeButton {
+    background-color: transparent; /* Sfondo trasparente */
+    border: none; /* Nessun bordo */
+    color: black; /* Colore del testo */
+    font-size: 0.8rem; /* Testo piccolo */
+    width: 20px; /* Larghezza del bottone */
+    height: 20px; /* Altezza del bottone */
+    display: flex; /* Per centrare il contenuto */
+    align-items: center; /* Centrare verticalmente */
+    justify-content: center; /* Centrare orizzontalmente */
+    border-radius: 50%; /* Bordo arrotondato */
+    cursor: pointer; /* Cambia il cursore in mano */
+    position: absolute; /* Per posizionarlo su una card */
+    top: 10px; /* Posizionamento dall'alto */
+    right: 10px; /* Posizionamento da destra */
+    transition: background-color 0.2s, transform 0.2s; /* Animazioni */
+}
+
+.closeButton:hover {
+    background-color: black; /* Sfondo nero al passaggio del cursore */
+    color: white; /* Cambia il colore del testo per contrasto */
 }

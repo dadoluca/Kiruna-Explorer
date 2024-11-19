@@ -16,16 +16,22 @@ const ScrollableDocumentsList = (props) => {
                 <h4 className={styles.scrollbarTitle}>Documents </h4>
               </Col>
               <Col md={2}>
-                <button 
+                <Button 
                   className={styles.closeButton} 
                   onClick={() => props.closeList()}
                 >
                   X
-              </button>
+              </Button>
               </Col>
             </Row>
             {markers.map((marker, index) => (
-                    <Card >
+                    <Card 
+                      bg={'light'}
+                      key={'Light'}
+                      text={'dark'}
+                      style={{ width: '18rem' }}
+                      className="mb-2"
+                    >
                     <Card.Header>{marker.type}</Card.Header>
                     <Card.Body>
                       <Card.Title>
