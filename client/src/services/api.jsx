@@ -258,6 +258,32 @@ const createDocument = async (document) => {
     }
   }
 
+  const createArea = async (points, name = null) => {
+    try {
+      const area = {
+        points,
+        ...(name && { name })
+      };
+  
+      const response = await fetch(`${AREAS_API_BASE_URL}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(area),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to create area: ${response.statusText}`);
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Error in createArea:", error);
+      throw error;
+    }
+  };
+
   const getAllAreas = async () => {
     try {
       const response = await fetch(`${AREAS_API_BASE_URL}/`, {
@@ -278,4 +304,4 @@ const createDocument = async (document) => {
     }
   };
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getAllAreas };
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, createArea, getAllAreas };
