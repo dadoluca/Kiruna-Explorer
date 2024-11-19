@@ -5,6 +5,7 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import PropTypes from "prop-types";
 import { Row, Col } from 'react-bootstrap';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const ScrollableDocumentsList = (props) => {
     const markers = props.markers;
@@ -20,7 +21,7 @@ const ScrollableDocumentsList = (props) => {
                   className={styles.closeButton} 
                   onClick={() => props.closeList()}
                 >
-                  X
+                  <i className="bi bi-x-lg"></i>
               </Button>
               </Col>
             </Row>
