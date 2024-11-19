@@ -35,7 +35,7 @@ function DocumentInsert() {
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
 
-    const [activeButton, setActiveButton] = useState(null);
+    const [activeButton, setActiveButton] = useState(1);
     const [dateFormat, setDateFormat] = useState(false);
     const [formattedDate, setFormattedDate] = useState("");
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
@@ -298,7 +298,7 @@ function DocumentInsert() {
         <Card className={styles.formCard}>
             <Card.Title className={styles.title}><i class="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
             <Card.Body>
-                <FloatingLabel label="Title of the document" className={styles.formField}>
+                <FloatingLabel label="Title of the document *" className={styles.formField}>
                     <Form.Control
                         type="text"
                         value={title}
@@ -313,7 +313,7 @@ function DocumentInsert() {
 
                 <Row>
                     <Col md={6}>
-                        <FloatingLabel label="Document Type" className="mb-3">
+                        <FloatingLabel label="Document Type *" className="mb-3">
                             <Form.Select
                                 value={type}
                                 onChange={(ev) => {
@@ -359,7 +359,7 @@ function DocumentInsert() {
 
                 {/* Custom Document Type Input */}
                 {type === "Add Custom..." && (
-                    <FloatingLabel label="Custom Document Type" className="mb-3">
+                    <FloatingLabel label="Custom Document Type *" className="mb-3">
                         <Form.Control
                             type="text"
                             value={customType}
@@ -380,7 +380,7 @@ function DocumentInsert() {
                 )}
 
                 {/* Stakeholders */}
-                <FloatingLabel label="Stakeholders" className={styles.formField}>
+                <FloatingLabel label="Stakeholders *" className={styles.formField}>
                     <Form.Control
                         type="text"
                         value={stakeholders}
@@ -396,7 +396,7 @@ function DocumentInsert() {
                 {/* Connections - Non-editable field with value set to 1 */}
                 <Row>
                     <Col md={6}>
-                        <FloatingLabel label="Connections" className="mb-3">
+                        <FloatingLabel label="Connections *" className="mb-3">
                             <Form.Control type="number" value={0} disabled required />
                         </FloatingLabel>
                     </Col>
@@ -413,7 +413,7 @@ function DocumentInsert() {
 
                 <Row className="mb-3">
                     <Col md={6}>
-                        <FloatingLabel label="Scale" className="mb-3">
+                        <FloatingLabel label="Scale *" className="mb-3">
                             <Form.Select
                                 value={scale}
                                 onChange={(ev) => {
@@ -422,7 +422,8 @@ function DocumentInsert() {
                                         setCustomScale('');
                                     }
                                 }}
-                            >
+                            >   
+                                <option value="">Select a scale</option>
                                 <option value="1:1">1:1</option>
                                 <option value="1:2">1:2</option>
                                 <option value="1:5">1:5</option>
@@ -442,7 +443,7 @@ function DocumentInsert() {
                     {/* Custom Scale Input */}
                     <Col md={6}>
                         {scale === "Add Custom..." && (
-                            <FloatingLabel label="Custom Scale" className="mb-3">
+                            <FloatingLabel label="Custom Scale *" className="mb-3">
                                 <Form.Control
                                     type="text"
                                     value={customScale}
@@ -456,7 +457,7 @@ function DocumentInsert() {
                 {!isMunicipal && (
                     <Row className="mb-4">
                         <Col md={6}>
-                            <FloatingLabel label="Longitude">
+                            <FloatingLabel label="Longitude *">
                                 <Form.Control 
                                     type="text"
                                     value={longitude}
@@ -470,7 +471,7 @@ function DocumentInsert() {
                             </FloatingLabel>
                         </Col>
                         <Col md={6}>
-                            <FloatingLabel label="Latitude">
+                            <FloatingLabel label="Latitude *">
                                 <Form.Control 
                                     type="text" 
                                     value={latitude} 
@@ -518,12 +519,12 @@ function DocumentInsert() {
                             onChange={(date) => handleDataChange(date)}
                             dateFormat={dateFormat}
                             showPopperArrow={false}
-                            placeholderText="Choose a date"
+                            placeholderText="Choose a date *"
                         />
                     </Col>
                 </Row>
 
-                <FloatingLabel label="Description" className={styles.formField}>
+                <FloatingLabel label="Description *" className={styles.formField}>
                     <Form.Control
                         as="textarea"
                         value={description}
@@ -555,7 +556,7 @@ function DocumentInsert() {
                                     label: doc.title
                                 }))}
                                 isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
-                                placeholder="Select a document to connect"
+                                placeholder="Select a document to connect *"
                                 getOptionLabel={(e) => e.label}
                                 isClearable={true}
                                 styles={{
@@ -573,7 +574,7 @@ function DocumentInsert() {
                             </Form.Control.Feedback>
                         </div>
                         
-                        <FloatingLabel label="Connection Type" className="mb-3">
+                        <FloatingLabel label="Connection Type *" className="mb-3">
                             <Form.Select
                                 value={connection.selectedType}
                                 onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
