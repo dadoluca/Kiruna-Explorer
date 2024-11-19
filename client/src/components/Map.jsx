@@ -11,7 +11,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
-import { Button } from 'react-bootstrap';
 import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
 
@@ -89,6 +88,16 @@ const MapComponent = () => {
             setMapMarkers((doc) => doc.title === title);//passing the filter
     };
 
+    const handleVisualization = (marker) => {
+        setSelectedMarker({
+            doc: marker,
+            position: [marker.latitude, marker.longitude]
+        })
+    };
+
+    const handleCloseList = () => {
+        setIsListing(false);
+    };
 
     useEffect(() => {
         const fetchDocuments = async () => {
@@ -162,7 +171,7 @@ const MapComponent = () => {
     return (
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
-                {loggedIn && <SearchBar onFilter={handleFilterByTitle} /> }
+                {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
                 <MapContainer center={position} zoom={13} className={styles.mapContainer}>
                     <MapMouseEvents />
                     <TileLayer
@@ -177,32 +186,6 @@ const MapComponent = () => {
                         fillOpacity={0.4}
                     />
 
-
-                    {/* Display discarded documents as markers at distinct locations */}
-                    {/*municipalArea.map((doc, index) => {
-                        // Calculate offsets to place each marker slightly apart
-                        const offset = 0.001 * index; // Change this value to adjust the distance
-                        const markerPosition = [
-                            67.881950910 - offset,
-                            20.18 + 5 * offset
-                        ];
-                        return (
-                            <Marker
-                                key={`discarded-${index}`}
-                                position={markerPosition}
-                                icon={documentIcon}
-                                eventHandlers={{ click: () => setSelectedMarker(doc) }}
-                            >
-                                <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
-                                    <DetailPlanCard
-                                        doc={selectedMarker}
-                                        onClose={() => setSelectedMarker(null)}
-                                    />
-                                </Popup>
-                                <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker }
-                            </Marker>
-                        );
-                    })*/}
 
                     <MarkerClusterGroup 
                         showCoverageOnHover={false}
@@ -269,47 +252,69 @@ const MapComponent = () => {
 
                 <Legend markers={documents} />
 
-                {isListing && <ScrollableDocumentsList markers={markers}/>}
 
-                {loggedIn && (
-                    <button
-                        className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-                        onClick={() => setIsSelecting(prev => !prev)}
-                    >
-                        {isSelecting ? (
-                            <>
-                                <div className={styles.coordinatesBar}>
-                                    {mouseCoords.lat && mouseCoords.lng ? (
-                                        <>
-                                            Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
-                                            <button
-                                                className={styles.buttonLink}
-                                                onClick={handleAssignToMunicipalArea}
-                                            >
-                                                Entire Municipality
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            Move the mouse inside the area or chose the {"  "}
-                                            <button
-                                                className={styles.buttonLink}
-                                                onClick={handleAssignToMunicipalArea}
-                                            >
-                                                Entire Municipality
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                                <div className={styles.spazio}></div>
-                                <FontAwesomeIcon icon={faTimes} />
-                            </>
-                        ) : (
-                            <FontAwesomeIcon icon={faPlus} />
-                        )}
-                    </button>
-                )}
+                {isListing 
+                && loggedIn 
+                && <ScrollableDocumentsList markers={markers} handleVisualize={handleVisualization} closeList={handleCloseList}/>}
 
+                {isListing 
+                && loggedIn 
+                && <SearchBar 
+                    onFilter={handleFilterByTitle} />
+                }
+
+                <div className={styles.buttonGroupUI}>
+
+
+                    {loggedIn && (
+                        <button
+                        className={`${styles.listButton} ${isListing ? styles.hidden : ''}`}
+                        onClick={() => setIsListing(prev => !prev)}
+                        >
+                            <i className="bi bi-list-task"></i>
+                        </button>
+                    )}
+
+                    {loggedIn && (
+                        <button
+                            className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
+                            onClick={() => setIsSelecting(prev => !prev)}
+                        >
+                            {isSelecting ? (
+                                <>
+                                    <div className={styles.coordinatesBar}>
+                                        {mouseCoords.lat && mouseCoords.lng ? (
+                                            <>
+                                                Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
+                                                <button
+                                                    className={styles.buttonLink}
+                                                    onClick={handleAssignToMunicipalArea}
+                                                >
+                                                    Entire Municipality
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                Move the mouse inside the area or chose the {"  "}
+                                                <button
+                                                    className={styles.buttonLink}
+                                                    onClick={handleAssignToMunicipalArea}
+                                                >
+                                                    Entire Municipality
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className={styles.spazio}></div>
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </>
+                            ) : (
+                                <FontAwesomeIcon icon={faPlus} />
+                            )}
+                        </button>
+                    )}
+                </div>
+                
             </div>
         </div>
     );
