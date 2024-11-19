@@ -268,3 +268,23 @@ To organize and categorize documents more effectively, we’ve added API endpoin
 
 These tag APIs enhance document organization by allowing users to tag documents with relevant keywords, which can then be used to search and filter documents efficiently.
 
+## Area Management API Endpoints
+
+To manage areas effectively, we’ve implemented a set of RESTful API endpoints:
+
+- **POST /areas**: Creates a new area with a name (optional) and a GeoJSON polygon.
+  - Example of a polygon you can use:
+    ```json
+    {
+      "points": [
+        [
+          [67.881950910, 20.18], // [lat, long]
+          [67.850, 20.2100],   
+          [67.8410, 20.2000],
+          [67.84037, 20.230],
+          [67.8260, 20.288] // can be closed or not
+        ]
+      ]
+    }
+    ```
+- **GET /areas**: Retrieves all already existing areas.
