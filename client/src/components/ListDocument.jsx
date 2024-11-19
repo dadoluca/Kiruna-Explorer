@@ -34,14 +34,14 @@ const ScrollableDocumentsList = (props) => {
                     >
                     <Card.Header>{marker.type}</Card.Header>
                     <Card.Body>
-                      <Card.Title>
+                      <Card.Title> 
                         <img 
                         src={marker.icon} 
                         alt="Icona" 
                         style={{ width: "24px", height: "24px", marginRight: "8px" }} />
                         {marker.title} 
                       </Card.Title>
-                      <Card.Text>
+                      <Card.Text className={styles.cardText}>
                         {marker.description}
                       </Card.Text>
                     </Card.Body>

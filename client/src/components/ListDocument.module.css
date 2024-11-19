@@ -65,3 +65,10 @@
     background-color: black; /* Sfondo nero al passaggio del cursore */
     color: white; /* Cambia il colore del testo per contrasto */
 }
+
+.cardText {
+    height: 35px; /* Altezza fissa */
+    overflow: hidden; /* Nasconde il contenuto in eccesso */
+    text-overflow: ellipsis; /* Aggiunge i puntini di sospensione se il testo è troppo lungo */
+    white-space: nowrap; /* Evita l'andata a capo */
+}
