@@ -5,9 +5,22 @@ import Button from 'react-bootstrap/Button';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Row, Col } from 'react-bootstrap';
 import API from '../services/api';
+import { FaFilePdf, FaFileImage, FaFileWord, FaFileExcel, FaFileAlt, FaFileArchive } from "react-icons/fa";
 
 const ResourcesModal = ({ show, onClose, documentId, documentTitle }) => {
     const [resources, setResources] = useState([]);
+
+    const fileIcons = {
+        pdf: <FaFilePdf style={{ color: "red" }} />,
+        jpeg: <FaFileImage style={{ color: "blue" }} />,
+        png: <FaFileImage style={{ color: "blue" }} />,
+        docx: <FaFileWord style={{ color: "blue" }} />
+    };
+
+    const getFileExtension = (fileName) => {
+        const parts = fileName.split(".");
+        return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+    };
     
     useEffect(() => {
         if (show && documentId) {
@@ -59,6 +72,7 @@ const ResourcesModal = ({ show, onClose, documentId, documentTitle }) => {
                 <div className={index}>
                     <Row>
                         <Col md={7}>
+                            {fileIcons[getFileExtension(resource.originalFilename)] || <FaFileAlt style={{ color: "black" }} />}
                             <p>{resource.originalFilename}</p>
                         </Col>
                         <Col md={3}>

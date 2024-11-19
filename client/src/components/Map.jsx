@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip 
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
-// import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
 import API from '../services/api';
@@ -12,7 +11,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
-import { Button } from 'react-bootstrap';
 import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
 
@@ -50,18 +48,10 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
-    const [isListing, setIsListing] = useState(true); // Listing state SET TO TRUE FOR TESTING
-    const { documents, setDocumentList } = useContext(DocumentContext);
-    
-    
-    const [filteredDocuments, setFilteredDocuments] = useState([]);
-  
-    // Handler to update filtered documents
-    const handleFilter = (documents) => {
-        setFilteredDocuments(documents);
-    };
+    const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
+    const { setDocumentList } = useContext(DocumentContext);
 
-
+    
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],  // Top-left point
         [67.850, 20.2100],      // Clockwise
@@ -88,6 +78,17 @@ const MapComponent = () => {
             if (intersect) inside = !inside;
         }
         return inside;
+    };
+
+    const handleVisualization = (marker) => {
+        setSelectedMarker({
+            doc: marker,
+            position: [marker.latitude, marker.longitude]
+        })
+    };
+
+    const handleCloseList = () => {
+        setIsListing(false);
     };
 
     useEffect(() => {
@@ -289,47 +290,57 @@ const MapComponent = () => {
 
             <Legend markers={markers} />
 
-            {isListing && <ScrollableDocumentsList markers={markers}/>}
+            {isListing && <ScrollableDocumentsList markers={markers} handleVisualize={handleVisualization} closeList={handleCloseList}/>}
+            
+            <div className={styles.buttonGroupUI}>
+                {loggedIn && (
+                    <button
+                    className={`${styles.listButton} ${isListing ? styles.hidden : ''}`}
+                    onClick={() => setIsListing(prev => !prev)}
+                    >
+                        <i className="bi bi-list-task"></i>
+                    </button>
+                )}
 
-            {loggedIn && (
-                <button
-                    className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-                    onClick={() => setIsSelecting(prev => !prev)}
-                >
-                    {isSelecting ? (
-                        <>
-                            <div className={styles.coordinatesBar}>
-                                {mouseCoords.lat && mouseCoords.lng ? (
-                                    <>
-                                        Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
-                                        <button
-                                            className={styles.buttonLink}
-                                            onClick={handleAssignToMunicipalArea}
-                                        >
-                                            Entire Municipality
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        Move the mouse inside the area or chose the {"  "}
-                                        <button
-                                            className={styles.buttonLink}
-                                            onClick={handleAssignToMunicipalArea}
-                                        >
-                                            Entire Municipality
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                            <div className={styles.spazio}></div>
-                            <FontAwesomeIcon icon={faTimes} />
-                        </>
-                    ) : (
-                        <FontAwesomeIcon icon={faPlus} />
-                    )}
-                </button>
-            )}
-
+                {loggedIn && (
+                    <button
+                        className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
+                        onClick={() => setIsSelecting(prev => !prev)}
+                    >
+                        {isSelecting ? (
+                            <>
+                                <div className={styles.coordinatesBar}>
+                                    {mouseCoords.lat && mouseCoords.lng ? (
+                                        <>
+                                            Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
+                                            <button
+                                                className={styles.buttonLink}
+                                                onClick={handleAssignToMunicipalArea}
+                                            >
+                                                Entire Municipality
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            Move the mouse inside the area or chose the {"  "}
+                                            <button
+                                                className={styles.buttonLink}
+                                                onClick={handleAssignToMunicipalArea}
+                                            >
+                                                Entire Municipality
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                                <div className={styles.spazio}></div>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </>
+                        ) : (
+                            <FontAwesomeIcon icon={faPlus} />
+                        )}
+                    </button>
+                )}
+            </div>
         </div>
     );
 };
