@@ -250,7 +250,7 @@ const MapComponent = () => {
                     </Marker>}
                 </MapContainer>
 
-                <Legend markers={documents} />
+                <Legend />
 
 
                 {isListing 
