@@ -8,6 +8,7 @@ export const DocumentProvider = ({ children }) => {
   const [documents, setDocuments] = useState([]);
   const [markers, setMarkers] = useState([]); // Array of valid markers
   const [municipalArea, setMunicipalArea] = useState([]); // Array for municipal areas documents
+  const [docList, setDocList] = useState([]);
   
 
   const setDocumentList = (newDocuments) => {
@@ -51,6 +52,27 @@ export const DocumentProvider = ({ children }) => {
     setMunicipalArea(municipalDocuments);
   };
 
+  const setListContent = (filterFn = () => true) => {
+    const displayedDocument = [];
+    let docs_copy = documents;
+    docs_copy
+      .filter(filterFn) // Apply the filter function to include only relevant documents
+      .forEach(doc => {
+        console.log(doc);
+        const coordinates = doc.coordinates.coordinates;
+        const [longitude, latitude] = coordinates;
+        //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
+
+        displayedDocument.push({
+          ...doc,
+          longitude: parseFloat(longitude),
+          latitude: parseFloat(latitude)
+        });
+    });
+    
+    setDocList(displayedDocument);
+  };
+
   const updateDocument = (updatedDocument) => {
     setDocuments((prev) => 
       prev.map(doc => 
@@ -76,7 +98,7 @@ export const DocumentProvider = ({ children }) => {
   };
 
   return (
-    <DocumentContext.Provider value={{ documents, markers, municipalArea, setDocumentList, setMapMarkers, updateDocument, updateDocCoords }}>
+    <DocumentContext.Provider value={{ documents, markers, municipalArea, docList, setDocumentList, setMapMarkers, updateDocument, updateDocCoords, setListContent }}>
       {children}
     </DocumentContext.Provider>
   );

@@ -72,7 +72,7 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords } = useContext(DocumentContext);
+    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [debounceTimeout, setDebounceTimeout] = useState(null);
 
@@ -104,13 +104,22 @@ const MapComponent = () => {
         return inside;
     };
 
-    // Handler to update filtered documents
+    // Handler to update filtered documents on map
     const handleFilterByTitle = (title) => {
         console.log("title ", title);
         if(!title || title === "All")
             setMapMarkers();
         else
             setMapMarkers((doc) => doc.title === title);//passing the filter
+    };
+
+    // Handler to update filtered documents on list
+    const handleFilterByTitleInList = (title) => {
+        console.log("title ", title);
+        if(!title || title === "All")
+            setListContent();
+        else
+            setListContent((doc) => doc.title === title);//passing the filter
     };
 
     const handleVisualization = (doc) => {
@@ -271,15 +280,8 @@ const MapComponent = () => {
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => setSelectedMarker(doc) }}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
                         >
-                            {/*
-                            *
-                            *
-                            * TODO: insert here the visualization of the list of document
-                            * 
-                            * 
-                            * */}
 
                             <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
                         </Marker>}
@@ -295,7 +297,7 @@ const MapComponent = () => {
                 {isListing 
                 && loggedIn 
                 && <SearchBar 
-                    onFilter={handleFilterByTitle} />
+                    onFilter={handleFilterByTitleInList} />
                 }
 
                 <div className={styles.buttonGroupUI}>
@@ -304,7 +306,7 @@ const MapComponent = () => {
                     {loggedIn && (
                         <button
                         className={`${styles.listButton}`}
-                        onClick={() => setIsListing(prev => !prev)}
+                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
                         >
                             <i className="bi bi-list-task"></i>
                         </button>
