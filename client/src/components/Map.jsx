@@ -147,7 +147,7 @@ const MapComponent = () => {
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isSelecting && loggedIn && changingDocument == null) {
+                if (isSelecting && loggedIn && changingDocument == null ) {
                     const newCoords = { 
                     lat: e.latlng.lat.toFixed(5), 
                     lng: e.latlng.lng.toFixed(5) 
@@ -157,7 +157,7 @@ const MapComponent = () => {
             },
             click: (e) => {
                 // Naviga alla creazione documento se in modalità selezione
-                if (isSelecting && loggedIn && changingDocument == null) {
+                if (isSelecting && loggedIn && changingDocument == null && isPointInPolygon(mouseCoords, kirunaPolygonCoordinates)) {
                     navigate('/document-creation', { state: { coordinates: e.latlng } });
                     setIsSelecting(false);
                     return;
