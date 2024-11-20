@@ -13,6 +13,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
 import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
+import DrawingMap from './DrawingMap';
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -74,7 +75,7 @@ const MapComponent = () => {
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
-    const [debounceTimeout, setDebounceTimeout] = useState(null);
+    const [customArea, setCustomArea] = useState(null);
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
@@ -87,7 +88,8 @@ const MapComponent = () => {
         [67.844, 20.315],
         [67.8350, 20.350],
         [67.850, 20.370],
-        [67.860, 20.300]
+        [67.860, 20.300],
+        [67.881950910, 20.18]
     ];
 
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
@@ -213,6 +215,11 @@ const MapComponent = () => {
         alert("Bordo del poligono cliccato!");
     };
 
+    const handlePolygonDrawn = (polygonLayer) => {
+        setCustomArea(polygonLayer);
+        console.log("Poligono ricevuto nel padre:", polygonLayer.getLatLngs());
+    };
+
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
@@ -229,7 +236,8 @@ const MapComponent = () => {
                 {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
             <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
-                    <TileLayer
+                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
+                <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
@@ -330,7 +338,7 @@ const MapComponent = () => {
                                             </>
                                         ) : (
                                             <>
-                                                Move the mouse inside the area or choose the{" "}
+                                                Move the mouse inside the area or chooose the{" "}
                                                 <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
                                                     Entire Municipality
                                                 </button>

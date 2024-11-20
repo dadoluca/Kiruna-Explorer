@@ -152,13 +152,29 @@ export const validateDocument = [
 export const validateCoordinates = [
   body('type')
     .isString()
-    .isIn(['Point']),
-  
+    .withMessage('Type must be a string.')
+    .isIn(['Point'])
+    .withMessage('Type must be "Point".'),
+
   body('coordinates')
     .isArray()
-    .custom(value => {
+    .withMessage('Coordinates must be an array.')
+    .custom((value) => {
       if (value.length !== 2) {
         throw new Error('Coordinates array must contain exactly 2 elements.');
+      }
+
+      const [longitude, latitude] = value;
+
+      if (typeof longitude !== 'number' || typeof latitude !== 'number') {
+        throw new Error('Both longitude and latitude must be numbers.');
+      }
+
+      if (longitude < -180 || longitude > 180) {
+        throw new Error('Longitude must be between -180 and 180 degrees.');
+      }
+      if (latitude < -90 || latitude > 90) {
+        throw new Error('Latitude must be between -90 and 90 degrees.');
       }
 
       const point = turf.point(value);
@@ -170,15 +186,15 @@ export const validateCoordinates = [
       return true;
     }),
 
-    (req, res, next) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        console.error('Validation errors:', errors.array());
-        return res.status(422).json({
-          success: false,
-          errors: errors.array()
-        });
-      }
-      next();
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
+      return res.status(422).json({
+        success: false,
+        errors: errors.array(),
+      });
     }
+    next();
+  },
 ];

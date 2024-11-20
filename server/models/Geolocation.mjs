@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 const areaSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
   type: {
     type: String,
     enum: ['Feature'],
@@ -11,7 +10,7 @@ const areaSchema = new mongoose.Schema({
   properties: {
     name: {
       type: String,
-      required: true
+      required: false
     }
   },
   geometry: {

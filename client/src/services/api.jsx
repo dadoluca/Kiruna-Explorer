@@ -1,6 +1,7 @@
 const SERVER_BASE_URL = 'http://localhost:5001';
 const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`; 
 const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`;
+const AREAS_API_BASE_URL = `${SERVER_BASE_URL}/areas`; 
 
 const logIn = async (credentials) => {
     const response = await fetch(USERS_API_BASE_URL + '/login', {
@@ -256,6 +257,61 @@ const createDocument = async (document) => {
     }
   }
 
+  /* Example: points = [
+                [
+                  [67.881950910, 20.18],
+                  [67.850, 20.2100],   
+                  [67.8410, 20.2000],
+                  [67.84037, 20.230],
+                  [67.8260, 20.288] (can be closed or not)
+                ]
+              ]; */
+  const createArea = async (points, name = null) => {
+    try {
+      const area = {
+        points,
+        ...(name && { name })
+      };
+  
+      const response = await fetch(`${AREAS_API_BASE_URL}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(area),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to create area: ${response.statusText}`);
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Error in createArea:", error);
+      throw error;
+    }
+  };
+
+  const getAllAreas = async () => {
+    try {
+      const response = await fetch(`${AREAS_API_BASE_URL}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error(`Failed to retrieve areas: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error in getAllAreas:", error);
+      throw error;
+    }
+  };
+
   //Resources APIs
   const getResources = async (documentId) => {
     try {
@@ -310,4 +366,4 @@ const downloadResource = async (documentId, filename) => {
   }
 }
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource };
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas };
