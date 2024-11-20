@@ -1,73 +1,133 @@
+/* Impostazioni generali del contenitore della lista */
+/* Impostazioni generali del contenitore della lista */
 .scrollableCardList {
     position: absolute;
-    top: 1px;
-    width: 45vw;
-    max-height: 700px; /* Limita l'altezza per abilitare lo scorrimento */
-    overflow-y: auto; /* Aggiunge la barra di scorrimento verticale */
+    top: 10px;
+    left: 10px; /* Posizionato a sinistra */
+    width: 45vw; 
+    max-height: 700px;
+    overflow-y: auto; /* Abilita solo la barra di scorrimento verticale */
+    overflow-x: hidden; /* Disabilita completamente lo scorrimento orizzontale */
     background-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     padding: 10px;
     z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-family: 'Source Code Pro', monospace;
     scrollbar-width: thin; /* Stile per Firefox */
     scrollbar-color: #aaa rgba(255, 255, 255, 0.5); /* Stile per Firefox */
+    display: flex;
+    flex-direction: column; /* Impedisce layout che generano overflow orizzontale */
+    box-sizing: border-box; /* Garantisce che padding e bordo siano inclusi nella dimensione totale */
 }
 
-/* Stile per Chrome, Edge e Safari */
-.scrollableCardList::-webkit-scrollbar {
-    width: 8px; /* Larghezza della barra */
+
+/* Stile per l'intestazione della lista */
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.scrollableCardList::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.5); /* Sfondo della traccia */
-    border-radius: 4px; /* Arrotondamento della traccia */
-}
-
-.scrollableCardList::-webkit-scrollbar-thumb {
-    background-color: #aaa; /* Colore della barra di scorrimento */
-    border-radius: 4px; /* Arrotondamento della barra */
-    border: 1px solid rgba(255, 255, 255, 0.7); /* Bordo attorno alla barra */
-}
-
-.scrollableCardList::-webkit-scrollbar-thumb:hover {
-    background-color: #888; /* Cambia colore al passaggio del mouse */
-}
-
+/* Titolo della lista */
 .scrollbarTitle {
     font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 60px;
     color: #333;
+    margin-left: 10px;
+}
+
+/* Bottone di chiusura */
+.closeButtonContainer {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .closeButton {
-    background-color: transparent; /* Sfondo trasparente */
-    border: none; /* Nessun bordo */
-    color: black; /* Colore del testo */
-    font-size: 0.8rem; /* Testo piccolo */
-    width: 20px; /* Larghezza del bottone */
-    height: 20px; /* Altezza del bottone */
-    display: flex; /* Per centrare il contenuto */
-    align-items: center; /* Centrare verticalmente */
-    justify-content: center; /* Centrare orizzontalmente */
-    border-radius: 50%; /* Bordo arrotondato */
-    cursor: pointer; /* Cambia il cursore in mano */
-    position: absolute; /* Per posizionarlo su una card */
-    top: 10px; /* Posizionamento dall'alto */
-    right: 10px; /* Posizionamento da destra */
-    transition: background-color 0.2s, transform 0.2s; /* Animazioni */
+    background-color: transparent;
+    border: none;
+    color: black;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
 .closeButton:hover {
-    background-color: black; /* Sfondo nero al passaggio del cursore */
-    color: white; /* Cambia il colore del testo per contrasto */
+    background-color: black;
+    color: white;
+}
+
+/* Stile per le card */
+.card {
+    border: 1px solid #ddd;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+.cardHeader {
+    background-color: #f8f9fa;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #555;
+}
+
+/* Corpo della card */
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* Testo della card */
+.cardTitle {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .cardText {
-    height: 35px; /* Altezza fissa */
-    overflow: hidden; /* Nasconde il contenuto in eccesso */
-    text-overflow: ellipsis; /* Aggiunge i puntini di sospensione se il testo è troppo lungo */
-    white-space: nowrap; /* Evita l'andata a capo */
+    font-size: 0.9rem;
+    color: #666;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Icona nella card */
+/* Icona nella card */
+.cardIcon {
+    width: 60px; /* Aumentato da 24px a 32px */
+    height: 60px; /* Aumentato da 24px a 32px */
+    margin-left: 10px; /* Spazio tra il testo e l'immagine */
+    object-fit: contain; /* Mantiene l'aspetto dell'immagine */
+}
+
+/* Footer della card */
+.cardFooter {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.cardFooterButton {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cardFooterButton:hover {
+    background-color: #555;
 }
