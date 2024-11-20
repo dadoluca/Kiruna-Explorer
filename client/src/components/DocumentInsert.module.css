@@ -1,0 +1,27 @@
+/* Container styling for the form card */
+.cardContainer {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
+}
+
+/* Button container */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* General input styling for compact layout */
+.formControl {
+    font-size: 0.9rem;
+    padding: 8px;
+}
+
+/* Align buttons centrally */
+.addButton, .backButton {
+    width: 100%;
+}
