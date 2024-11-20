@@ -1,6 +1,7 @@
 import { validationResult } from 'express-validator';
 
 export const errorHandler = (err, req, res, next) => {
+  console.error('Error in error handler:', err);
   // Handle validation errors from express-validator
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {

@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, Tooltip 
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
-// import { Button } from 'react-bootstrap';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
 import API from '../services/api';
@@ -12,6 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
+import ScrollableDocumentsList from './ListDocument';
+import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
 
 const multipleDocumentsIcon = new L.Icon({
@@ -36,24 +37,49 @@ const createClusterIcon = (cluster) => {
     });
 };
 
+const MemoizedMarker = React.memo(
+    ({ marker, onClick }) => {
+        return (
+            <Marker
+                position={[marker.latitude, marker.longitude]}
+                icon={new L.Icon({
+                    iconUrl: marker.icon,
+                    iconSize: [28, 28],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })}
+                eventHandlers={{
+                    click: onClick
+                }}
+            >
+                <Tooltip direction="bottom">{marker.title}</Tooltip>
+            </Marker>
+        );
+    },
+    (prevProps, nextProps) => {
+        // Check if the important properties have changed (e.g., coordinates)
+        return prevProps.marker.latitude === nextProps.marker.latitude &&
+            prevProps.marker.longitude === nextProps.marker.longitude;
+    }
+);
+
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
     const navigate = useNavigate();
     const position = [67.8558, 20.2253]; // Kiruna coordinates
-    const [markers, setMarkers] = useState([]); // Array of valid markers
-    const [municipalArea, setMunicipalArea] = useState([]); // Array for discarded documents
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
-    const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
-    const { setDocumentList } = useContext(DocumentContext);
+    const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
+    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
 
     const kirunaPolygonCoordinates = [
-        [67.881950910, 20.18],  // Top-left point
-        [67.850, 20.2100],      // Clockwise
+        [67.881950910, 20.18],
+        [67.850, 20.2100],
         [67.8410, 20.2000],
         [67.84037, 20.230],
         [67.8260, 20.288],
@@ -80,37 +106,42 @@ const MapComponent = () => {
         return inside;
     };
 
+    // Handler to update filtered documents on map
+    const handleFilterByTitle = (title) => {
+        console.log("title ", title);
+        if(!title || title === "All")
+            setMapMarkers();
+        else
+            setMapMarkers((doc) => doc.title === title);//passing the filter
+    };
+
+    // Handler to update filtered documents on list
+    const handleFilterByTitleInList = (title) => {
+        console.log("title ", title);
+        if(!title || title === "All")
+            setListContent();
+        else
+            setListContent((doc) => doc.title === title);//passing the filter
+    };
+
+    const handleVisualization = (doc) => {
+        setSelectedMarker({
+            doc: doc,
+            position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
+        })
+    };
+
+    const handleCloseList = () => {
+        setIsListing(false);
+    };
+
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
                 const documents = await API.getDocuments();
-                console.log("Documenti ricevuti:", documents);
+                //console.log("Documenti ricevuti:", documents);
                 setDocumentList(documents);
-
-                const validMarkers = [];
-                const invalidDocuments = [];
-
-                documents.forEach(doc => {
-                    const coordinates = doc.coordinates?.coordinates || null;
-                    const [longitude, latitude] = coordinates || [];
-                    console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-
-                    if (!coordinates || longitude == null || latitude == null) {
-                        invalidDocuments.push(doc);
-                    } else {
-                        validMarkers.push({
-                            ...doc,
-                            longitude: parseFloat(longitude),
-                            latitude: parseFloat(latitude)
-                        });
-                    }
-                });
-
-                console.log("Documenti validi:", validMarkers);
-                console.log("Documenti scartati:", invalidDocuments);
-
-                setMarkers(validMarkers);
-                setMunicipalArea(invalidDocuments);
+                console.log("Documenti ricevuti:", documents);
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -119,46 +150,65 @@ const MapComponent = () => {
         fetchDocuments();
     }, []);
 
+    
+
     // Hook for mouse movement and updating coordinates
-    /*
+
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
-                const { lat, lng } = e.latlng;
-                if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
-                    setMouseCoords({ lat: lat.toFixed(5), lng: lng.toFixed(5) });
-                } else {
-                    setMouseCoords({ lat: null, lng: null });
+                // Aggiorna le coordinate correnti del mouse
+                if (isSelecting && loggedIn && changingDocument == null ) {
+                    const newCoords = { 
+                    lat: e.latlng.lat.toFixed(5), 
+                    lng: e.latlng.lng.toFixed(5) 
+                    };
+                    setMouseCoords(newCoords);
                 }
             },
             click: (e) => {
-                if (isSelecting && loggedIn) {
-                    const { lat, lng } = e.latlng;
-                    if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
-                        navigate('/document-creation', { state: { coordinates: e.latlng } });
-                        setIsSelecting(false);
-                    }
-                }
-            }
-        });
-        return null;
-    };*/
-    // Mouse tracking without triggering re-renders
-    const MapMouseEvents = () => {
-        useMapEvents({
-            mousemove: (e) => {
-                mouseCoordsRef.current = { lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) };
-            },
-            click: (e) => {
-                if (isSelecting && loggedIn) {
+                // Naviga alla creazione documento se in modalità selezione
+                if (isSelecting && loggedIn && changingDocument == null && isPointInPolygon(mouseCoords, kirunaPolygonCoordinates)) {
                     navigate('/document-creation', { state: { coordinates: e.latlng } });
+                    setIsSelecting(false);
+                    return;
+                }
+    
+                // Aggiorna le coordinate di un documento esistente
+                if (changingDocument) {
+                    const { lat, lng } = e.latlng;
+    
+                    // Prepara le nuove coordinate
+                    const updatedCoordinates = {
+                        type: changingDocument.coordinates.type,
+                        coordinates: [lng, lat] // Formato GeoJSON: [lng, lat]
+                    };
+    
+                    // Aggiorna le coordinate sul server
+                    API.updateDocumentCoordinates(
+                        changingDocument._id,
+                        updatedCoordinates.type,
+                        updatedCoordinates.coordinates
+                    )
+                        .then(() => {
+                            console.log('Coordinate aggiornate con successo');
+                            updateDocCoords(changingDocument._id, updatedCoordinates.coordinates);
+                            setMapMarkers();
+                        })
+                        .catch(err => {
+                            console.error('Errore durante l\'aggiornamento delle coordinate:', err.message);
+                        });
+    
+                    // Reset della modalità
+                    setChangingDocument(null);
                     setIsSelecting(false);
                 }
             }
         });
+    
         return null;
     };
-
+    
     // Handle polygon click event
     const handlePolygonClick = () => {
         console.log("Hai cliccato sul bordo del poligono!");
@@ -175,153 +225,137 @@ const MapComponent = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
     };
 
+    const handleChangeCoordinates = (doc) => {
+        setChangingDocument(doc);
+        setIsSelecting(true); // Start selecting mode
+    };
+
     return (
-        <div className={styles.mapContainer}>
-            <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
-                <MapMouseEvents />
-                <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
+        <div className={styles.mapPage}>
+            <div className={styles.mapContainer} >
+                {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
+            <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
+                    <MapMouseEvents />
+                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
                 <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
 
-                <Polygon
-                    positions={kirunaPolygonCoordinates}
-                    color="gray"
-                    fillColor="#D3D3D3"
-                    fillOpacity={0.4}
-                />
+                    <Polygon
+                        positions={kirunaPolygonCoordinates}
+                        color="gray"
+                        fillColor="#D3D3D3"
+                        fillOpacity={0.4}
+                    />
 
-
-                {/* Display discarded documents as markers at distinct locations */}
-                {/*municipalArea.map((doc, index) => {
-                    // Calculate offsets to place each marker slightly apart
-                    const offset = 0.001 * index; // Change this value to adjust the distance
-                    const markerPosition = [
-                        67.881950910 - offset,
-                        20.18 + 5 * offset
-                    ];
-                    return (
-                        <Marker
-                            key={`discarded-${index}`}
-                            position={markerPosition}
-                            icon={documentIcon}
-                            eventHandlers={{ click: () => setSelectedMarker(doc) }}
-                        >
-                            <Popup maxWidth={800} minWidth={500} maxHeight={500} className={styles.popup}>
-                                <DetailPlanCard
-                                    doc={selectedMarker}
-                                    onClose={() => setSelectedMarker(null)}
-                                />
-                            </Popup>
-                            <Tooltip direction="bottom">{doc.title}</Tooltip> {/* Tooltip with offset below the marker }
-                        </Marker>
-                    );
-                })*/}
-
-                <MarkerClusterGroup 
-                    showCoverageOnHover={false}
-                    disableClusteringAtZoom={16}
-                    iconCreateFunction={createClusterIcon} // Apply custom cluster icon
-                >
-                    {markers.map((marker, index) => (
-                        <Marker
-                            key={index}
-                            position={[marker.latitude, marker.longitude]}
-                            icon={
-                                new L.Icon({
-                                    iconUrl: marker.icon,
-                                    iconSize: [28, 28],
-                                    iconAnchor: [16, 32],
-                                    popupAnchor: [0, -32]
-                                })
-                            }
-                            eventHandlers={{
-                                click: () => setSelectedMarker({
+                    <MarkerClusterGroup
+                        showCoverageOnHover={false}
+                        disableClusteringAtZoom={16}
+                        iconCreateFunction={createClusterIcon}
+                    >
+                        {markers.map((marker) => (
+                            <MemoizedMarker
+                                key={marker._id}
+                                marker={marker}
+                                onClick={() => setSelectedMarker({
                                     doc: marker,
                                     position: [marker.latitude, marker.longitude]
-                                })
-                            }}
-                        >
-                            <Tooltip direction="bottom">{marker.title}</Tooltip>
-                        </Marker>
-                    ))}
-                </MarkerClusterGroup>
+                                })}
+                            />
+                        ))}
+                    </MarkerClusterGroup>
 
-                {selectedMarker && (
-                    <Popup
-                        position={selectedMarker.position}
-                        onClose={() => setSelectedMarker(null)}
-                        maxWidth={800}
-                        minWidth={500}
-                        maxHeight={500}
-                        className={styles.popup}
-                    >
-                        <DetailPlanCard
-                            doc={selectedMarker.doc}
+                    {selectedMarker && (
+                        <Popup
+                            position={selectedMarker.position}
                             onClose={() => setSelectedMarker(null)}
-                        />
-                    </Popup>
-                )}
-
-                {municipalArea.length > 0 &&
-                <Marker
-                    position={markerPosition} // Use calculated position with offset
-                    icon={multipleDocumentsIcon}
-                    eventHandlers={{ click: () => setSelectedMarker(doc) }}
-                >
-                    {/*
-                    *
-                    *
-                    * TODO: insert here the visualization of the list of document
-                    * 
-                    * 
-                    * */}
-
-                    <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
-                </Marker>}
-            </MapContainer>
-
-            <Legend markers={markers} />
-
-            {loggedIn && (
-                <button
-                    className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-                    onClick={() => setIsSelecting(prev => !prev)}
-                >
-                    {isSelecting ? (
-                        <>
-                            <div className={styles.coordinatesBar}>
-                                {mouseCoords.lat && mouseCoords.lng ? (
-                                    <>
-                                        Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
-                                        <button
-                                            className={styles.buttonLink}
-                                            onClick={handleAssignToMunicipalArea}
-                                        >
-                                            Entire Municipality
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        Move the mouse inside the area or choose the {"  "}
-                                        <button
-                                            className={styles.buttonLink}
-                                            onClick={handleAssignToMunicipalArea}
-                                        >
-                                            Entire Municipality
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                            <div className={styles.spazio}></div>
-                            <FontAwesomeIcon icon={faTimes} />
-                        </>
-                    ) : (
-                        <FontAwesomeIcon icon={faPlus} />
+                            maxWidth={800}
+                            minWidth={500}
+                            maxHeight={500}
+                            className={styles.popup}
+                        >
+                            <DetailPlanCard
+                                doc={selectedMarker.doc}
+                                onClose={() => setSelectedMarker(null)}
+                                onChangeCoordinates={handleChangeCoordinates}
+                                onToggleSelecting={setIsSelecting}
+                            />
+                        </Popup>
                     )}
-                </button>
-            )}
+
+                    {municipalArea.length > 0 &&
+                        <Marker
+                            position={markerPosition} // Use calculated position with offset
+                            icon={multipleDocumentsIcon}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
+                        >
+
+                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
+                        </Marker>}
+                </MapContainer>
+
+                <Legend />
+
+
+                {isListing  
+                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList}/>}
+
+                {isListing 
+                && loggedIn 
+                && <SearchBar 
+                    onFilter={handleFilterByTitleInList} />
+                }
+
+                <div className={styles.buttonGroupUI}>
+
+
+                    {loggedIn && (
+                        <button
+                        className={`${styles.listButton}`}
+                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
+                        >
+                            <i className="bi bi-list-task"></i>
+                        </button>
+                    )}
+
+                    {loggedIn && (
+                        <div
+                            className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
+                            onClick={() => setIsSelecting(prev => !prev)}
+                            role="button"
+                            tabIndex={0}
+                        >
+                            {isSelecting ? (
+                                <>
+                                    <div className={styles.coordinatesBar}>
+                                        {mouseCoords.lat && mouseCoords.lng ? (
+                                            <>
+                                                Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the{" "}
+                                                <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
+                                                    Entire Municipality
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                Move the mouse inside the area or chooose the{" "}
+                                                <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
+                                                    Entire Municipality
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className={styles.spazio}></div>
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </>
+                            ) : (
+                                <FontAwesomeIcon icon={faPlus} />
+                            )}
+                        </div>
+                    )}
+                </div>
+                
+            </div>
         </div>
     );
 };

@@ -43,6 +43,28 @@ Your server is now set up and ready to use!
 
 The `documents` collection contains all documents.
 
+## Docker Setup and Running Instructions
+
+### Description
+This project is containerized using Docker to streamline the development and deployment processes. It includes services for the backend, frontend, and MongoDB database. Docker Compose is used to manage multiple containers efficiently.
+
+### Prerequisites
+- Ensure Docker is installed on your system. [Docker Installation Guide](https://docs.docker.com/get-docker/)
+- Ensure Docker Compose is installed. [Docker Compose Installation Guide](https://docs.docker.com/compose/install/)
+
+### File Structure
+The repository contains the following key files for Docker:
+- **`docker-compose.yml`**: Defines the services for the project.
+- **`Dockerfile`**: Separate Dockerfiles for the backend and frontend services.
+
+### Steps to Run the Application
+
+1. **Build and Start Containers**
+   Run the following command to build and start all services (frontend, backend, and MongoDB):
+   ```bash
+   docker-compose up --build
+
+
 #### Document Structure
 
 - **_id**: Unique identifier for each document.
@@ -265,6 +287,82 @@ To organize and categorize documents more effectively, we’ve added API endpoin
 - **GET /documents/tags/:tag**: Retrieves all documents associated with a specific tag.
   - **URL Parameter**: `:tag` - The tag used to filter documents (e.g., `Infrastructure`).
   - **Description**: This endpoint returns a list of all documents that have been tagged with the specified tag, making it easier to locate documents related to particular topics or categories.
+
+## Document Geolocalization API Endpoints
+
+- **PUT /documents/:id/coordinates**: Updates the geolocation coordinates for a specified document.
+  - **Request Body Example**:
+    ```json
+    {
+      "type": "Point", 
+      "coordinates": [100.0, 0.0]
+    }
+    ```
+  - **Description**: This endpoint updates the geolocation data for the document. The type must be either `Point` or `Polygon`.
+  - **Validation**: Ensures the coordinate `type` is valid (`Point` or `Polygon`).
+  - **Errors**:
+    - `400`: Invalid coordinate type or request.
+    - `404`: Document not found.
+
+- **PUT /documents/:id/municipality**: Sets a document to represent a municipality.
+  - **Description**: Updates the document's `areaId` to `null` and clears its coordinates, marking it as representing a municipality.
+  - **Response Example**:
+    ```json
+    {
+      "_id": "12345",
+      "areaId": null,
+      "coordinates": []
+    }
+    ```
+  - **Errors**:
+    - `404`: Document not found.
+
+## Resource Management API Endpoints
+
+- **POST /documents/:id/resources**: Uploads a file resource and associates it with a document.
+  - **Request Body**: Multipart form-data with a file:
+    - **Key**: `file` (The file to be uploaded).
+  - **Description**: The uploaded file will be added to the `original_resources` array in the specified document.
+  - **Response Example**:
+    ```json
+    {
+      "message": "Resource uploaded successfully",
+      "resource": {
+        "filename": "example.pdf",
+        "originalFilename": "example_original.pdf",
+        "type": "application/pdf",
+        "url": "/uploads/example.pdf"
+      }
+    }
+    ```
+  - **Validation**: Ensures the file meets type and size restrictions.
+  - **Errors**:
+    - `400`: File upload failed or invalid file type.
+    - `404`: Document not found.
+
+- **GET /documents/:id/resources**: Retrieves a list of resources associated with a document.
+  - **Description**: Fetches all resources (files) linked to the specified document.
+  - **Response Example**:
+    ```json
+    {
+      "success": true,
+      "resources": [
+        {
+          "filename": "example.pdf",
+          "type": "application/pdf",
+          "url": "/uploads/example.pdf"
+        }
+      ]
+    }
+    ```
+  - **Errors**:
+    - `404`: Document not found.
+
+- **GET /documents/:id/resources/:filename/download**: Downloads a specific resource file associated with a document.
+  - **Description**: Allows users to download a resource file linked to a document.
+  - **Response**: The file is sent as a download.
+  - **Errors**:
+    - `404`: File or document not found.
 
 These tag APIs enhance document organization by allowing users to tag documents with relevant keywords, which can then be used to search and filter documents efficiently.
 

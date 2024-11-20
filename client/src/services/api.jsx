@@ -3,7 +3,6 @@ const USERS_API_BASE_URL = `${SERVER_BASE_URL}/users`;
 const DOCUMENTS_API_BASE_URL = `${SERVER_BASE_URL}/documents`;
 const AREAS_API_BASE_URL = `${SERVER_BASE_URL}/areas`; 
 
-
 const logIn = async (credentials) => {
     const response = await fetch(USERS_API_BASE_URL + '/login', {
       method: 'POST',
@@ -313,4 +312,58 @@ const createDocument = async (document) => {
     }
   };
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, createArea, getAllAreas };
+  //Resources APIs
+  const getResources = async (documentId) => {
+    try {
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch resources');
+      }
+      const resources = await response.json();
+      return resources;
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  }
+
+  const addResources = async(documentId, files) => {
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('file', files[i]);
+      }
+      const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources`, {
+        method: "POST",
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add resources');
+      }
+    } catch (error) {
+      console.error('Error adding resources:', error);
+    }
+}
+
+const downloadResource = async (documentId, filename) => {
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/resources/${filename}/download`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Failed to download resource');
+    }
+    return response.blob();
+  } catch (error) {
+    console.error('Error downloading resource:', error);
+  }
+}
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas };
