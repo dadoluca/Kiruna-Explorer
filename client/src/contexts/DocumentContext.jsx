@@ -28,12 +28,16 @@ export const DocumentProvider = ({ children }) => {
       .filter(filterFn) // Apply the filter function to include only relevant documents
       .forEach(doc => {
         console.log(doc);
-        const coordinates = doc.coordinates?.coordinates || null;
-        const [longitude, latitude] = coordinates || [];
+        const coordinates = doc.coordinates.coordinates;
+        const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
 
-        if (!coordinates || longitude == null || latitude == null) {
-            municipalDocuments.push(doc);
+        if (doc.areaId === null) {
+            municipalDocuments.push({
+              ...doc,
+              longitude: parseFloat(longitude),
+              latitude: parseFloat(latitude)
+            });
         } else {
             validMarkers.push({
                 ...doc,

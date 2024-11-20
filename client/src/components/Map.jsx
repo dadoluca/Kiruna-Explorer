@@ -88,10 +88,10 @@ const MapComponent = () => {
             setMapMarkers((doc) => doc.title === title);//passing the filter
     };
 
-    const handleVisualization = (marker) => {
+    const handleVisualization = (doc) => {
         setSelectedMarker({
-            doc: marker,
-            position: [marker.latitude, marker.longitude]
+            doc: doc,
+            position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
         })
     };
 
@@ -255,7 +255,7 @@ const MapComponent = () => {
 
                 {isListing 
                 && loggedIn 
-                && <ScrollableDocumentsList markers={markers} handleVisualize={handleVisualization} closeList={handleCloseList}/>}
+                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList}/>}
 
                 {isListing 
                 && loggedIn 

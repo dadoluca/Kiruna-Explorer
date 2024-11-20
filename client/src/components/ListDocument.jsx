@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import styles from './ListDocument.module.css'; 
 import Card from 'react-bootstrap/Card';
@@ -6,10 +6,10 @@ import Button from 'react-bootstrap/Button';
 import PropTypes from "prop-types";
 import { Row, Col } from 'react-bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { DocumentContext } from '../contexts/DocumentContext'; 
 
 const ScrollableDocumentsList = (props) => {
-    const markers = props.markers;
-
+    const { documents } = useContext(DocumentContext); // Fetch documents from context
     return (
         <div className={styles.scrollableCardList}>
             <Row>
@@ -25,7 +25,7 @@ const ScrollableDocumentsList = (props) => {
               </Button>
               </Col>
             </Row>
-            {markers.map((marker, index) => (
+            {documents.map((doc, index) => (
                     <Card 
                       bg={'light'}
                       key={'Light'}
@@ -33,21 +33,21 @@ const ScrollableDocumentsList = (props) => {
                       style={{ width: '18rem' }}
                       className="mb-2"
                     >
-                    <Card.Header>{marker.type}</Card.Header>
+                    <Card.Header>{doc.type}</Card.Header>
                     <Card.Body>
                       <Card.Title> 
                         <img 
-                        src={marker.icon} 
+                        src={doc.icon} 
                         alt="Icona" 
                         style={{ width: "24px", height: "24px", marginRight: "8px" }} />
-                        {marker.title} 
+                        {doc.title} 
                       </Card.Title>
                       <Card.Text className={styles.cardText}>
-                        {marker.description}
+                        {doc.description}
                       </Card.Text>
                     </Card.Body>
                     <Card.Footer>
-                      <Button variant="dark" onClick={() => props.handleVisualize(marker)}>Visualize document <i className="bi bi-arrows-angle-expand"></i></Button>
+                      <Button variant="dark" onClick={() => props.handleVisualize(doc)}>Visualize document <i className="bi bi-arrows-angle-expand"></i></Button>
                     </Card.Footer>
                   </Card>
             ))}
