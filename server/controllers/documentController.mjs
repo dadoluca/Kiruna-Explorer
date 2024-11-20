@@ -52,9 +52,11 @@ export const getAllDocuments = async (req, res) => {
 export const getDocumentById = async (req, res, next) => {
   try {
     const document = await Document.findById(req.params.id);
+    console.log('Document fetched by ID:', document);
     if (!document) {
       const error = new Error('Document not found');
       error.statusCode = 404;
+      console.log('Throwing 404 error:', error);
       return next(error);
     }
     res.json(document);

@@ -5,6 +5,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { Button, Row, Col, Card } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
+import Select from 'react-select';
 import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -34,7 +35,7 @@ function DocumentInsert() {
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
 
-    const [activeButton, setActiveButton] = useState(null);
+    const [activeButton, setActiveButton] = useState(1);
     const [dateFormat, setDateFormat] = useState(false);
     const [formattedDate, setFormattedDate] = useState("");
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
@@ -297,7 +298,7 @@ function DocumentInsert() {
         <Card className={styles.formCard}>
             <Card.Title className={styles.title}><i class="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
             <Card.Body>
-                <FloatingLabel label="Title of the document" className={styles.formField}>
+                <FloatingLabel label="Title of the document *" className={styles.formField}>
                     <Form.Control
                         type="text"
                         value={title}
@@ -312,7 +313,7 @@ function DocumentInsert() {
 
                 <Row>
                     <Col md={6}>
-                        <FloatingLabel label="Document Type" className="mb-3">
+                        <FloatingLabel label="Document Type *" className="mb-3">
                             <Form.Select
                                 value={type}
                                 onChange={(ev) => {
@@ -358,7 +359,7 @@ function DocumentInsert() {
 
                 {/* Custom Document Type Input */}
                 {type === "Add Custom..." && (
-                    <FloatingLabel label="Custom Document Type" className="mb-3">
+                    <FloatingLabel label="Custom Document Type *" className="mb-3">
                         <Form.Control
                             type="text"
                             value={customType}
@@ -379,7 +380,7 @@ function DocumentInsert() {
                 )}
 
                 {/* Stakeholders */}
-                <FloatingLabel label="Stakeholders" className={styles.formField}>
+                <FloatingLabel label="Stakeholders *" className={styles.formField}>
                     <Form.Control
                         type="text"
                         value={stakeholders}
@@ -395,7 +396,7 @@ function DocumentInsert() {
                 {/* Connections - Non-editable field with value set to 1 */}
                 <Row>
                     <Col md={6}>
-                        <FloatingLabel label="Connections" className="mb-3">
+                        <FloatingLabel label="Connections *" className="mb-3">
                             <Form.Control type="number" value={0} disabled required />
                         </FloatingLabel>
                     </Col>
@@ -411,8 +412,8 @@ function DocumentInsert() {
                 </Row>
 
                 <Row className="mb-3">
-                    <Col md={3}>
-                        <FloatingLabel label="Scale" className="mb-3">
+                    <Col md={6}>
+                        <FloatingLabel label="Scale *" className="mb-3">
                             <Form.Select
                                 value={scale}
                                 onChange={(ev) => {
@@ -421,7 +422,8 @@ function DocumentInsert() {
                                         setCustomScale('');
                                     }
                                 }}
-                            >
+                            >   
+                                <option value="">Select a scale</option>
                                 <option value="1:1">1:1</option>
                                 <option value="1:2">1:2</option>
                                 <option value="1:5">1:5</option>
@@ -438,21 +440,56 @@ function DocumentInsert() {
                             {errors.scale}
                         </Form.Control.Feedback>
                     </Col>
+                    {/* Custom Scale Input */}
+                    <Col md={6}>
+                        {scale === "Add Custom..." && (
+                            <FloatingLabel label="Custom Scale *" className="mb-3">
+                                <Form.Control
+                                    type="text"
+                                    value={customScale}
+                                    onChange={(ev) => setCustomScale(ev.target.value)}
+                                />
+                            </FloatingLabel>
+                        )}
+                    </Col>
                 </Row>
-                {/* Custom Scale Input */}
-                {scale === "Add Custom..." && (
-                    <FloatingLabel label="Custom Scale" className="mb-3">
-                        <Form.Control
-                            type="text"
-                            value={customScale}
-                            onChange={(ev) => setCustomScale(ev.target.value)}
-                        />
-                    </FloatingLabel>
+
+                {!isMunicipal && (
+                    <Row className="mb-4">
+                        <Col md={6}>
+                            <FloatingLabel label="Longitude *">
+                                <Form.Control 
+                                    type="text"
+                                    value={longitude}
+                                    onChange={(ev) => handleCoordinateChange(ev, "longitude")}
+                                    isInvalid={!!errors.longitude}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.longitude}
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Col>
+                        <Col md={6}>
+                            <FloatingLabel label="Latitude *">
+                                <Form.Control 
+                                    type="text" 
+                                    value={latitude} 
+                                    onChange={(ev) => handleCoordinateChange(ev, "latitude")}
+                                    isInvalid={!!errors.latitude}
+                                    required
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.latitude}
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Col>
+                    </Row>
                 )}
 
-                <Row className="mb-3 d-flex">
+                <Row className="mb-4 d-flex">
                     <Col>
-                        <div className="d-flex gap-2">
+                        <div className="d-flex gap-2 justify-content-center">
                             <Button
                                 variant={activeButton === 1 ? 'success' : 'dark'}
                                 size="sm"
@@ -482,45 +519,12 @@ function DocumentInsert() {
                             onChange={(date) => handleDataChange(date)}
                             dateFormat={dateFormat}
                             showPopperArrow={false}
+                            placeholderText="Choose a date *"
                         />
                     </Col>
                 </Row>
 
-                {!isMunicipal && (
-                <Row>
-                    <Col md={6}>
-                        <FloatingLabel label="Longitude">
-                            <Form.Control 
-                                type="text"
-                                value={longitude}
-                                onChange={(ev) => handleCoordinateChange(ev, "longitude")}
-                                isInvalid={!!errors.longitude}
-                                required
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.longitude}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Col>
-                    <Col md={6}>
-                        <FloatingLabel label="Latitude">
-                            <Form.Control 
-                                type="text" 
-                                value={latitude} 
-                                onChange={(ev) => handleCoordinateChange(ev, "latitude")}
-                                isInvalid={!!errors.latitude}
-                                required
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.latitude}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
-                    </Col>
-                </Row>
-            )}
-
-
-                <FloatingLabel label="Description" className={styles.formField}>
+                <FloatingLabel label="Description *" className={styles.formField}>
                     <Form.Control
                         as="textarea"
                         value={description}
@@ -535,31 +539,42 @@ function DocumentInsert() {
 
                 {connections.map((connection, index) => (
                     <div key={index} className="mb-3">
-                        <FloatingLabel label="Document to connect" className="mb-3">
-                            <Form.Select
-                                value={connection.selectedDocumentId}
-                                onChange={(ev) => handleChange(index, 'selectedDocumentId', ev.target.value)}
+                        <div className="mb-3">
+                            <Select
+                                id={`document-select-${index}`}
+                                value={
+                                    connection.selectedDocumentId
+                                        ? {
+                                            value: connection.selectedDocumentId,
+                                            label: documents.find(doc => doc._id === connection.selectedDocumentId)?.title
+                                        }
+                                        : null
+                                }
+                                onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption?.value || '')}
+                                options={getAvailableOptions(index).map(doc => ({
+                                    value: doc._id,
+                                    label: doc.title
+                                }))}
                                 isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
-                            >
-                                <option value="">Select a Document</option>
-                                {getAvailableOptions(index).map((doc) => (
-                                    <option key={doc._id} value={doc._id}>
-                                        {doc.title}
-                                    </option>
-                                ))}
-                                {/* Display selected document title within the select field */}
-                                {connection.selectedDocumentId && (
-                                    <option value={connection.selectedDocumentId}>
-                                        {documents.find(doc => doc._id === connection.selectedDocumentId)?.title}
-                                    </option>
-                                )}
-                            </Form.Select>
+                                placeholder="Select a document to connect *"
+                                getOptionLabel={(e) => e.label}
+                                isClearable={true}
+                                styles={{
+                                    menu: (base) => ({
+                                        ...base,
+                                        zIndex: 1050
+                                    }),
+                                    control: (base) => ({
+                                        ...base,
+                                    }),
+                                }}
+                            />
                             <Form.Control.Feedback type="invalid">
                                 {errors[`connections[${index}].selectedDocumentId`]}
                             </Form.Control.Feedback>
-                        </FloatingLabel>
-
-                        <FloatingLabel label="Connection Type" className="mb-3">
+                        </div>
+                        
+                        <FloatingLabel label="Connection Type *" className="mb-3">
                             <Form.Select
                                 value={connection.selectedType}
                                 onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}

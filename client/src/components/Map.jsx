@@ -36,6 +36,32 @@ const createClusterIcon = (cluster) => {
     });
 };
 
+const MemoizedMarker = React.memo(
+    ({ marker, onClick }) => {
+        return (
+            <Marker
+                position={[marker.latitude, marker.longitude]}
+                icon={new L.Icon({
+                    iconUrl: marker.icon,
+                    iconSize: [28, 28],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                })}
+                eventHandlers={{
+                    click: onClick
+                }}
+            >
+                <Tooltip direction="bottom">{marker.title}</Tooltip>
+            </Marker>
+        );
+    },
+    (prevProps, nextProps) => {
+        // Check if the important properties have changed (e.g., coordinates)
+        return prevProps.marker.latitude === nextProps.marker.latitude &&
+            prevProps.marker.longitude === nextProps.marker.longitude;
+    }
+);
+
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
@@ -44,16 +70,15 @@ const MapComponent = () => {
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
-    const mouseCoordsRef = useRef({ lat: null, lng: null }); // Use a ref for mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, municipalArea,  setDocumentList, setMapMarkers } = useContext(DocumentContext);
-
-    
+    const [changingDocument, setChangingDocument] = useState(null);
+    const [debounceTimeout, setDebounceTimeout] = useState(null);
 
     const kirunaPolygonCoordinates = [
-        [67.881950910, 20.18],  // Top-left point
-        [67.850, 20.2100],      // Clockwise
+        [67.881950910, 20.18],
+        [67.850, 20.2100],
         [67.8410, 20.2000],
         [67.84037, 20.230],
         [67.8260, 20.288],
@@ -106,7 +131,6 @@ const MapComponent = () => {
                 //console.log("Documenti ricevuti:", documents);
                 setDocumentList(documents);
                 console.log("Documenti ricevuti:", documents);
-
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -118,45 +142,69 @@ const MapComponent = () => {
     
 
     // Hook for mouse movement and updating coordinates
-    /*
+
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
-                const { lat, lng } = e.latlng;
-                if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
-                    setMouseCoords({ lat: lat.toFixed(5), lng: lng.toFixed(5) });
-                } else {
-                    setMouseCoords({ lat: null, lng: null });
+                // Aggiorna le coordinate correnti del mouse
+                if (isSelecting && loggedIn && changingDocument == null) {
+                    const newCoords = { 
+                    lat: e.latlng.lat.toFixed(5), 
+                    lng: e.latlng.lng.toFixed(5) 
+                    };
+                    setMouseCoords(newCoords);
                 }
             },
             click: (e) => {
-                if (isSelecting && loggedIn) {
-                    const { lat, lng } = e.latlng;
-                    if (isPointInPolygon({ lat, lng }, kirunaPolygonCoordinates)) {
-                        navigate('/document-creation', { state: { coordinates: e.latlng } });
-                        setIsSelecting(false);
-                    }
-                }
-            }
-        });
-        return null;
-    };*/
-    // Mouse tracking without triggering re-renders
-    const MapMouseEvents = () => {
-        useMapEvents({
-            mousemove: (e) => {
-                mouseCoordsRef.current = { lat: e.latlng.lat.toFixed(5), lng: e.latlng.lng.toFixed(5) };
-            },
-            click: (e) => {
-                if (isSelecting && loggedIn) {
+                // Naviga alla creazione documento se in modalità selezione
+                if (isSelecting && loggedIn && changingDocument == null) {
                     navigate('/document-creation', { state: { coordinates: e.latlng } });
+                    setIsSelecting(false);
+                    return;
+                }
+    
+                // Aggiorna le coordinate di un documento esistente
+                if (changingDocument) {
+                    const { lat, lng } = e.latlng;
+                    
+                    // Aggiorna i marker localmente
+                    setMarkers(prevMarkers =>
+                        prevMarkers.map(marker =>
+                            marker._id === changingDocument._id
+                                ? { ...marker, latitude: lat, longitude: lng }
+                                : marker
+                        )
+                    );
+    
+                    // Prepara le nuove coordinate
+                    const updatedCoordinates = {
+                        type: changingDocument.coordinates.type,
+                        coordinates: [lng, lat] // Formato GeoJSON: [lng, lat]
+                    };
+    
+                    // Aggiorna le coordinate sul server
+                    API.updateDocumentCoordinates(
+                        changingDocument._id,
+                        updatedCoordinates.type,
+                        updatedCoordinates.coordinates
+                    )
+                        .then(() => {
+                            console.log('Coordinate aggiornate con successo');
+                        })
+                        .catch(err => {
+                            console.error('Errore durante l\'aggiornamento delle coordinate:', err.message);
+                        });
+    
+                    // Reset della modalità
+                    setChangingDocument(null);
                     setIsSelecting(false);
                 }
             }
         });
+    
         return null;
     };
-
+    
     // Handle polygon click event
     const handlePolygonClick = () => {
         console.log("Hai cliccato sul bordo del poligono!");
@@ -166,6 +214,11 @@ const MapComponent = () => {
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
+    };
+
+    const handleChangeCoordinates = (doc) => {
+        setChangingDocument(doc);
+        setIsSelecting(true); // Start selecting mode
     };
 
     return (
@@ -186,33 +239,20 @@ const MapComponent = () => {
                         fillOpacity={0.4}
                     />
 
-
-                    <MarkerClusterGroup 
+                    <MarkerClusterGroup
                         showCoverageOnHover={false}
                         disableClusteringAtZoom={16}
-                        iconCreateFunction={createClusterIcon} // Apply custom cluster icon
+                        iconCreateFunction={createClusterIcon}
                     >
-                        {markers.map((marker, index) => (
-                            <Marker
-                                key={index}
-                                position={[marker.latitude, marker.longitude]}
-                                icon={
-                                    new L.Icon({
-                                        iconUrl: marker.icon,
-                                        iconSize: [28, 28],
-                                        iconAnchor: [16, 32],
-                                        popupAnchor: [0, -32]
-                                    })
-                                }
-                                eventHandlers={{
-                                    click: () => setSelectedMarker({
-                                        doc: marker,
-                                        position: [marker.latitude, marker.longitude]
-                                    })
-                                }}
-                            >
-                                <Tooltip direction="bottom">{marker.title}</Tooltip>
-                            </Marker>
+                        {markers.map((marker) => (
+                            <MemoizedMarker
+                                key={marker._id}
+                                marker={marker}
+                                onClick={() => setSelectedMarker({
+                                    doc: marker,
+                                    position: [marker.latitude, marker.longitude]
+                                })}
+                            />
                         ))}
                     </MarkerClusterGroup>
 
@@ -228,26 +268,28 @@ const MapComponent = () => {
                             <DetailPlanCard
                                 doc={selectedMarker.doc}
                                 onClose={() => setSelectedMarker(null)}
+                                onChangeCoordinates={handleChangeCoordinates}
+                                onToggleSelecting={setIsSelecting}
                             />
                         </Popup>
                     )}
 
                     {municipalArea.length > 0 &&
-                    <Marker
-                        position={markerPosition} // Use calculated position with offset
-                        icon={multipleDocumentsIcon}
-                        eventHandlers={{ click: () => setSelectedMarker(doc) }}
-                    >
-                        {/*
-                        *
-                        *
-                        * TODO: insert here the visualization of the list of document
-                        * 
-                        * 
-                        * */}
+                        <Marker
+                            position={markerPosition} // Use calculated position with offset
+                            icon={multipleDocumentsIcon}
+                            eventHandlers={{ click: () => setSelectedMarker(doc) }}
+                        >
+                            {/*
+                            *
+                            *
+                            * TODO: insert here the visualization of the list of document
+                            * 
+                            * 
+                            * */}
 
-                        <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
-                    </Marker>}
+                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
+                        </Marker>}
                 </MapContainer>
 
                 <Legend />
@@ -276,30 +318,26 @@ const MapComponent = () => {
                     )}
 
                     {loggedIn && (
-                        <button
+                        <div
                             className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
                             onClick={() => setIsSelecting(prev => !prev)}
+                            role="button"
+                            tabIndex={0}
                         >
                             {isSelecting ? (
                                 <>
                                     <div className={styles.coordinatesBar}>
                                         {mouseCoords.lat && mouseCoords.lng ? (
                                             <>
-                                                Insert the point in ({parseFloat(mouseCoords.lat).toFixed(4)}, {parseFloat(mouseCoords.lng).toFixed(4)}) or choose the {"  "}
-                                                <button
-                                                    className={styles.buttonLink}
-                                                    onClick={handleAssignToMunicipalArea}
-                                                >
+                                                Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the{" "}
+                                                <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
                                                     Entire Municipality
                                                 </button>
                                             </>
                                         ) : (
                                             <>
-                                                Move the mouse inside the area or chose the {"  "}
-                                                <button
-                                                    className={styles.buttonLink}
-                                                    onClick={handleAssignToMunicipalArea}
-                                                >
+                                                Move the mouse inside the area or choose the{" "}
+                                                <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
                                                     Entire Municipality
                                                 </button>
                                             </>
@@ -311,7 +349,7 @@ const MapComponent = () => {
                             ) : (
                                 <FontAwesomeIcon icon={faPlus} />
                             )}
-                        </button>
+                        </div>
                     )}
                 </div>
                 
