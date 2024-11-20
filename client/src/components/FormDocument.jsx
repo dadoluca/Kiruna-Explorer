@@ -26,7 +26,7 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [customScale, setCustomScale] = useState(''); // New state for custom scale 
-    const [date, setDate] = useState(null);
+    
     //const [connections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
@@ -34,10 +34,13 @@ function DocumentInsert() {
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-
+    
     const [activeButton, setActiveButton] = useState(1);
-    const [dateFormat, setDateFormat] = useState(false);
+    // date picker 
+    const [date, setDate] = useState(null);
+    const [dateFormat, setDateFormat] = useState("yyyy-MM-dd");
     const [formattedDate, setFormattedDate] = useState("");
+
     const [stakeholdersArray, setStakeholdersArray] = useState([]);
 
     const [connections, setConnections] = useState([]);
@@ -159,17 +162,40 @@ function DocumentInsert() {
 
     const handleDateFormat = (format) => {
         setActiveButton(format);
-        if (format === 1) { setDateFormat("yyyy-MM-dd"); }
-        else if (format === 2) { setDateFormat("yyyy-MM"); }
-        else if (format === 3) { setDateFormat("yyyy"); }
+    
+        switch (format) {
+            case 1:
+                setDateFormat("yyyy-MM-dd");
+                break;
+            case 2:
+                setDateFormat("yyyy-MM");
+                break;
+            case 3:
+                setDateFormat("yyyy");
+                break;
+            default:
+                setDateFormat(null); // Fallback for unexpected formats
+        }
     };
+    
 
     const handleDataChange = (date) => {
+        if (!dateFormat) {
+            console.error("Date format is not set! Please select a format first.");
+            return; // Exit to avoid errors
+        }
+    
         setDate(date);
-        const dateString = format(date, dateFormat);
-        setFormattedDate(dateString);
-        console.log(formattedDate)
-    }
+    
+        try {
+            const dateString = format(date, dateFormat); // Ensure 'format' is a valid function
+            setFormattedDate(dateString);
+            console.log(dateString); // Log the correct formatted date
+        } catch (error) {
+            console.error("Error formatting date:", error);
+        }
+    };
+    
 
     const validateForm = () => {
         let newErrors = {};
