@@ -59,9 +59,24 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
+  const updateDocCoords = (documentId, newCoordinates) => {
+    setDocuments((prev) =>
+      prev.map((doc) =>
+        doc._id === documentId
+          ? {
+              ...doc,
+              coordinates: {
+                type: 'Point',
+                coordinates: newCoordinates,
+              },
+            }
+          : doc
+      )
+    );
+  };
 
   return (
-    <DocumentContext.Provider value={{ documents, markers, municipalArea, setDocumentList, setMapMarkers, updateDocument }}>
+    <DocumentContext.Provider value={{ documents, markers, municipalArea, setDocumentList, setMapMarkers, updateDocument, updateDocCoords }}>
       {children}
     </DocumentContext.Provider>
   );

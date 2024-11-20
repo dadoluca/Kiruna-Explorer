@@ -72,7 +72,7 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers } = useContext(DocumentContext);
+    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [debounceTimeout, setDebounceTimeout] = useState(null);
 
@@ -166,15 +166,6 @@ const MapComponent = () => {
                 // Aggiorna le coordinate di un documento esistente
                 if (changingDocument) {
                     const { lat, lng } = e.latlng;
-                    
-                    // Aggiorna i marker localmente
-                    setMarkers(prevMarkers =>
-                        prevMarkers.map(marker =>
-                            marker._id === changingDocument._id
-                                ? { ...marker, latitude: lat, longitude: lng }
-                                : marker
-                        )
-                    );
     
                     // Prepara le nuove coordinate
                     const updatedCoordinates = {
@@ -190,6 +181,8 @@ const MapComponent = () => {
                     )
                         .then(() => {
                             console.log('Coordinate aggiornate con successo');
+                            updateDocCoords(changingDocument._id, updatedCoordinates.coordinates);
+                            setMapMarkers();
                         })
                         .catch(err => {
                             console.error('Errore durante l\'aggiornamento delle coordinate:', err.message);
