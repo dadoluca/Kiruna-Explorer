@@ -303,7 +303,7 @@ const MapComponent = () => {
 
                     {loggedIn && (
                         <button
-                        className={`${styles.listButton} ${isListing ? styles.hidden : ''}`}
+                        className={`${styles.listButton}`}
                         onClick={() => setIsListing(prev => !prev)}
                         >
                             <i className="bi bi-list-task"></i>
