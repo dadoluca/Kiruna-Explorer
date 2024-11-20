@@ -218,7 +218,7 @@ const MapComponent = () => {
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
                 {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
-                <MapContainer center={position} zoom={13} className={styles.mapContainer}>
+            <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
