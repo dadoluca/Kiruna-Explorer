@@ -9,7 +9,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { DocumentContext } from '../contexts/DocumentContext'; 
 
 const ScrollableDocumentsList = (props) => {
-    const { documents } = useContext(DocumentContext); // Fetch documents from context
+    const { markers, municipalArea } = useContext(DocumentContext); // Fetch documents from context
     return (
         <div className={styles.scrollableCardList}>
             <Row>
@@ -25,7 +25,7 @@ const ScrollableDocumentsList = (props) => {
               </Button>
               </Col>
             </Row>
-            {documents.map((doc, index) => (
+            {markers.concat(municipalArea).map((doc, index) => (
                     <Card 
                       bg={'light'}
                       key={'Light'}

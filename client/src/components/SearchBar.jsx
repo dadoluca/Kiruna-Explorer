@@ -12,6 +12,10 @@ const SearchBar = ({ onFilter }) => {
     const query = e.target.value;
     setSearchTerm(query);
 
+    if (query === "") {
+      onFilter("All");
+    }
+
     // Filter suggestions based on the query
     if (query) {
       const filteredSuggestions = documents
