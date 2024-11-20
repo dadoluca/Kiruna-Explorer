@@ -16,20 +16,20 @@ export const createDocument = async (req, res) => {
         icon_url = '/icons/design_doc.png';
         break;
       case 'Informative Doc.':
-        icon_url = '/icons/informative_icon.png';
+        icon_url = '/icons/informative_doc.png';
         break;
       case 'Prescriptive Doc.':
-        icon_url = '/icons/prescriptive_icon.png';
+        icon_url = '/icons/prescriptive_doc.png';
         break;
       case 'Technical Doc.':
-        icon_url = '/icons/technical_icon.png';
+        icon_url = '/icons/technical_doc.png';
         break;
       case 'default':
       default:
         icon_url = '/icons/default_doc.png';
     }
     
-    const document = new Document({ ...documentData, icon: icon_url });
+    const document = new Document({ ...documentData, icon_url: icon_url });
     
     await document.save();
     res.status(201).json(document);
