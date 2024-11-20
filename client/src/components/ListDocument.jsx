@@ -36,13 +36,13 @@ const ScrollableDocumentsList = (props) => {
                         <i className="bi bi-file-text"></i> {doc.type}
                     </Card.Header>
                     <Card.Body className={styles.cardBody}>
-                      <Card.Title className={styles.cardTitle}> 
+                      <Card.Title className={styles.cardTitle}>   
                         <img 
                           src={doc.icon} 
                           alt="Icon" 
                           className={styles.cardIcon} 
                         />
-                        {doc.title} 
+                        {doc.title}
                       </Card.Title>
                       <Card.Text className={styles.cardText}>
                         {doc.description}
