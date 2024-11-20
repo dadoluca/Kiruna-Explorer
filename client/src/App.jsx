@@ -12,6 +12,7 @@ import LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DocumentCreationPage from './pages/DocumentCreationPage';
 import ResourceCreationPage from './pages/ResourceCreationPage';
+import ScrollableDocumentsList from './components/ListDocument';
 
 function App() {
   const { loggedIn } = useContext(AuthContext);
@@ -43,6 +44,10 @@ function App() {
         {
           path: "/document-creation",
           element: <DocumentCreationPage />
+        },
+        {
+          path: "/documents-list",
+          element: <ScrollableDocumentsList />
         },
         {
           path: "*",
