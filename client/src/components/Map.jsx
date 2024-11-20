@@ -290,8 +290,7 @@ const MapComponent = () => {
                 <Legend />
 
 
-                {isListing 
-                && loggedIn 
+                {isListing  
                 && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList}/>}
 
                 {isListing 
