@@ -11,7 +11,7 @@ function NavHeader() {
   const { handleLogout } = useContext(AuthContext);
 
   return (
-    <Navbar bg="transparent" style={{ height: '9vh', minHeight: '28px' }} className={styles.navbar}>
+    <Navbar bg="transparent" style={{ height: '5vh', minHeight: '28px' }} className={styles.navbar}>
       <Container fluid>
         <Link to="/" className={`${styles.brand} navbar-brand`}>Kiruna Explorer</Link>
         <div>

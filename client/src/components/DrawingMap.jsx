@@ -5,9 +5,9 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import * as turf from '@turf/turf';
 
-const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
+const DrawingMap = ({ onPolygonDrawn, limitArea, EnableDrawing, confirmSelectedArea}) => {
   const map = useMap();
-  const [drawingEnabled, setDrawingEnabled] = useState(false);
+  const [drawingEnabled, setDrawingEnabled] = useState(EnableDrawing);
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [drawControl, setDrawControl] = useState(null);
   const listenerRef = useRef(null);  // Reference to store the listener state
@@ -120,7 +120,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
   };
 
   useEffect(() => {
-    if (drawingEnabled && drawControl) {
+    if (EnableDrawing && drawControl) {
       map.addControl(drawControl);
       drawPolygon();
     } else if (drawControl) {
@@ -133,26 +133,14 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
     polygonHandler.enable(); // Enable the polygon drawing mode
   };
 
-  const toggleDrawing = () => {
-    setDrawingEnabled((prev) => !prev);
-  };
-
-  const handleSendPolygon = () => {
-    if (drawnPolygon) {
+  useEffect(()=> {
+    if (drawnPolygon!==null && confirmSelectedArea===true){
       onPolygonDrawn(drawnPolygon);
+      setDrawnPolygon == null;
     }
-  };
+  }, [confirmSelectedArea])
 
-  return (
-    <div>
-      <button onClick={toggleDrawing}>
-        {drawingEnabled ? 'Disable Drawing' : 'Enable Polygon Drawing'}
-      </button>
-      <button onClick={handleSendPolygon} disabled={!drawnPolygon}>
-        Send Polygon
-      </button>
-    </div>
-  );
+
 };
 
 export default DrawingMap;

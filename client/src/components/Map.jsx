@@ -77,6 +77,9 @@ const MapComponent = () => {
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
 
+    const [toggleDrawing, setToggleDrawing] = useState(false);
+    const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
+
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
         [67.850, 20.2100],
@@ -215,9 +218,17 @@ const MapComponent = () => {
         alert("Bordo del poligono cliccato!");
     };
 
-    const handlePolygonDrawn = (polygonLayer) => {
+    const handlePolygonDrawn = async (polygonLayer) => {
+        let coordinates = polygonLayer.getLatLngs()[0].map(latlng => [latlng.lat, latlng.lng]);
         setCustomArea(polygonLayer);
-        console.log("Poligono ricevuto nel padre:", polygonLayer.getLatLngs());
+        console.log(coordinates)
+        try {
+            // Attendere il completamento della creazione dell'area con la promise
+            await API.createArea([coordinates]);
+            console.log("Area creata con successo");
+        } catch (error) {
+            console.error("Errore durante la creazione dell'area:", error.message);
+        }
     };
 
     // Function to navigate to document creation form for the entire municipality
@@ -236,7 +247,7 @@ const MapComponent = () => {
                 {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
             <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
-                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
+                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
                 <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -314,6 +325,24 @@ const MapComponent = () => {
                         <button
                         className={`${styles.listButton}`}
                         onClick={() => { setIsListing(prev => !prev); setListContent() }}
+                        >
+                            <i className="bi bi-list-task"></i>
+                        </button>
+                    )}
+
+                    {/* NEW BUTTON FOR TOGGLING DRAW AREA */}
+                    {true && (
+                        <button
+                        onClick={() => { setToggleDrawing(prev => !prev); console.log(toggleDrawing)}}
+                        >
+                            <i className="bi bi-list-task"></i>
+                        </button>
+                    )}
+
+                    {/* NEW BUTTON FOR CONFIRMING */}
+                    {true && (
+                        <button
+                        onClick={() => { setConfirmSelectedArea(prev => !prev); console.log("confirm:" + confirmSelectedArea)}}
                         >
                             <i className="bi bi-list-task"></i>
                         </button>
