@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./server
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/your_database_name
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./client
+    ports:
+      - "3000:80" # Frontend runs on port 80 inside the container, mapped to 3000
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
