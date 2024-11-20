@@ -34,5 +34,4 @@ Have questions, feedback, or want to contribute? Reach out to our team:
 - [Giancarlo](https://github.com/GiancarloVirga)  
 - [Giacomo](https://github.com/giacomobelluardo)  
 - [Bahar](https://github.com/baharmh71) 
-Explore Kiruna's legacy with **Kiruna Explorer**! 🚀  
 
