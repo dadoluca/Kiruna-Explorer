@@ -17,6 +17,14 @@ For urban planners, the platform offers powerful tools to:
 
 ---
 
+## 🌲 **Branching Strategy**  
+
+- **`main`**: Production-ready code with bi-weekly releases.  
+- **`dev`**: Staging branch for testing all merged features before release.  
+- **`feature/*`**: Temporary branches dedicated to specific tasks or features.  
+ 
+---
+
 ## 📂 **Project Documentation**  
 
 - **Backend**: The `backend` folder contains details about the server implementation (Express.js, MongoDB) and Docker configuration. It includes setup instructions, dependency management, and server runtime details.  
