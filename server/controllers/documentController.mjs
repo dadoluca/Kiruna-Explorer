@@ -318,28 +318,44 @@ export const addTagsToDocument = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
-//Retrive all document id and titles 
+
+//Retrive all document id, titles and array of available connection types
 export const getAvailableDocuments = async (req, res) => {
   try {
     const { id: currentDocumentID } = req.params;
-    const currentDocument = await Document.findById(currentDocumentID);
+
+    const currentDocument = await Document.findById(currentDocumentID).lean();
     if (!currentDocument) {
       return res.status(400).json({ message: 'Current document not found' });
     }
 
-    // Get IDs of connected documents
-    const connectedDocumentIds = currentDocument.relationships.map(rel => rel.documentId);
+    // Get all documents excluding the current document itself
+    const allDocuments = await Document.find(
+      { _id: { $ne: currentDocumentID } },
+      'title relationships'
+    ).lean();
 
-    // Add currentDocumentID to the list of excluded IDs
-    const excludeIds = [...connectedDocumentIds, currentDocumentID];
+    const enrichedDocuments = allDocuments.map(doc => {
+      // Find existing types of connections between this document and the current document
+      const existingTypes = doc.relationships
+        .filter(rel => rel.documentId.toString() === currentDocumentID)
+        .map(rel => rel.type);
 
-    // Find available documents excluding connected ones and the current document
-    const availableDocuments = await Document.find(
-      { _id: { $nin: excludeIds } },
-      'title'
-    );
+      // Determine available connection types for this document
+      const availableConnectionTypes = ['direct consequence', 'collateral consequence', 'projection', 'update']
+        .filter(type => !existingTypes.includes(type));
 
-    res.json(availableDocuments);
+      return {
+        _id: doc._id,
+        title: doc.title,
+        availableConnectionTypes
+      };
+    });
+
+    // Filter documents that still have available connection types
+    const filteredDocuments = enrichedDocuments.filter(doc => doc.availableConnectionTypes.length > 0);
+
+    res.json(filteredDocuments);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
