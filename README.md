@@ -1,10 +1,12 @@
-# 🌍 Kiruna Explorer  - Team 6
+# 🌍 Kiruna Explorer
 
-**Discover Kiruna's journey!** Kiruna Explorer is an interactive web application that brings to life the rich history, cultural identity, and transformation of this unique city. Designed as a potential flagship platform for Kiruna's nomination as the European Capital of Culture, it serves as a bridge between past, present, and future.  
+The project is a web app featuring a **React frontend**, **Express backend**, **MongoDB**, and **Docker**. It follows an **Agile Scrum** framework with **bi-weekly demos**, **monthly releases**, **weekly retrospectives**, and task management through **YouTrack**. **SonarQube** ensures continuous code quality via automated checks.
 
 ---
 
 ## ✨ About Kiruna Explorer  
+
+**Discover Kiruna's journey!** Kiruna Explorer is an interactive web application that brings to life the rich history, cultural identity, and transformation of this unique city. Designed as a potential flagship platform for Kiruna's nomination as the European Capital of Culture, it serves as a bridge between past, present, and future. 
 
 Kiruna Explorer invites visitors to delve into the city’s remarkable story:  
 - **Explore the History**: Learn about Kiruna’s origins and its relocation journey.  
@@ -25,12 +27,18 @@ For urban planners, the platform offers powerful tools to:
  
 ---
 
-## 📂 **Project Documentation**  
+## 📂 **Project Documentation**
 
 - **Backend**: The `backend` folder contains details about the server implementation (Express.js, MongoDB) and Docker configuration. It includes setup instructions, dependency management, and server runtime details.  
 - **Client**: The `client` folder holds documentation for the React app, including guidance on starting the development server, managing dependencies, and customizing the user interface.  
+- **Technical Dept**: The `TD_strategy.md` file tracks all Technical Debt items, including their prioritization and resolution status.  
+- **Retrospectives**: The `Retrospective` folder contains notes and action items from our sprint retrospectives, used to improve processes and address recurring issues.  
+- **Images**: The `Screenshots` folder stores images related to the project, such as demo screenshots.  
+- **LICENSE**: The `LICENSE` file contains the licensing terms and conditions under which the project is distributed.  
 
-Refer to these directories for all technical details needed to set up and run Kiruna Explorer.  
+Refer to these directories for all technical details needed to set up and run Kiruna Explorer. 
+
+---
 
 ## 📫 Contact  
 
