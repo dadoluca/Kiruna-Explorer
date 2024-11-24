@@ -239,10 +239,19 @@ const MapComponent = () => {
             <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
-                <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
+
+                    {satelliteView ? (
+                        <TileLayer
+                        url="https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=sk.eyJ1IjoiZ2lhY29taW5vIiwiYSI6ImNtM3c0MHA1aDB1ZjAybHNjdm52ZXRxcjMifQ.P53UQnwLvHuAmFxeaLzgUQ"
+                        attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        id="mapbox/satellite-v9"
+                      />
+                      ) : (
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                    )}
 
                     <Polygon
                         positions={kirunaPolygonCoordinates}
