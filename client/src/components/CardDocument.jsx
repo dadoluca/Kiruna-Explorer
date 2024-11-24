@@ -45,7 +45,7 @@ const DetailPlanCard = (props) => {
                 <div key={item.id} className={styles.stakeholderItem}>{item.name}</div>
               ))
             ) : "N/A"}
-          </ListGrougfkhhmcnb
+          </ListGroup.Item>
           
           <ListGroup.Item className={styles.listItem}>
             <FaMapMarkerAlt className={styles.icon} />
