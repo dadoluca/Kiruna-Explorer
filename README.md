@@ -25,12 +25,18 @@ For urban planners, the platform offers powerful tools to:
  
 ---
 
-## 📂 **Project Documentation**  
+## 📂 **Project Documentation**
 
 - **Backend**: The `backend` folder contains details about the server implementation (Express.js, MongoDB) and Docker configuration. It includes setup instructions, dependency management, and server runtime details.  
 - **Client**: The `client` folder holds documentation for the React app, including guidance on starting the development server, managing dependencies, and customizing the user interface.  
+- **Technical Dept**: The `TD_strategy.md` file tracks all Technical Debt items, including their prioritization and resolution status.  
+- **Retrospectives**: The `Retrospective` folder contains notes and action items from our sprint retrospectives, used to improve processes and address recurring issues.  
+- **Images**: The `Screenshots` folder stores images related to the project, such as demo screenshots.  
+- **LICENSE**: The `LICENSE` file contains the licensing terms and conditions under which the project is distributed.  
 
-Refer to these directories for all technical details needed to set up and run Kiruna Explorer.  
+Refer to these directories for all technical details needed to set up and run Kiruna Explorer. 
+
+---
 
 ## 📫 Contact  
 
