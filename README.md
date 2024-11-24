@@ -1,10 +1,12 @@
-# 🌍 Kiruna Explorer  - Team 6
+# 🌍 Kiruna Explorer
 
-**Discover Kiruna's journey!** Kiruna Explorer is an interactive web application that brings to life the rich history, cultural identity, and transformation of this unique city. Designed as a potential flagship platform for Kiruna's nomination as the European Capital of Culture, it serves as a bridge between past, present, and future.  
+The project is a web app featuring a **React frontend**, **Express backend**, **MongoDB**, and **Docker**. It follows an **Agile Scrum** framework with **bi-weekly demos**, **monthly releases**, **weekly retrospectives**, and task management through **YouTrack**. **SonarQube** ensures continuous code quality via automated checks.
 
 ---
 
 ## ✨ About Kiruna Explorer  
+
+**Discover Kiruna's journey!** Kiruna Explorer is an interactive web application that brings to life the rich history, cultural identity, and transformation of this unique city. Designed as a potential flagship platform for Kiruna's nomination as the European Capital of Culture, it serves as a bridge between past, present, and future. 
 
 Kiruna Explorer invites visitors to delve into the city’s remarkable story:  
 - **Explore the History**: Learn about Kiruna’s origins and its relocation journey.  
