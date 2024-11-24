@@ -10,7 +10,6 @@ import ErrorPage from './pages/ErrorPage';
 import MapPage from './pages/MapPage';
 import LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DocumentCreationPage from './pages/DocumentCreationPage';
 import ScrollableDocumentsList from './components/ListDocument';
 
 function App() {
