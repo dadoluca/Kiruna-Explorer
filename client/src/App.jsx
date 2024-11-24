@@ -11,7 +11,7 @@ import MapPage from './pages/MapPage';
 import LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DocumentCreationPage from './pages/DocumentCreationPage';
-import ResourceCreationPage from './pages/ResourceCreationPage';
+import ResourceCreationPage from './pages/ResourceCreationge';
 import ScrollableDocumentsList from './components/ListDocument';
 
 function App() {
