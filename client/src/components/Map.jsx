@@ -14,6 +14,7 @@ import Legend from './Legend';
 import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
+import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -76,6 +77,7 @@ const MapComponent = () => {
     const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
+    const [satelliteView, setSatelliteView] = useState(true);
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
@@ -308,7 +310,12 @@ const MapComponent = () => {
                 }
 
                 <div className={styles.buttonGroupUI}>
-
+                    <button
+                        className={`${styles.satelliteButton}`}
+                        onClick={() => { setSatelliteView(prev => !prev); }}
+                        >
+                            <MdSatelliteAlt />
+                    </button>
 
                     {loggedIn && (
                         <button
