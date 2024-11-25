@@ -56,7 +56,8 @@ function DocumentInsert() {
             ...prev,
             {
                 selectedDocumentId: '',
-                selectedType: '',
+                selectedTypes: [],
+
             }
         ]);
     };
@@ -98,6 +99,19 @@ function DocumentInsert() {
         setConnections(newConnections);
     };
 
+    const handleToggleType = (index, type) => {
+        const newConnections = [...connections];
+        const selectedTypes = newConnections[index].selectedTypes || [];
+    
+        if (selectedTypes.includes(type)) {
+          newConnections[index].selectedTypes = selectedTypes.filter((t) => t !== type);
+        } else {
+          newConnections[index].selectedTypes = [...selectedTypes, type];
+        }
+    
+        setConnections(newConnections);
+    };
+
     const handleSubmit = async () => {
         console.log('submit');
 
@@ -131,23 +145,26 @@ function DocumentInsert() {
             console.log(document);
             const newDoc = await API.createDocument(document);
 
-            await Promise.all(connections.map(async (connection) => {
-                const selectedDocument = documents.find(doc => doc._id === connection.selectedDocumentId);
+            for (const connection of connections) {
+                const selectedDocument = documents.find((doc) => doc._id === connection.selectedDocumentId);
                 const selectedTitle = selectedDocument ? selectedDocument.title : '';
-
-                await API.createConnection({
+        
+                for (const type of connection.selectedTypes) {
+                  await API.createConnection({
                     documentId: newDoc._id,
                     newDocumentId: connection.selectedDocumentId,
-                    type: connection.selectedType,
-                    title: selectedTitle
-                });
-                await API.createConnection({
+                    type,
+                    title: selectedTitle,
+                  });
+        
+                  await API.createConnection({
                     documentId: connection.selectedDocumentId,
                     newDocumentId: newDoc._id,
-                    type: connection.selectedType,
-                    title: document.title
-                });
-            }));
+                    type,
+                    title: document.title,
+                  });
+                }
+            }
 
             await API.addResources(newDoc._id, resources);
 
@@ -217,9 +234,6 @@ function DocumentInsert() {
             connections.forEach((connection, index) => {
                 if (!connection.selectedDocumentId) {
                     newErrors[`connections[${index}].selectedDocumentId`] = 'Document is required for each connection';
-                }
-                if (!connection.selectedType) {
-                    newErrors[`connections[${index}].selectedType`] = 'Type is required for each connection';
                 }
             });
         }
@@ -563,70 +577,90 @@ function DocumentInsert() {
                     </Form.Control.Feedback>
                 </FloatingLabel>
 
-                {connections.map((connection, index) => (
-                    <div key={index} className="mb-3">
-                        <div className="mb-3">
-                            <Select
-                                id={`document-select-${index}`}
-                                value={
-                                    connection.selectedDocumentId
-                                        ? {
-                                            value: connection.selectedDocumentId,
-                                            label: documents.find(doc => doc._id === connection.selectedDocumentId)?.title
-                                        }
-                                        : null
-                                }
-                                onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption?.value || '')}
-                                options={getAvailableOptions(index).map(doc => ({
-                                    value: doc._id,
-                                    label: doc.title
-                                }))}
-                                isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
-                                placeholder="Select a document to connect *"
-                                getOptionLabel={(e) => e.label}
-                                isClearable={true}
-                                styles={{
-                                    menu: (base) => ({
-                                        ...base,
-                                        zIndex: 1050
-                                    }),
-                                    control: (base) => ({
-                                        ...base,
-                                    }),
-                                }}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].selectedDocumentId`]}
-                            </Form.Control.Feedback>
-                        </div>
-                        
-                        <FloatingLabel label="Connection Type *" className="mb-3">
-                            <Form.Select
-                                value={connection.selectedType}
-                                onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
-                                isInvalid={!!errors[`connections[${index}].selectedType`]}
-                            >
-                                <option value="">Select a Connection Type</option>
-                                <option value="direct consequence">Direct Consequence</option>
-                                <option value="collateral consequence">Collateral Consequence</option>
-                                <option value="projection">Projection</option>
-                                <option value="update">Update</option>
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].selectedType`]}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
+                {connections.map((connection, index) => {
+                    return (
+                        <div key={index} className="mb-3">
+                            <div className="mb-3">
+                                <Select
+                                    id={`document-select-${index}`}
+                                    value={
+                                        connection.selectedDocumentId
+                                            ? {
+                                                value: connection.selectedDocumentId,
+                                                label: documents.find(doc => doc._id === connection.selectedDocumentId)?.title
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption?.value || '')}
+                                    options={getAvailableOptions(index).map(doc => ({
+                                        value: doc._id,
+                                        label: doc.title
+                                    }))}
+                                    isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
+                                    placeholder="Select a document to connect *"
+                                    getOptionLabel={(e) => e.label}
+                                    isClearable={true}
+                                    styles={{
+                                        menu: (base) => ({
+                                            ...base,
+                                            zIndex: 1050
+                                        }),
+                                        control: (base) => ({
+                                            ...base,
+                                        }),
+                                    }}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors[`connections[${index}].selectedDocumentId`]}
+                                </Form.Control.Feedback>
+                            </div>
+                            
+                            {connection.selectedDocumentId && (
+                                <div className="mb-3">
+                                    <div className="d-flex flex-column">
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Direct Consequence"
+                                            checked={connection.selectedTypes.includes('direct consequence')}
+                                            onChange={() => handleToggleType(index, 'direct consequence')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Collateral Consequence"
+                                            checked={connection.selectedTypes.includes('collateral consequence')}
+                                            onChange={() => handleToggleType(index, 'collateral consequence')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Projection"
+                                            checked={connection.selectedTypes.includes('projection')}
+                                            onChange={() => handleToggleType(index, 'projection')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Update"
+                                            checked={connection.selectedTypes.includes('update')}
+                                            onChange={() => handleToggleType(index, 'update')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
-                        <Button
-                            variant="light"
-                            onClick={() => handleRemoveConnection(index)}
-                            size="sm"
-                            className="mb-3"
-                        >
-                            Remove Connection
-                        </Button>
-                    </div>
-                ))}
+                            <Button
+                                variant="light"
+                                onClick={() => handleRemoveConnection(index)}
+                                size="sm"
+                                className="mb-3"
+                            >
+                                Remove Connection
+                            </Button>
+                        </div>
+                    );
+                })}
 
                 {resources.map((resource, index) => (
                     <div key={index} className="mb-3">
