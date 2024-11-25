@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -12,6 +11,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import API from '../services/api';
 import styles from './FormDocument.module.css';
 import { useDocumentContext } from '../contexts/DocumentContext';
+import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+import * as turf from "@turf/turf";
 
 function DocumentInsert() {
     const navigate = useNavigate();
@@ -44,6 +45,8 @@ function DocumentInsert() {
 
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
+
+    const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates;
 
     // Handle Stakeholders
     const predefinedStakeholders = [
@@ -286,44 +289,11 @@ function DocumentInsert() {
         setConnections([]);
     };
 
-    // Le coordinate del poligono di Kiruna
-    const kirunaPolygonCoordinates = [
-        [67.881950910, 20.18],  // Top-left point
-        [67.850, 20.2100],      // Clockwise
-        [67.8410, 20.2000],
-        [67.84037, 20.230],
-        [67.8260, 20.288],
-        [67.8365, 20.304],
-        [67.842, 20.303],
-        [67.844, 20.315],
-        [67.8350, 20.350],
-        [67.850, 20.370],
-        [67.860, 20.300]
-    ];
-
-    // Funzione per verificare se il punto è all'interno del poligono (Algoritmo di Ray-casting)
-    const isPointInPolygon = (point, vs) => {
-        const [x, y] = [point.lat, point.lng];
-        let inside = false;
-        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-            const [xi, yi] = vs[i];
-            const [xj, yj] = vs[j];
-            const intersect = ((yi > y) !== (yj > y)) &&
-                (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-            if (intersect) inside = !inside;
-        }
-        return inside;
-    };
-
     // Funzione per validare le coordinate
     const validateCoordinates = (lat, lng) => {
         // Converte in numeri e verifica che siano numeri validi
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lng);
-    
-        if (isNaN(latitude) || isNaN(longitude)) {
-            return "Coordinates must be valid numbers.";
-        }
     
         // Verifica se la latitudine e la longitudine sono nei limiti
         if (latitude < -90 || latitude > 90) {
@@ -334,9 +304,10 @@ function DocumentInsert() {
         }
     
         // Verifica se il punto è all'interno del poligono
-        const point = { lat: latitude, lng: longitude };
-        if (!isPointInPolygon(point, kirunaPolygonCoordinates)) {
-            return "The point is not inside the Kiruna polygon.";
+        const point = turf.point([longitude, latitude]);
+        const kiruna = turf.multiPolygon(kirunaPolygonCoordinates);
+        if (!turf.booleanPointInPolygon(point, kiruna)) {
+            return "The point is not inside the Kiruna municipality.";
         }
     
         return null; // nessun errore
@@ -345,15 +316,28 @@ function DocumentInsert() {
     // Utilizzo nel form
     const handleCoordinateChange = (ev, coordinateType) => {
         const value = ev.target.value;
+        
+        // Aggiorna la latitudine o longitudine in base al tipo di coordinata
         if (coordinateType === "latitude") {
             setLatitude(value);
         } else if (coordinateType === "longitude") {
             setLongitude(value);
         }
-
-        const error = validateCoordinates(latitude, longitude); // Esegui la validazione
-        setErrors({ ...errors, [coordinateType]: error });
-    }
+    
+        // Esegui la validazione delle coordinate
+        const error = validateCoordinates(latitude, longitude);
+        
+        // Se c'è un errore, aggiungilo allo stato degli errori, altrimenti rimuovilo
+        setErrors(prevErrors => {
+            const newErrors = { ...prevErrors };
+            if (error) {
+                newErrors[coordinateType] = error;
+            } else {
+                delete newErrors[coordinateType]; // rimuove l'errore se non c'è
+            }
+            return newErrors;
+        });
+    };
 
     return (
         <Card className={styles.formCard}>
