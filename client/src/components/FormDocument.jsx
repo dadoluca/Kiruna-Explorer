@@ -21,7 +21,8 @@ function DocumentInsert() {
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
-    const [stakeholders, setStakeholders] = useState('');
+    const [stakeholders, setStakeholders] = useState([]);
+    const [customStakeholder, setCustomStakeholder] = useState('');
     const [type, setType] = useState('');
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
@@ -41,16 +42,40 @@ function DocumentInsert() {
     const [dateFormat, setDateFormat] = useState("yyyy-MM-dd");
     const [formattedDate, setFormattedDate] = useState("");
 
-    const [stakeholdersArray, setStakeholdersArray] = useState([]);
-
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
 
-    const handleStakeholders = (ev) => {
-        setStakeholders(ev.target.value);
-        setStakeholdersArray(ev.target.value.split(','));
+    // Handle Stakeholders
+    const predefinedStakeholders = [
+        { value: 'Kiruna kommun', label: 'Kiruna kommun' },
+        { value: 'Residents', label: 'Residents' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+        { value: 'LKAB', label: 'LKAB' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+    ];
+
+    const handleStakeholdersChange = (selectedOptions) => {
+        setStakeholders(selectedOptions || []);
     };
 
+    const handleCustomStakeholderChange = (ev) => {
+        setCustomStakeholder(ev.target.value);
+    };
+
+    const addCustomStakeholder = () => {
+        if (customStakeholder) {
+            const newStakeholder = { value: customStakeholder, label: customStakeholder };
+            
+            setStakeholders((prevStakeholders) => [
+                ...prevStakeholders,
+                newStakeholder
+            ]);
+
+            setCustomStakeholder('');
+        }
+    };
+
+    // Handle Connections
     const handleAddConnection = () => {
         setConnections(prev => [
             ...prev,
@@ -62,34 +87,11 @@ function DocumentInsert() {
         ]);
     };
 
-    const handleAddResource = () => {
-        setResources(prev => [
-          ...prev,
-          {
-            selectedResource: '',
-          }
-        ]);
-    };
-
-    const handleRemoveResource = (index) => {
-        const newResources = [...resources];
-        newResources.splice(index, 1);
-
-        setResources(newResources);
-    };
-
     const handleChange = (index, field, value) => {
         const newConnections = [...connections];
         newConnections[index][field] = value;
 
         setConnections(newConnections);
-    };
-
-    const handleChangeResource = (index, e) =>{
-        const newResources = [...resources];
-        newResources[index] = e.target.files[0];
-
-        setResources(newResources);
     };
 
     const handleRemoveConnection = (index) => {
@@ -112,6 +114,36 @@ function DocumentInsert() {
         setConnections(newConnections);
     };
 
+    const getAvailableOptions = (index) => {
+        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
+        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
+    };
+
+    // Handle Resources
+    const handleAddResource = () => {
+        setResources(prev => [
+          ...prev,
+          {
+            selectedResource: '',
+          }
+        ]);
+    };
+
+    const handleRemoveResource = (index) => {
+        const newResources = [...resources];
+        newResources.splice(index, 1);
+
+        setResources(newResources);
+    };
+
+    const handleChangeResource = (index, e) =>{
+        const newResources = [...resources];
+        newResources[index] = e.target.files[0];
+
+        setResources(newResources);
+    };
+    
+
     const handleSubmit = async () => {
         console.log('submit');
 
@@ -123,7 +155,7 @@ function DocumentInsert() {
         // Create the document object
         const document = {
             title,
-            stakeholders: stakeholdersArray,
+            stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
             scale,
             issuance_date: formattedDate,
@@ -218,7 +250,9 @@ function DocumentInsert() {
         let newErrors = {};
 
         if (!title) newErrors.title = 'Title is required';
-        if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
+        if (!stakeholders || stakeholders.length === 0) {
+            newErrors.stakeholders = 'Stakeholders are required';
+        }
         if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
         if (!scale) newErrors.scale = 'Scale is required';
         if (!description) newErrors.description = 'Description is required';
@@ -245,7 +279,7 @@ function DocumentInsert() {
 
     const resetForm = () => {
         setTitle('');
-        setStakeholders('');
+        setStakeholders([]);
         setType('');
         setScale('');
         setDate('');
@@ -258,11 +292,6 @@ function DocumentInsert() {
         setCustomType(''); // Reset custom type
         setCustomLanguage(''); // Reset custom language
         setConnections([]);
-    };
-
-    const getAvailableOptions = (index) => {
-        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
-        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
     };
 
     // Le coordinate del poligono di Kiruna
@@ -420,18 +449,48 @@ function DocumentInsert() {
                 )}
 
                 {/* Stakeholders */}
-                <FloatingLabel label="Stakeholders *" className={styles.formField}>
+                <FloatingLabel className={styles.formField}>
+                    <Select
+                        isMulti
+                        value={stakeholders}
+                        onChange={handleStakeholdersChange}
+                        options={predefinedStakeholders}
+                        placeholder="Select stakeholders *"
+                        styles={{
+                            menu: (base) => ({
+                                ...base,
+                                zIndex: 1050
+                            }),
+                            control: (base) => ({
+                                ...base,
+                                borderColor: errors.stakeholders ? 'red' : base.borderColor,
+                            }),
+                        }}
+                    />
+                    {errors.stakeholders && (
+                        <div className="invalid-feedback d-block">
+                            {errors.stakeholders}
+                        </div>
+                    )}
+                </FloatingLabel>
+
+                {/* Custom Stakeholder */}
+                <FloatingLabel label="Custom Stakeholder *" className="mb-3">
                     <Form.Control
                         type="text"
-                        value={stakeholders}
-                        onChange={handleStakeholders}
-                        isInvalid={!!errors.stakeholders}
-                        required
+                        value={customStakeholder}
+                        onChange={handleCustomStakeholderChange}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.stakeholders}
-                    </Form.Control.Feedback>
                 </FloatingLabel>
+
+                <Button 
+                    variant="light"
+                    onClick={addCustomStakeholder}
+                    size="sm"
+                    className="mb-5"
+                >
+                    Add Custom Stakeholder to the List
+                </Button>
 
                 {/* Connections - Non-editable field with value set to 1 */}
                 <Row>
@@ -450,7 +509,8 @@ function DocumentInsert() {
                         </FloatingLabel>
                     </Col>
                 </Row>
-
+                
+                {/* Scale */}
                 <Row className="mb-3">
                     <Col md={6}>
                         <FloatingLabel label="Scale *" className="mb-3">
@@ -480,6 +540,7 @@ function DocumentInsert() {
                             {errors.scale}
                         </Form.Control.Feedback>
                     </Col>
+
                     {/* Custom Scale Input */}
                     <Col md={6}>
                         {scale === "Add Custom..." && (
@@ -493,7 +554,8 @@ function DocumentInsert() {
                         )}
                     </Col>
                 </Row>
-
+                
+                {/* Coordinates */}
                 {!isMunicipal && (
                     <Row className="mb-4">
                         <Col md={6}>
@@ -527,6 +589,7 @@ function DocumentInsert() {
                     </Row>
                 )}
 
+                {/* Date */}
                 <Row className="mb-4 d-flex">
                     <Col>
                         <div className="d-flex gap-2 justify-content-center">
@@ -576,7 +639,8 @@ function DocumentInsert() {
                         {errors.description}
                     </Form.Control.Feedback>
                 </FloatingLabel>
-
+                
+                {/* Connections */}
                 {connections.map((connection, index) => {
                     return (
                         <div key={index} className="mb-3">
@@ -596,7 +660,6 @@ function DocumentInsert() {
                                         value: doc._id,
                                         label: doc.title
                                     }))}
-                                    isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
                                     placeholder="Select a document to connect *"
                                     getOptionLabel={(e) => e.label}
                                     isClearable={true}
@@ -607,12 +670,10 @@ function DocumentInsert() {
                                         }),
                                         control: (base) => ({
                                             ...base,
+                                            borderColor: errors[`connections[${index}].selectedDocumentId`] ? 'red' : base.borderColor,
                                         }),
                                     }}
                                 />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors[`connections[${index}].selectedDocumentId`]}
-                                </Form.Control.Feedback>
                             </div>
                             
                             {connection.selectedDocumentId && (
@@ -662,6 +723,7 @@ function DocumentInsert() {
                     );
                 })}
 
+                {/* Resources */}
                 {resources.map((resource, index) => (
                     <div key={index} className="mb-3">
                         <FloatingLabel label="Resource to add" className="mb-3">
