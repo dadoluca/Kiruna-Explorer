@@ -78,6 +78,7 @@ const MapComponent = () => {
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
+    const accessToken = "sk.eyJ1IjoiZ2lhY29taW5vIiwiYSI6ImNtM3c0MHA1aDB1ZjAybHNjdm52ZXRxcjMifQ.P53UQnwLvHuAmFxeaLzgUQ"
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
@@ -242,7 +243,7 @@ const MapComponent = () => {
 
                     {satelliteView ? (
                         <TileLayer
-                        url="https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=sk.eyJ1IjoiZ2lhY29taW5vIiwiYSI6ImNtM3c0MHA1aDB1ZjAybHNjdm52ZXRxcjMifQ.P53UQnwLvHuAmFxeaLzgUQ"
+                        url={`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${accessToken}`}
                         attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         id="mapbox/satellite-v9"
                       />
