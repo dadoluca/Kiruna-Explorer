@@ -42,7 +42,7 @@ const DetailPlanCard = (props) => {
             <FaUser className={styles.icon} />
             <strong> Stakeholders:</strong> {document.stakeholders?.length > 0 ? (
               document.stakeholders.map((item) => (
-                <div key={item.id} className={styles.stakeholderItem}>{item.name}</div>
+                <div key={item.id} className={styles.stakeholderItem}>{item}</div>
               ))
             ) : "N/A"}
           </ListGroup.Item>
