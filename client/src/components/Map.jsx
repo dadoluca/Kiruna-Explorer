@@ -15,6 +15,8 @@ import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
 import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
+import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+
 
 const multipleDocumentsIcon = new L.Icon({
     iconUrl: '/multiple_docs.png',  // Point to backend URL
@@ -68,7 +70,7 @@ const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
     const navigate = useNavigate();
-    const position = [67.8558, 20.2253]; // Kiruna coordinates
+    const position = [68.1, 20.4]; // Kiruna coordinates
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
@@ -79,20 +81,11 @@ const MapComponent = () => {
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
 
-    const kirunaPolygonCoordinates = [
-        [67.881950910, 20.18],
-        [67.850, 20.2100],
-        [67.8410, 20.2000],
-        [67.84037, 20.230],
-        [67.8260, 20.288],
-        [67.8365, 20.304],
-        [67.842, 20.303],
-        [67.844, 20.315],
-        [67.8350, 20.350],
-        [67.850, 20.370],
-        [67.860, 20.300],
-        [67.881950910, 20.18]
-    ];
+    const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
+        polygon[0].map(
+          ([lng, lat]) => [lat, lng]
+        )
+    );
 
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
     const isPointInPolygon = (point, vs) => {
@@ -170,10 +163,16 @@ const MapComponent = () => {
             },
             click: (e) => {
                 // Naviga alla creazione documento se in modalità selezione
-                if (isSelecting && loggedIn && changingDocument == null && isPointInPolygon(mouseCoords, kirunaPolygonCoordinates)) {
-                    navigate('/document-creation', { state: { coordinates: e.latlng } });
-                    setIsSelecting(false);
-                    return;
+                if (isSelecting && loggedIn && changingDocument == null) {
+                    const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon => 
+                      isPointInPolygon(mouseCoords, polygon)
+                    );
+                  
+                    if (isInAnyPolygon) {
+                      navigate('/document-creation', { state: { coordinates: e.latlng } });
+                      setIsSelecting(false);
+                      return;
+                    }
                 }
     
                 // Aggiorna le coordinate di un documento esistente
@@ -236,7 +235,7 @@ const MapComponent = () => {
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
                 {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
-            <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
+            <MapContainer center={position} zoom={8} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
 
@@ -253,12 +252,15 @@ const MapComponent = () => {
                         />
                     )}
 
-                    <Polygon
-                        positions={kirunaPolygonCoordinates}
-                        color="gray"
-                        fillColor="#D3D3D3"
-                        fillOpacity={0.4}
-                    />
+                    {kirunaPolygonCoordinates.map((polygonCoordinates, index) => (
+                        <Polygon
+                            key={index}
+                            positions={polygonCoordinates}
+                            color="gray"
+                            fillColor="#D3D3D3"
+                            fillOpacity={0.4}
+                        />
+                    ))}
 
                     <MarkerClusterGroup
                         showCoverageOnHover={false}
