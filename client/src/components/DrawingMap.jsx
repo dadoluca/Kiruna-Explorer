@@ -64,10 +64,15 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
 
     const drawnPolygon = turf.polygon([latlngs.map(latlng => [latlng.lng, latlng.lat])]);
 
-    const limitPolygon = turf.polygon([limitArea.map(latlng => [latlng[1], latlng[0]])]);
+    // Convert limitArea to a MultiPolygon if it is an array of polygons
+    const limitPolygon = Array.isArray(limitArea[0])
+      ? turf.multiPolygon([limitArea.map(latlng => latlng.map(point => [point[1], point[0]]))])
+      : turf.polygon([limitArea.map(latlng => [latlng[1], latlng[0]])]);
 
-    // Check if the drawn polygon is within the limit area
-    if (turf.booleanWithin(drawnPolygon, limitPolygon)) {
+    // Check if the drawn polygon is within the limit area (either MultiPolygon or Polygon)
+    const isInside = turf.booleanWithin(drawnPolygon, limitPolygon);
+
+    if (isInside) {
       previousPolygonRef.current = drawnPolygon;  // Store the valid polygon
       drawnItems.clearLayers();
       drawnItems.addLayer(layer);
@@ -97,10 +102,15 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
 
       const drawnPolygon = turf.polygon([latlngs.map(latlng => [latlng.lng, latlng.lat])]);
 
-      const limitPolygon = turf.polygon([limitArea.map(latlng => [latlng[1], latlng[0]])]);
+      // Convert limitArea to a MultiPolygon if it is an array of polygons
+      const limitPolygon = Array.isArray(limitArea[0])
+        ? turf.multiPolygon([limitArea.map(latlng => latlng.map(point => [point[1], point[0]]))])
+        : turf.polygon([limitArea.map(latlng => [latlng[1], latlng[0]])]);
 
-      // Check if the edited polygon is within the limit area
-      if (turf.booleanWithin(drawnPolygon, limitPolygon)) {
+      // Check if the edited polygon is within the limit area (either MultiPolygon or Polygon)
+      const isInside = turf.booleanWithin(drawnPolygon, limitPolygon);
+
+      if (isInside) {
         previousPolygonRef.current = drawnPolygon;  // Store the valid edited polygon
         setDrawnPolygon(layer);
         console.log('Polygon edited within the limit area:', layer.getLatLngs());
