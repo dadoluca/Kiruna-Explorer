@@ -264,14 +264,6 @@ function DocumentInsert() {
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
 
-        if (connections && connections.length > 0) {
-            connections.forEach((connection, index) => {
-                if (!connection.selectedDocumentId) {
-                    newErrors[`connections[${index}].selectedDocumentId`] = 'Document is required for each connection';
-                }
-            });
-        }
-
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -660,7 +652,7 @@ function DocumentInsert() {
                                         value: doc._id,
                                         label: doc.title
                                     }))}
-                                    placeholder="Select a document to connect *"
+                                    placeholder="Select a document to connect"
                                     getOptionLabel={(e) => e.label}
                                     isClearable={true}
                                     styles={{
@@ -670,7 +662,6 @@ function DocumentInsert() {
                                         }),
                                         control: (base) => ({
                                             ...base,
-                                            borderColor: errors[`connections[${index}].selectedDocumentId`] ? 'red' : base.borderColor,
                                         }),
                                     }}
                                 />
