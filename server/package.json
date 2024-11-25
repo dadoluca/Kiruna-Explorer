@@ -35,5 +35,8 @@
     "nodemon": "^3.1.7",
     "sinon": "^19.0.2",
     "supertest": "^7.0.0"
+  },
+  "imports": {
+    "*.json": "json"
   }
 }

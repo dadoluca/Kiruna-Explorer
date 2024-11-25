@@ -21,7 +21,8 @@ function DocumentInsert() {
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
-    const [stakeholders, setStakeholders] = useState('');
+    const [stakeholders, setStakeholders] = useState([]);
+    const [customStakeholder, setCustomStakeholder] = useState('');
     const [type, setType] = useState('');
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
@@ -41,26 +42,84 @@ function DocumentInsert() {
     const [dateFormat, setDateFormat] = useState("yyyy-MM-dd");
     const [formattedDate, setFormattedDate] = useState("");
 
-    const [stakeholdersArray, setStakeholdersArray] = useState([]);
-
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
 
-    const handleStakeholders = (ev) => {
-        setStakeholders(ev.target.value);
-        setStakeholdersArray(ev.target.value.split(','));
+    // Handle Stakeholders
+    const predefinedStakeholders = [
+        { value: 'Kiruna kommun', label: 'Kiruna kommun' },
+        { value: 'Residents', label: 'Residents' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+        { value: 'LKAB', label: 'LKAB' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+    ];
+
+    const handleStakeholdersChange = (selectedOptions) => {
+        setStakeholders(selectedOptions || []);
     };
 
+    const handleCustomStakeholderChange = (ev) => {
+        setCustomStakeholder(ev.target.value);
+    };
+
+    const addCustomStakeholder = () => {
+        if (customStakeholder) {
+            const newStakeholder = { value: customStakeholder, label: customStakeholder };
+            
+            setStakeholders((prevStakeholders) => [
+                ...prevStakeholders,
+                newStakeholder
+            ]);
+
+            setCustomStakeholder('');
+        }
+    };
+
+    // Handle Connections
     const handleAddConnection = () => {
         setConnections(prev => [
             ...prev,
             {
                 selectedDocumentId: '',
-                selectedType: '',
+                selectedTypes: [],
+
             }
         ]);
     };
 
+    const handleChange = (index, field, value) => {
+        const newConnections = [...connections];
+        newConnections[index][field] = value;
+
+        setConnections(newConnections);
+    };
+
+    const handleRemoveConnection = (index) => {
+        const newConnections = [...connections];
+        newConnections.splice(index, 1);
+
+        setConnections(newConnections);
+    };
+
+    const handleToggleType = (index, type) => {
+        const newConnections = [...connections];
+        const selectedTypes = newConnections[index].selectedTypes || [];
+    
+        if (selectedTypes.includes(type)) {
+          newConnections[index].selectedTypes = selectedTypes.filter((t) => t !== type);
+        } else {
+          newConnections[index].selectedTypes = [...selectedTypes, type];
+        }
+    
+        setConnections(newConnections);
+    };
+
+    const getAvailableOptions = (index) => {
+        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
+        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
+    };
+
+    // Handle Resources
     const handleAddResource = () => {
         setResources(prev => [
           ...prev,
@@ -77,26 +136,13 @@ function DocumentInsert() {
         setResources(newResources);
     };
 
-    const handleChange = (index, field, value) => {
-        const newConnections = [...connections];
-        newConnections[index][field] = value;
-
-        setConnections(newConnections);
-    };
-
     const handleChangeResource = (index, e) =>{
         const newResources = [...resources];
         newResources[index] = e.target.files[0];
 
         setResources(newResources);
     };
-
-    const handleRemoveConnection = (index) => {
-        const newConnections = [...connections];
-        newConnections.splice(index, 1);
-
-        setConnections(newConnections);
-    };
+    
 
     const handleSubmit = async () => {
         console.log('submit');
@@ -109,7 +155,7 @@ function DocumentInsert() {
         // Create the document object
         const document = {
             title,
-            stakeholders: stakeholdersArray,
+            stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
             scale,
             issuance_date: formattedDate,
@@ -131,23 +177,26 @@ function DocumentInsert() {
             console.log(document);
             const newDoc = await API.createDocument(document);
 
-            await Promise.all(connections.map(async (connection) => {
-                const selectedDocument = documents.find(doc => doc._id === connection.selectedDocumentId);
+            for (const connection of connections) {
+                const selectedDocument = documents.find((doc) => doc._id === connection.selectedDocumentId);
                 const selectedTitle = selectedDocument ? selectedDocument.title : '';
-
-                await API.createConnection({
+        
+                for (const type of connection.selectedTypes) {
+                  await API.createConnection({
                     documentId: newDoc._id,
                     newDocumentId: connection.selectedDocumentId,
-                    type: connection.selectedType,
-                    title: selectedTitle
-                });
-                await API.createConnection({
+                    type,
+                    title: selectedTitle,
+                  });
+        
+                  await API.createConnection({
                     documentId: connection.selectedDocumentId,
                     newDocumentId: newDoc._id,
-                    type: connection.selectedType,
-                    title: document.title
-                });
-            }));
+                    type,
+                    title: document.title,
+                  });
+                }
+            }
 
             await API.addResources(newDoc._id, resources);
 
@@ -201,7 +250,9 @@ function DocumentInsert() {
         let newErrors = {};
 
         if (!title) newErrors.title = 'Title is required';
-        if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
+        if (!stakeholders || stakeholders.length === 0) {
+            newErrors.stakeholders = 'Stakeholders are required';
+        }
         if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
         if (!scale) newErrors.scale = 'Scale is required';
         if (!description) newErrors.description = 'Description is required';
@@ -213,17 +264,6 @@ function DocumentInsert() {
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
 
-        if (connections && connections.length > 0) {
-            connections.forEach((connection, index) => {
-                if (!connection.selectedDocumentId) {
-                    newErrors[`connections[${index}].selectedDocumentId`] = 'Document is required for each connection';
-                }
-                if (!connection.selectedType) {
-                    newErrors[`connections[${index}].selectedType`] = 'Type is required for each connection';
-                }
-            });
-        }
-
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -231,7 +271,7 @@ function DocumentInsert() {
 
     const resetForm = () => {
         setTitle('');
-        setStakeholders('');
+        setStakeholders([]);
         setType('');
         setScale('');
         setDate('');
@@ -244,11 +284,6 @@ function DocumentInsert() {
         setCustomType(''); // Reset custom type
         setCustomLanguage(''); // Reset custom language
         setConnections([]);
-    };
-
-    const getAvailableOptions = (index) => {
-        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
-        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
     };
 
     // Le coordinate del poligono di Kiruna
@@ -406,18 +441,48 @@ function DocumentInsert() {
                 )}
 
                 {/* Stakeholders */}
-                <FloatingLabel label="Stakeholders *" className={styles.formField}>
+                <FloatingLabel className={styles.formField}>
+                    <Select
+                        isMulti
+                        value={stakeholders}
+                        onChange={handleStakeholdersChange}
+                        options={predefinedStakeholders}
+                        placeholder="Select stakeholders *"
+                        styles={{
+                            menu: (base) => ({
+                                ...base,
+                                zIndex: 1050
+                            }),
+                            control: (base) => ({
+                                ...base,
+                                borderColor: errors.stakeholders ? 'red' : base.borderColor,
+                            }),
+                        }}
+                    />
+                    {errors.stakeholders && (
+                        <div className="invalid-feedback d-block">
+                            {errors.stakeholders}
+                        </div>
+                    )}
+                </FloatingLabel>
+
+                {/* Custom Stakeholder */}
+                <FloatingLabel label="Custom Stakeholder *" className="mb-3">
                     <Form.Control
                         type="text"
-                        value={stakeholders}
-                        onChange={handleStakeholders}
-                        isInvalid={!!errors.stakeholders}
-                        required
+                        value={customStakeholder}
+                        onChange={handleCustomStakeholderChange}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.stakeholders}
-                    </Form.Control.Feedback>
                 </FloatingLabel>
+
+                <Button 
+                    variant="light"
+                    onClick={addCustomStakeholder}
+                    size="sm"
+                    className="mb-5"
+                >
+                    Add Custom Stakeholder to the List
+                </Button>
 
                 {/* Connections - Non-editable field with value set to 1 */}
                 <Row>
@@ -436,7 +501,8 @@ function DocumentInsert() {
                         </FloatingLabel>
                     </Col>
                 </Row>
-
+                
+                {/* Scale */}
                 <Row className="mb-3">
                     <Col md={6}>
                         <FloatingLabel label="Scale *" className="mb-3">
@@ -466,6 +532,7 @@ function DocumentInsert() {
                             {errors.scale}
                         </Form.Control.Feedback>
                     </Col>
+
                     {/* Custom Scale Input */}
                     <Col md={6}>
                         {scale === "Add Custom..." && (
@@ -479,7 +546,8 @@ function DocumentInsert() {
                         )}
                     </Col>
                 </Row>
-
+                
+                {/* Coordinates */}
                 {!isMunicipal && (
                     <Row className="mb-4">
                         <Col md={6}>
@@ -513,6 +581,7 @@ function DocumentInsert() {
                     </Row>
                 )}
 
+                {/* Date */}
                 <Row className="mb-4 d-flex">
                     <Col>
                         <div className="d-flex gap-2 justify-content-center">
@@ -562,72 +631,90 @@ function DocumentInsert() {
                         {errors.description}
                     </Form.Control.Feedback>
                 </FloatingLabel>
+                
+                {/* Connections */}
+                {connections.map((connection, index) => {
+                    return (
+                        <div key={index} className="mb-3">
+                            <div className="mb-3">
+                                <Select
+                                    id={`document-select-${index}`}
+                                    value={
+                                        connection.selectedDocumentId
+                                            ? {
+                                                value: connection.selectedDocumentId,
+                                                label: documents.find(doc => doc._id === connection.selectedDocumentId)?.title
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption?.value || '')}
+                                    options={getAvailableOptions(index).map(doc => ({
+                                        value: doc._id,
+                                        label: doc.title
+                                    }))}
+                                    placeholder="Select a document to connect"
+                                    getOptionLabel={(e) => e.label}
+                                    isClearable={true}
+                                    styles={{
+                                        menu: (base) => ({
+                                            ...base,
+                                            zIndex: 1050
+                                        }),
+                                        control: (base) => ({
+                                            ...base,
+                                        }),
+                                    }}
+                                />
+                            </div>
+                            
+                            {connection.selectedDocumentId && (
+                                <div className="mb-3">
+                                    <div className="d-flex flex-column">
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Direct Consequence"
+                                            checked={connection.selectedTypes.includes('direct consequence')}
+                                            onChange={() => handleToggleType(index, 'direct consequence')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Collateral Consequence"
+                                            checked={connection.selectedTypes.includes('collateral consequence')}
+                                            onChange={() => handleToggleType(index, 'collateral consequence')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Projection"
+                                            checked={connection.selectedTypes.includes('projection')}
+                                            onChange={() => handleToggleType(index, 'projection')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Update"
+                                            checked={connection.selectedTypes.includes('update')}
+                                            onChange={() => handleToggleType(index, 'update')}
+                                            style={{ textAlign: 'left' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
-                {connections.map((connection, index) => (
-                    <div key={index} className="mb-3">
-                        <div className="mb-3">
-                            <Select
-                                id={`document-select-${index}`}
-                                value={
-                                    connection.selectedDocumentId
-                                        ? {
-                                            value: connection.selectedDocumentId,
-                                            label: documents.find(doc => doc._id === connection.selectedDocumentId)?.title
-                                        }
-                                        : null
-                                }
-                                onChange={(selectedOption) => handleChange(index, 'selectedDocumentId', selectedOption?.value || '')}
-                                options={getAvailableOptions(index).map(doc => ({
-                                    value: doc._id,
-                                    label: doc.title
-                                }))}
-                                isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
-                                placeholder="Select a document to connect *"
-                                getOptionLabel={(e) => e.label}
-                                isClearable={true}
-                                styles={{
-                                    menu: (base) => ({
-                                        ...base,
-                                        zIndex: 1050
-                                    }),
-                                    control: (base) => ({
-                                        ...base,
-                                    }),
-                                }}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].selectedDocumentId`]}
-                            </Form.Control.Feedback>
-                        </div>
-                        
-                        <FloatingLabel label="Connection Type *" className="mb-3">
-                            <Form.Select
-                                value={connection.selectedType}
-                                onChange={(ev) => handleChange(index, 'selectedType', ev.target.value)}
-                                isInvalid={!!errors[`connections[${index}].selectedType`]}
+                            <Button
+                                variant="light"
+                                onClick={() => handleRemoveConnection(index)}
+                                size="sm"
+                                className="mb-3"
                             >
-                                <option value="">Select a Connection Type</option>
-                                <option value="direct consequence">Direct Consequence</option>
-                                <option value="collateral consequence">Collateral Consequence</option>
-                                <option value="projection">Projection</option>
-                                <option value="update">Update</option>
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid">
-                                {errors[`connections[${index}].selectedType`]}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
+                                Remove Connection
+                            </Button>
+                        </div>
+                    );
+                })}
 
-                        <Button
-                            variant="light"
-                            onClick={() => handleRemoveConnection(index)}
-                            size="sm"
-                            className="mb-3"
-                        >
-                            Remove Connection
-                        </Button>
-                    </div>
-                ))}
-
+                {/* Resources */}
                 {resources.map((resource, index) => (
                     <div key={index} className="mb-3">
                         <FloatingLabel label="Resource to add" className="mb-3">

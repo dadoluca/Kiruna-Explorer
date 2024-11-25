@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import { Row, Col } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -15,7 +14,6 @@ import ResourcesModal from './ResourcesModal';
 import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
-  const navigate = useNavigate();
   const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
@@ -43,8 +41,8 @@ const DetailPlanCard = (props) => {
           <ListGroup.Item className={styles.listItem}>
             <FaUser className={styles.icon} />
             <strong> Stakeholders:</strong> {document.stakeholders?.length > 0 ? (
-              document.stakeholders.map((item, index) => (
-                <div key={index} className={styles.stakeholderItem}>{item}</div>
+              document.stakeholders.map((item) => (
+                <div key={item.id} className={styles.stakeholderItem}>{item}</div>
               ))
             ) : "N/A"}
           </ListGroup.Item>
