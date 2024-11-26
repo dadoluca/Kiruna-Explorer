@@ -535,8 +535,8 @@ export const uploadResource = async (req, res, next) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    // Check if file information exists in the request
-    if (!req.file || !req.file.filename || !req.file.mimetype) {
+    // Check if file information exists in the request using optional chaining
+    if (!req.file?.filename || !req.file?.mimetype) {
       return res.status(400).json({ message: 'File upload failed or invalid file type' });
     }
 
@@ -558,6 +558,7 @@ export const uploadResource = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 // Delete a resource
@@ -616,7 +617,8 @@ export const createDocumentWithResources = async (req, res) => {
     const { resources, ...documentData } = req.body;
     const document = new Document(documentData);
 
-    if (resources && resources.length) {
+    // Use optional chaining to check if resources exists and has a length
+    if (resources?.length) {
       document.original_resources = resources;
     }
 
@@ -627,6 +629,7 @@ export const createDocumentWithResources = async (req, res) => {
   }
 };
 
+
 // Update document with additional resources
 export const updateDocumentWithResources = async (req, res) => {
   try {
@@ -635,7 +638,8 @@ export const updateDocumentWithResources = async (req, res) => {
 
     if (!document) return res.status(404).json({ message: 'Document not found' });
 
-    if (resources && resources.length) {
+    // Use optional chaining to check if resources exists and has length
+    if (resources?.length) {
       document.original_resources.push(...resources);
       await document.save();
     }
@@ -645,6 +649,9 @@ export const updateDocumentWithResources = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+
+
 // Download a specific resource file for a document
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

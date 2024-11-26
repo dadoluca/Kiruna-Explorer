@@ -99,8 +99,21 @@ const addSorting = (function() {
         const sorter = function(a, b) {
             a = a.data[key];
             b = b.data[key];
-            return a < b ? -1 : a > b ? 1 : 0;
+    
+            let comparisonResult;
+    
+            // Extract the nested ternary operation into an independent statement
+            if (a < b) {
+                comparisonResult = -1;
+            } else if (a > b) {
+                comparisonResult = 1;
+            } else {
+                comparisonResult = 0;
+            }
+    
+            return comparisonResult;
         };
+        
         let finalSorter = sorter;
         const tableBody = document.querySelector('.coverage-summary tbody');
         const rowNodes = tableBody.querySelectorAll('tr');
