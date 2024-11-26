@@ -14,6 +14,7 @@ import Legend from './Legend';
 import ScrollableDocumentsList from './ListDocument';
 import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
+import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 
 const multipleDocumentsIcon = new L.Icon({
@@ -77,6 +78,8 @@ const MapComponent = () => {
     const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
+    const [satelliteView, setSatelliteView] = useState(true);
+    const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
     const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
         polygon[0].map(
@@ -235,10 +238,21 @@ const MapComponent = () => {
             <MapContainer center={position} zoom={8} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
                     {/* <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/> */}
-                <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
+
+                    {satelliteView ? (
+                        <TileLayer
+                        url={`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${accessToken}`}
+                        attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        id="mapbox/satellite-v9"
+                      />
+                      ) : (
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                    )}
+
+
 
                     {kirunaPolygonCoordinates.map((polygonCoordinates, index) => (
                         <Polygon
@@ -309,7 +323,12 @@ const MapComponent = () => {
                 }
 
                 <div className={styles.buttonGroupUI}>
-
+                    <button
+                        className={`${styles.satelliteButton}`}
+                        onClick={() => { setSatelliteView(prev => !prev); }}
+                        >
+                            <MdSatelliteAlt />
+                    </button>
 
                     {loggedIn && (
                         <button

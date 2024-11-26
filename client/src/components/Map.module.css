@@ -15,7 +15,7 @@
 /* Pulsante per aggiunta in basso a destra */
 .addButton {
     position: absolute;
-    bottom: 15px;
+    bottom: 70px;
     right: 10px;
     background-color: #333333; /* Grigio scuro */
     color: #ffffff; /* Testo bianco */
@@ -40,7 +40,7 @@
 
 .listButton {
     position: absolute;
-    bottom: 70px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
+    bottom: 125px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
     right: 10px; /* Allineamento a destra come addButton */
     background-color: #333333; /* Colore grigio leggermente più chiaro */
     color: #ffffff; /* Testo bianco */
@@ -64,6 +64,36 @@
 }
 
 .listButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+.satelliteButton {
+    position: absolute;
+    bottom: 15px; /* Distanza dal bordo inferiore per posizionarlo sopra listButton*/
+    right: 10px; /* Allineamento a destra come addButton */
+    background-color: #333333; /* Colore grigio leggermente più chiaro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare */
+    width: 3rem; /* Dimensioni uguali a addButton */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo */
+    overflow: hidden;
+}
+
+.satelliteButton:hover {
     background-color: #666666; /* Colore più chiaro al passaggio del mouse */
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
 }
