@@ -38,15 +38,48 @@ export const createDocument = async (req, res) => {
   }
 };
 
-// Get all documents with optional filters
+// Get all documents with optional filters and pagination
 export const getAllDocuments = async (req, res) => {
   try {
-    const documents = await Document.find(req.query);
-    res.json(documents);
+    // Pagination and filter parameters
+    const { page = 1, limit = 10, title, type, tag } = req.query;
+
+    // Construct filter object based on query parameters
+    let filter = {};
+    if (title) {
+      filter.title = { $regex: title, $options: 'i' };  // Case-insensitive filter for title
+    }
+    if (type) {
+      filter.type = type;  // Filter by type
+    }
+    if (tag) {
+      filter.tags = { $in: [tag] };  // Filter by tags if specified
+    }
+
+    // Fetch the documents with the applied filters and pagination
+    const documents = await Document.find(filter)
+      .skip((page - 1) * limit)  // Skip based on the page number
+      .limit(parseInt(limit))    // Limit the number of documents per page
+      .exec();
+
+    // Get the total number of documents for pagination info
+    const totalDocuments = await Document.countDocuments(filter);
+
+    // Send the paginated documents along with pagination details
+    res.status(200).json({
+      data: documents,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalDocuments / limit),
+        totalDocuments,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // Get a document by ID
 export const getDocumentById = async (req, res, next) => {
@@ -622,3 +655,4 @@ export const downloadResource = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
