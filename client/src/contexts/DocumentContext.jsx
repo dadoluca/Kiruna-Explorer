@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 export const DocumentContext = createContext();
 
@@ -97,9 +97,21 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
-  return (
-    <DocumentContext.Provider value={{ documents, markers, municipalArea, docList, setDocumentList, setMapMarkers, updateDocument, updateDocCoords, setListContent }}>
-      {children}
-    </DocumentContext.Provider>
+   // Memoize the value object
+   const value = useMemo(
+    () => ({
+      documents,
+      markers,
+      municipalArea,
+      docList,
+      setDocumentList,
+      setMapMarkers,
+      updateDocument,
+      updateDocCoords,
+      setListContent,
+    }),
+    [documents, markers, municipalArea, docList]
   );
+
+  return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
 };
