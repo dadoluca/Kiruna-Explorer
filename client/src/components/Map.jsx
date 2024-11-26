@@ -78,7 +78,7 @@ const MapComponent = () => {
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
-    const accessToken = "sk.eyJ1IjoiZ2lhY29taW5vIiwiYSI6ImNtM3c0MHA1aDB1ZjAybHNjdm52ZXRxcjMifQ.P53UQnwLvHuAmFxeaLzgUQ"
+    const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
     const kirunaPolygonCoordinates = [
         [67.881950910, 20.18],
