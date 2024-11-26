@@ -1,11 +1,11 @@
 /* eslint-disable */
-var addSorting = (function() {
+const addSorting = (function() {
     'use strict';
-    var cols,
-        currentSort = {
-            index: 0,
-            desc: false
-        };
+    let cols;
+    let currentSort = {
+        index: 0,
+        desc: false
+    };
 
     // returns the summary table element
     function getTable() {
@@ -43,22 +43,19 @@ var addSorting = (function() {
 
     // loads the search box
     function addSearchBox() {
-        var template = document.getElementById('filterTemplate');
-        var templateClone = template.content.cloneNode(true);
+        const template = document.getElementById('filterTemplate');
+        const templateClone = template.content.cloneNode(true);
         templateClone.getElementById('fileSearch').oninput = onFilterInput;
         template.parentElement.appendChild(templateClone);
     }
 
     // loads all columns
     function loadColumns() {
-        var colNodes = getTableHeader().querySelectorAll('th'),
-            colNode,
-            cols = [],
-            col,
-            i;
-
-        for (i = 0; i < colNodes.length; i += 1) {
-            colNode = colNodes[i];
+        const colNodes = getTableHeader().querySelectorAll('th');
+        const cols = [];
+        let col;
+        for (let i = 0; i < colNodes.length; i++) {
+            const colNode = colNodes[i];
             col = {
                 key: colNode.getAttribute('data-col'),
                 sortable: !colNode.getAttribute('data-nosort'),
@@ -76,16 +73,12 @@ var addSorting = (function() {
     // attaches a data attribute to every tr element with an object
     // of data values keyed by column name
     function loadRowData(tableRow) {
-        var tableCols = tableRow.querySelectorAll('td'),
-            colNode,
-            col,
-            data = {},
-            i,
-            val;
-        for (i = 0; i < tableCols.length; i += 1) {
-            colNode = tableCols[i];
-            col = cols[i];
-            val = colNode.getAttribute('data-value');
+        const tableCols = tableRow.querySelectorAll('td');
+        const data = {};
+        for (let i = 0; i < tableCols.length; i++) {
+            const colNode = tableCols[i];
+            const col = cols[i];
+            let val = colNode.getAttribute('data-value');
             if (col.type === 'number') {
                 val = Number(val);
             }
@@ -95,48 +88,38 @@ var addSorting = (function() {
     }
     // loads all row data
     function loadData() {
-        var rows = getTableBody().querySelectorAll('tr'),
-            i;
-
-        for (i = 0; i < rows.length; i += 1) {
+        const rows = getTableBody().querySelectorAll('tr');
+        for (let i = 0; i < rows.length; i++) {
             rows[i].data = loadRowData(rows[i]);
         }
     }
     // sorts the table using the data for the ith column
     function sortByIndex(index, desc) {
-        var key = cols[index].key,
-            sorter = function(a, b) {
-                a = a.data[key];
-                b = b.data[key];
-                return a < b ? -1 : a > b ? 1 : 0;
-            },
-            finalSorter = sorter,
-            tableBody = document.querySelector('.coverage-summary tbody'),
-            rowNodes = tableBody.querySelectorAll('tr'),
-            rows = [],
-            i;
-
-        if (desc) {
-            finalSorter = function(a, b) {
-                return -1 * sorter(a, b);
-            };
-        }
-
-        for (i = 0; i < rowNodes.length; i += 1) {
+        const key = cols[index].key;
+        const sorter = function(a, b) {
+            a = a.data[key];
+            b = b.data[key];
+            return a < b ? -1 : a > b ? 1 : 0;
+        };
+        let finalSorter = sorter;
+        const tableBody = document.querySelector('.coverage-summary tbody');
+        const rowNodes = tableBody.querySelectorAll('tr');
+        const rows = [];
+        for (let i = 0; i < rowNodes.length; i++) {
             rows.push(rowNodes[i]);
             tableBody.removeChild(rowNodes[i]);
         }
 
         rows.sort(finalSorter);
 
-        for (i = 0; i < rows.length; i += 1) {
+        for (let i = 0; i < rows.length; i++) {
             tableBody.appendChild(rows[i]);
         }
     }
     // removes sort indicators for current column being sorted
     function removeSortIndicators() {
-        var col = getNthColumn(currentSort.index),
-            cls = col.className;
+        const col = getNthColumn(currentSort.index);
+        let cls = col.className;
 
         cls = cls.replace(/ sorted$/, '').replace(/ sorted-desc$/, '');
         col.className = cls;
@@ -149,29 +132,9 @@ var addSorting = (function() {
     }
     // adds event listeners for all sorter widgets
     function enableUI() {
-        var i,
-            el,
-            ithSorter = function ithSorter(i) {
-                var col = cols[i];
-
-                return function() {
-                    var desc = col.defaultDescSort;
-
-                    if (currentSort.index === i) {
-                        desc = !currentSort.desc;
-                    }
-                    sortByIndex(i, desc);
-                    removeSortIndicators();
-                    currentSort.index = i;
-                    currentSort.desc = desc;
-                    addSortIndicators();
-                };
-            };
-        for (i = 0; i < cols.length; i += 1) {
+        for (let i = 0; i < cols.length; i++) {
             if (cols[i].sortable) {
-                // add the click event handler on the th so users
-                // dont have to click on those tiny arrows
-                el = getNthColumn(i).querySelector('.sorter').parentElement;
+                const el = getNthColumn(i).querySelector('.sorter').parentElement;
                 if (el.addEventListener) {
                     el.addEventListener('click', ithSorter(i));
                 } else {
@@ -180,6 +143,7 @@ var addSorting = (function() {
             }
         }
     }
+
     // adds sorting functionality to the UI
     return function() {
         if (!getTable()) {

@@ -41,12 +41,26 @@ export const createDocument = async (req, res) => {
 // Get all documents with optional filters
 export const getAllDocuments = async (req, res) => {
   try {
-    const documents = await Document.find(req.query);
+    // Define safe filter parameters
+    const allowedFilters = ['title', 'type', 'stakeholders', 'scale']; // Replace with actual allowed fields
+    const filters = {};
+
+    // Sanitize and construct the query based on allowed filters
+    Object.keys(req.query).forEach((key) => {
+      if (allowedFilters.includes(key)) {
+        filters[key] = req.query[key];
+      }
+    });
+
+    // Query documents with the sanitized filters
+    const documents = await Document.find(filters);
     res.json(documents);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // Get a document by ID
 export const getDocumentById = async (req, res, next) => {
@@ -69,13 +83,27 @@ export const getDocumentById = async (req, res, next) => {
 // Get all documents with optional filters, retrieving only the title field
 export const getAllTitles = async (req, res) => {
   try {
-    const documents = await Document.find(req.query).select('title').lean();
+    // Define safe filter parameters
+    const allowedFilters = ['title', 'type', 'stakeholders']; // Replace with actual allowed fields
+    const filters = {};
+
+    // Sanitize and construct the query based on allowed filters
+    Object.keys(req.query).forEach((key) => {
+      if (allowedFilters.includes(key)) {
+        filters[key] = req.query[key];
+      }
+    });
+
+    // Query documents with the sanitized filters and select only the 'title' field
+    const documents = await Document.find(filters).select('title').lean();
     const titles = documents.map(doc => doc.title);
     res.json(titles);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // Update an existing document
 export const updateDocument = async (req, res) => {
@@ -173,21 +201,38 @@ export const deleteRelationship = async (req, res) => {
 
 // 1. Retrieve linked documents filtered by relationship type
 export const getLinkedDocuments = async (req, res) => {
-    const { type } = req.query;
-    try {
-      const document = await Document.findById(req.params.id).populate('relationships.documentId', 'title type');
-      if (!document) return res.status(404).json({ message: 'Document not found' });
-  
-      // Filter relationships by type if specified
-      const linkedDocuments = type 
-        ? document.relationships.filter(rel => rel.type === type) 
-        : document.relationships;
-  
-      res.json(linkedDocuments);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  };
+  const { type } = req.query;  // Extract the 'type' filter from the query
+  const allowedTypes = ['direct consequence', 'collateral consequence', 'projection', 'update']; // Define allowed relationship types
+
+  try {
+    // Find the document by its ID and populate the related documents' titles and types
+    const document = await Document.findById(req.params.id)
+      .populate('relationships.documentId', 'title type')
+      .lean(); // Using .lean() to get plain JavaScript objects, optimizing performance
+
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    // Sanitize the 'type' input: Only allow predefined types
+    const sanitizedType = allowedTypes.includes(type) ? type : null;
+
+    // Filter relationships by type if sanitizedType is provided
+    const linkedDocuments = sanitizedType
+      ? document.relationships.filter(rel => rel.type === sanitizedType)
+      : document.relationships;
+
+    // Map the filtered relationships to return only the necessary information
+    const result = linkedDocuments.map(rel => ({
+      documentId: rel.documentId._id,  // Ensure we get the ObjectId of the linked document
+      title: rel.documentId.title,     // Title of the linked document
+      type: rel.type                   // Type of relationship
+    }));
+
+    res.json(result);  // Return the filtered list of linked documents
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
   
   // 2. Retrieve all documents with a specified relationship type
   export const getDocumentsByRelationshipType = async (req, res) => {
@@ -366,25 +411,37 @@ export const getDocumentsWithSortingPagination = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, sortBy = 'title', order = 'asc', filter } = req.query;
 
+    // Sanitize pagination parameters
+    const pageNumber = Math.max(1, parseInt(page));  // Ensure page is at least 1
+    const pageSize = Math.max(1, parseInt(limit));  // Ensure limit is at least 1
+
+    // Sanitize sortBy and order parameters
+    const allowedSortFields = ['title', 'issuance_date', 'connections'];  // Replace with actual allowed fields
+    const sanitizedSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'title';
     const sortOrder = order === 'desc' ? -1 : 1;
+
+    // Construct the query based on filter
     let query = {};
 
     if (filter) {
-      query = { title: { $regex: filter, $options: 'i' } }; // Case-insensitive filter by title
+      const sanitizedFilter = filter.replace(/[^a-zA-Z0-9 ]/g, ''); // Remove special characters from the filter string
+      query = { title: { $regex: sanitizedFilter, $options: 'i' } }; // Case-insensitive filter by title
     }
 
+    // Fetch documents with pagination and sorting
     const documents = await Document.find(query)
-      .sort({ [sortBy]: sortOrder })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .sort({ [sanitizedSortBy]: sortOrder })
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
 
+    // Get total count of documents for pagination
     const totalDocuments = await Document.countDocuments(query);
 
     res.status(200).json({
       data: documents,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(totalDocuments / limit),
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalDocuments / pageSize),
         totalDocuments,
       },
     });
@@ -392,6 +449,7 @@ export const getDocumentsWithSortingPagination = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Fetch and sort document fields only for display titles, dates, etc.
 export const getDocumentFields = async (req, res, next) => {
@@ -606,8 +664,13 @@ export const downloadResource = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Resource not found' });
     }
 
-    // Define the full path to the resource file
-    const filePath = path.join(__dirname, '..', 'uploads', filename);
+    // Sanitize filename to prevent directory traversal attacks
+    const sanitizedFilename = path.basename(filename); // Ensures no relative path is used
+
+    // Define the full path to the resource file in the 'uploads' directory
+    const filePath = path.join(__dirname, '..', 'uploads', sanitizedFilename);
+
+    // Check if the file exists
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'File does not exist on server' });
     }

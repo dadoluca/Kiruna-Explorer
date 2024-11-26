@@ -12,8 +12,19 @@ export const registerUser = async (req, res, next) => {
   const { name, email, password, role, registrationSecret } = req.body;
 
   try {
-    // Check if the email already exists
-    const existingUser = await User.findOne({ email });
+    // Validate email format before querying the database
+    const emailRegex = /.+\@.+\..+/;
+    if (!emailRegex.test(email)) {
+      const error = new Error('Invalid email format');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Sanitize the email and avoid direct database query construction with user input
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    // Check if the email already exists with sanitized input
+    const existingUser = await User.findOne({ email: sanitizedEmail }).exec();
     if (existingUser) {
       const error = new Error('Email already in use');
       error.statusCode = 400;
@@ -30,7 +41,7 @@ export const registerUser = async (req, res, next) => {
     }
 
     // Create a new user
-    const user = new User({ name, email, password, role });
+    const user = new User({ name, email: sanitizedEmail, password, role });
     await user.save();
 
     res.status(201).json({ message: 'User registered successfully' });
@@ -41,18 +52,30 @@ export const registerUser = async (req, res, next) => {
 };
 
 
-// User login
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // Validate email format before querying the database
+    const emailRegex = /.+\@.+\..+/;
+    if (!emailRegex.test(email)) {
+      const error = new Error('Invalid email format');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Sanitize the email by trimming spaces and converting to lowercase
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    // Find the user by sanitized email
+    const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
       error.statusCode = 404;
       return next(error);
     }
 
+    // Compare password with the hashed password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       const error = new Error('Invalid credentials');
@@ -60,7 +83,10 @@ export const loginUser = async (req, res, next) => {
       return next(error);
     }
 
+    // Generate a JWT token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Respond with the token and user details
     res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
   } catch (error) {
     error.statusCode = 500;
@@ -130,17 +156,32 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
-// Forgot Password
+import User from './models/User';  // Assuming this is the path to the User model
+
 export const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
+
   try {
-    const user = await User.findOne({ email });
+    // Validate email format before querying the database
+    const emailRegex = /.+\@.+\..+/;
+    if (!emailRegex.test(email)) {
+      const error = new Error('Invalid email format');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Sanitize email by trimming spaces and converting to lowercase
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    // Find the user by sanitized email
+    const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
       error.statusCode = 404;
       return next(error);
     }
 
+    // Generate reset token and save
     const token = user.generateResetToken();
     await user.save();
 
@@ -151,23 +192,41 @@ export const forgotPassword = async (req, res, next) => {
   }
 };
 
-// Reset Password
+
 export const resetPassword = async (req, res, next) => {
   const { token, newPassword } = req.body;
+
   try {
+    // Validate token format (assuming it's a hex string; adjust as needed)
+    if (!/^[a-fA-F0-9]{40}$/.test(token)) {
+      const error = new Error('Invalid token format');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Sanitize newPassword to prevent any unintended special characters (basic example)
+    const sanitizedNewPassword = newPassword.trim(); // Trim any unnecessary spaces
+
+    if (sanitizedNewPassword.length < 6) {
+      const error = new Error('Password must be at least 6 characters long');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Find user by reset token and check if token is valid (not expired)
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() }
-      
-    });
+    }).exec();
+
     if (!user) {
       const error = new Error('Invalid or expired token');
       error.statusCode = 400;
       return next(error);
     }
 
-
-    user.password = newPassword;
+    // Update user password and clear the reset token and expiry
+    user.password = sanitizedNewPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
@@ -178,6 +237,7 @@ export const resetPassword = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Delete User Account
 export const deleteUserAccount = async (req, res, next) => {
