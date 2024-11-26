@@ -1,0 +1,8 @@
+POST http://localhost:5001/documents/673dda712fefd5116aade37d/relationships
+Content-Type: application/json
+
+{
+  "documentId": "673dda712fefd5116aade384",
+  "type": "update",
+  "title": "Construction of Aurora Center begins (65)"
+}
