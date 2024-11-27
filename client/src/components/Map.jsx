@@ -243,7 +243,7 @@ const MapComponent = () => {
 
                     {kirunaPolygonCoordinates.map((polygonCoordinates, index) => (
                         <Polygon
-                            key={index}
+                            key={polygonCoordinates._id}
                             positions={polygonCoordinates}
                             color="gray"
                             fillColor="#D3D3D3"

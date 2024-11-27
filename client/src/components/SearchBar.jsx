@@ -60,14 +60,14 @@ const SearchBar = ({ onFilter }) => {
       {suggestions.length > 0 && (
         <ul className={styles.suggestions}>
           {suggestions.map((title, index) => (
-            <li
+           <button
               key={title}
-              role="button"
               onClick={() => handleSuggestionClick(title)}
               className={styles.suggestionItem}
             >
               {title}
-            </li>
+            </button>
+         
           ))}
         </ul>
       )}

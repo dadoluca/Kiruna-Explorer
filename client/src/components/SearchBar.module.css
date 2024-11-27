@@ -69,12 +69,21 @@
 }
 
 .suggestionItem {
-  padding: 10px 15px; /* Add padding for clickable area */
+  padding: 10px 15px;
   cursor: pointer;
-  border-radius: 15px; /* Slightly round individual items */
-  transition: background-color 0.2s ease; /* Smooth hover effect */
+  border-radius: 15px;
+  transition: background-color 0.2s ease;
+  background: none; /* Remove default button background */
+  border: none; /* Remove default button border */
+  font: inherit; /* Match text styling */
+  text-align: left; /* Align text like a list item */
 }
 
 .suggestionItem:hover {
-  background-color: #f9f9f9; /* Light hover background for feedback */
+  background-color: #f9f9f9;
 }
+
+.suggestionItem:focus {
+  outline: none; /* Remove default focus outline */
+}
+
