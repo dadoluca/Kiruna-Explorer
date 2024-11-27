@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useMemo } from 'react';
 import API from '../services/api.jsx';
 
 const AuthContext = createContext();
@@ -65,8 +65,23 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  // Memoize the value object
+  const value = useMemo(
+    () => ({
+      loggedIn,
+      user,
+      message,
+      setMessage,
+      handleLogin,
+      handleRegistration,
+      handleLogout,
+    }),
+    [loggedIn, user, message]
+  );
+
+
   return (
-    <AuthContext.Provider value={{ loggedIn, user, message, setMessage, handleLogin, handleRegistration, handleLogout }}>
+    <AuthContext.Provider value={value}>
       {/*
 
       Why this Context?

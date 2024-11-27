@@ -74,9 +74,8 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const { markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
-    const [customArea, setCustomArea] = useState(null);
 
     const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
         polygon[0].map(
@@ -207,16 +206,18 @@ const MapComponent = () => {
         return null;
     };
     
-    // Handle polygon click event
+    /* -------------- not used
+    Handle polygon click event
     const handlePolygonClick = () => {
         console.log("Hai cliccato sul bordo del poligono!");
         alert("Bordo del poligono cliccato!");
-    };
+    };*/
 
+    /* -------------- not used
     const handlePolygonDrawn = (polygonLayer) => {
         setCustomArea(polygonLayer);
         console.log("Poligono ricevuto nel padre:", polygonLayer.getLatLngs());
-    };
+    };*/
 
     // Function to navigate to document creation form for the entire municipality
     const handleAssignToMunicipalArea = () => {
