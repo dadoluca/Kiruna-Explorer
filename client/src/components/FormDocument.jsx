@@ -619,7 +619,7 @@ function DocumentInsert() {
                 {/* Connections */}
                 {connections.map((connection, index) => {
                     return (
-                        <div key={index} className="mb-3">
+                        <div key={connection._id} className="mb-3">
                             <div className="mb-3">
                                 <Select
                                     id={`document-select-${index}`}
@@ -700,7 +700,7 @@ function DocumentInsert() {
 
                 {/* Resources */}
                 {resources.map((resource, index) => (
-                    <div key={index} className="mb-3">
+                    <div key={resource._id} className="mb-3">
                         <FloatingLabel label="Resource to add" className="mb-3">
                         <Form.Control
                             type="file"

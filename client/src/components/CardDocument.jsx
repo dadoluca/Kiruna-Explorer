@@ -72,7 +72,7 @@ const DetailPlanCard = (props) => {
               <Dropdown.Menu>
                 {document.relationships?.length > 0 ? (
                   document.relationships.map((rel, index) => (
-                    <Dropdown.Item key={index}>
+                    <Dropdown.Item key={document._id}>
                       {rel.documentTitle} - {rel.type}
                     </Dropdown.Item>
                   ))

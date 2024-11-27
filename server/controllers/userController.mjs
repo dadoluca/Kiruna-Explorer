@@ -156,7 +156,7 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
-import User from './models/User';  // Assuming this is the path to the User model
+//import User from './models/User';  // Assuming this is the path to the User model
 
 export const forgotPassword = async (req, res, next) => {
   const { email } = req.body;

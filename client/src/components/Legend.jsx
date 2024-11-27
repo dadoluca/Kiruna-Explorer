@@ -29,18 +29,33 @@ const Legend = () => {
                 <h4 className={styles.legendTitle}>Document Types</h4>
                 <ul className={styles.legendList}>
                     {Object.entries(documentTypes).map(([docType, icon], index) => (
-                        <li 
-                            key={index} 
-                            className={`${styles.legendItem} ${loggedIn ? styles.clickable : ''}`} 
-                            onClick={() => handleFilterByType(docType)} // Add onClick to filter
-                        >
-                            <img src={icon} alt={docType} className={styles.legendIcon} />
-                            <span className={styles.legendText}>{docType}</span>
-                        </li>
+                        loggedIn ? (
+                            <li 
+                                key={docType} 
+                                className={`${styles.legendItem} ${styles.clickable}`} 
+                            >
+                                <button 
+                                    className={styles.legendButton} 
+                                    onClick={() => handleFilterByType(docType)}
+                                >
+                                    <img src={icon} alt={docType} className={styles.legendIcon} />
+                                    <span className={styles.legendText}>{docType}</span>
+                                </button>
+                            </li>
+                        ) : (
+                            <li 
+                                key={docType} 
+                                className={styles.legendItem}
+                            >
+                                <img src={icon} alt={docType} className={styles.legendIcon} />
+                                <span className={styles.legendText}>{docType}</span>
+                            </li>
+                        )
                     ))}
                 </ul>
             </div>
         )}
+
         </>
     );
 };
