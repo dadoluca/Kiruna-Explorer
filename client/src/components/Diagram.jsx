@@ -41,7 +41,7 @@ const Diagram = () => {
             type: doc.type,
             time: extractYear(doc.issuance_date.toString()),
             scale: doc.scale,
-            image: doc.image
+            image: doc.icon
         }));
         setNodes(() => [ ...newNodes]);
     };
@@ -101,7 +101,7 @@ const Diagram = () => {
     useEffect(() => {
         const width = 1000;
         const height = 300;
-        const margin = { top: 20, right: 20, bottom: 40, left: 90 };
+        const margin = { top: 20, right: 20, bottom: 40, left: 100 };
 
         d3.select(svgRef.current).selectAll("*").remove(); // Pulizia dell'SVG
 
@@ -113,7 +113,7 @@ const Diagram = () => {
 
         // Scale
         const xScale = d3
-            .scaleBand()
+            .scalePoint()
             .domain(xDomain)
             .range([0, width]);
 
@@ -127,32 +127,44 @@ const Diagram = () => {
         const yAxis = d3.axisLeft(yScale).tickValues(yDomain);
 
         svg.append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`)
+        .attr("transform", `translate(${margin.left-10}, ${margin.top+10})`)
         .call(yAxis);
 
         svg.append("g")
-        .attr("transform", `translate(${margin.left}, ${height - margin.bottom})`)
+        .attr("transform", `translate(${margin.left}, ${margin.top})`)
         .call(xAxis);
 
-        /*
-        svg.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(xAxis)
-            .append("text")
-            .attr("x", width / 2)
-            .attr("y", 35)
-            .attr("fill", "black");
-
-        svg.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(yAxis)
-            .append("text")
-            .attr("x", -height / 2)
-            .attr("y", -40)
-            .attr("transform", "rotate(-90)")
-            .attr("fill", "black");
-        */
         // Nodes
+        console.log(nodes);
+
+        const nodesGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top+9})`) // Align with axes
+        .selectAll("circle")
+        .data(nodes)
+        .enter()
+        .append("image")
+        .attr("xlink:href", (d) => d.image)
+        .attr("x", (d) => xScale(parseInt(d.time)) - 10) // Adjust positioning
+        .attr("y", (d) => yScale(d.scale) - 10)
+        .attr("width", 20)
+        .attr("height", 20);
+        /*
+        .enter()
+        .append("circle")
+        .attr("cx", (d) => xScale(parseInt(d.time)) ) // Center the node in the band
+        .attr("cy", (d) => yScale(d.scale) + yScale.bandwidth() / 2) // Center the node in the band
+        .attr("r", 6) // Node radius
+        .attr("fill", "steelblue")
+        .attr("stroke-width", 1.5);*/
+
+        nodesGroup.append("text")
+        .text((d) => toString(d.id)) // Use the label from the node data
+        .attr("x", 0) // Center the text horizontally
+        .attr("y", 12) // Position it below the node (radius + padding)
+        .attr("text-anchor", "middle") // Center the text
+        .attr("font-size", "10px")
+        .attr("fill", "black");
+            
 
         /*
         // Disegna i nodi con immagini
