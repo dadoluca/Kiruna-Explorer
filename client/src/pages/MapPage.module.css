@@ -1,0 +1,8 @@
+.diagramContainer {
+    height: calc(35vh - 10px); /* Altezza rimanente meno margine */
+    width: 100%; /* Larghezza totale */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white; /* Sfondo bianco per il diagramma */
+}

@@ -1,5 +1,5 @@
 .mapPage{
-    height: 91vh;
+    height: 65vh;           /*decreased in order to have space for the diagram*/
 }
 
 .mapContainer {
