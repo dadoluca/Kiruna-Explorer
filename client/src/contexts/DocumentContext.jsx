@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import API from '../services/api';
 
 export const DocumentContext = createContext();
 
@@ -7,23 +8,32 @@ export const useDocumentContext = () => useContext(DocumentContext);
 export const DocumentProvider = ({ children }) => {
   const [documents, setDocuments] = useState([]);
   const [markers, setMarkers] = useState([]); // Array of valid markers
-  const [municipalArea, setMunicipalArea] = useState([]); // Array for municipal areas documents
+  // const [municipalArea, setMunicipalArea] = useState([]); Array for municipal areas documents
   const [docList, setDocList] = useState([]);
   
 
-  const setDocumentList = (newDocuments) => {
-    setDocuments(newDocuments);
-  };
-
   // Automatically update markers when documents change
   useEffect(() => {
+
+    const fetchDocuments = async () => {
+      try {
+          const documents = await API.getDocuments();
+          setDocuments(documents);
+      } catch (error) {
+          console.error("Failed to fetch documents:", error);
+      }
+    };
+    fetchDocuments();
+    
     setMapMarkers(); // Default: include all documents
   }, [documents]);
 
   
+
+  const isArea = (doc) => doc.areaId != null;
+  
   const setMapMarkers = (filterFn = () => true) => {
     const validMarkers = [];
-    const municipalDocuments = [];
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
@@ -32,24 +42,16 @@ export const DocumentProvider = ({ children }) => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
+        validMarkers.push({
+          ...doc,
+          longitude: parseFloat(longitude),
+          latitude: parseFloat(latitude)
+        });
+      
 
-        if (doc.areaId === null) {
-            municipalDocuments.push({
-              ...doc,
-              longitude: parseFloat(longitude),
-              latitude: parseFloat(latitude)
-            });
-        } else {
-            validMarkers.push({
-                ...doc,
-                longitude: parseFloat(longitude),
-                latitude: parseFloat(latitude)
-            });
-        }
     });
     
     setMarkers(validMarkers);
-    setMunicipalArea(municipalDocuments);
   };
 
   const setListContent = (filterFn = () => true) => {
@@ -102,15 +104,14 @@ export const DocumentProvider = ({ children }) => {
     () => ({
       documents,
       markers,
-      municipalArea,
       docList,
-      setDocumentList,
       setMapMarkers,
       updateDocument,
       updateDocCoords,
       setListContent,
+      isArea
     }),
-    [documents, markers, municipalArea, docList]
+    [documents, markers,docList]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

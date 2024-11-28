@@ -5,7 +5,6 @@ import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
-import API from '../services/api';
 import L from 'leaflet';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -75,7 +74,7 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const { markers, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
@@ -129,21 +128,6 @@ const MapComponent = () => {
     const handleCloseList = () => {
         setIsListing(false);
     };
-
-    useEffect(() => {
-        const fetchDocuments = async () => {
-            try {
-                const documents = await API.getDocuments();
-                //console.log("Documenti ricevuti:", documents);
-                setDocumentList(documents);
-                console.log("Documenti ricevuti:", documents);
-            } catch (error) {
-                console.error("Failed to fetch documents:", error);
-            }
-        };
-
-        fetchDocuments();
-    }, []);
 
     
 
@@ -271,7 +255,6 @@ const MapComponent = () => {
 
                     <MarkerClusterGroup
                         showCoverageOnHover={false}
-                        disableClusteringAtZoom={16}
                         iconCreateFunction={createClusterIcon}
                     >
                         {markers.map((marker) => (
@@ -283,6 +266,7 @@ const MapComponent = () => {
                                     position: [marker.latitude, marker.longitude]
                                 })}
                             />
+                        
                         ))}
                     </MarkerClusterGroup>
 
@@ -304,15 +288,16 @@ const MapComponent = () => {
                         </Popup>
                     )}
 
-                    {municipalArea.length > 0 &&
+                    {/*municipalArea.length > 0 &&
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
                             eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
                         >
 
-                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
-                        </Marker>}
+                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
+                        </Marker>
+                    */}
                 </MapContainer>
 
                 <Legend />
