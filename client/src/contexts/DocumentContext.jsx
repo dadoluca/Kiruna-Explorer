@@ -8,13 +8,12 @@ export const useDocumentContext = () => useContext(DocumentContext);
 export const DocumentProvider = ({ children }) => {
   const [documents, setDocuments] = useState([]);
   const [markers, setMarkers] = useState([]); // Array of valid markers
-  // const [municipalArea, setMunicipalArea] = useState([]); Array for municipal areas documents
+  const [areas, setAreas] = useState([]);
+  //const [municipalArea, setMunicipalArea] = useState([]); //Array for municipal areas documents
   const [docList, setDocList] = useState([]);
   
-
-  // Automatically update markers when documents change
   useEffect(() => {
-
+    
     const fetchDocuments = async () => {
       try {
           const documents = await API.getDocuments();
@@ -23,12 +22,27 @@ export const DocumentProvider = ({ children }) => {
           console.error("Failed to fetch documents:", error);
       }
     };
+
+    const fetchAreas = async () => {
+      try {
+          const areas = await API.getAllAreas();
+          console.log(areas);
+          setAreas(areas);
+      } catch (error) {
+          console.error("Failed to fetch areas:", error);
+      }
+    };
+
     fetchDocuments();
-    
+    fetchAreas();
+  }, []);
+
+  // Automatically update markers when documents change
+  useEffect(() => {
     setMapMarkers(); // Default: include all documents
   }, [documents]);
 
-  
+
 
   const isArea = (doc) => doc.areaId != null;
   
@@ -38,19 +52,17 @@ export const DocumentProvider = ({ children }) => {
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
       .forEach(doc => {
-        console.log(doc);
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-        validMarkers.push({
-          ...doc,
-          longitude: parseFloat(longitude),
-          latitude: parseFloat(latitude)
-        });
-      
 
+        validMarkers.push({
+            ...doc,
+            longitude: parseFloat(longitude),
+            latitude: parseFloat(latitude)
+        });
     });
-    
+
     setMarkers(validMarkers);
   };
 
@@ -60,7 +72,6 @@ export const DocumentProvider = ({ children }) => {
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
       .forEach(doc => {
-        console.log(doc);
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
@@ -104,7 +115,9 @@ export const DocumentProvider = ({ children }) => {
     () => ({
       documents,
       markers,
+      areas,
       docList,
+      areas,
       setMapMarkers,
       updateDocument,
       updateDocCoords,
