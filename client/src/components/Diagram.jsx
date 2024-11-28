@@ -99,9 +99,11 @@ const Diagram = () => {
     }, []);
 
     useEffect(() => {
-        const width = 900;
+        const width = 1000;
         const height = 300;
-        const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+        const margin = { top: 20, right: 20, bottom: 40, left: 90 };
+
+        d3.select(svgRef.current).selectAll("*").remove(); // Pulizia dell'SVG
 
         // Creazione dell'SVG
         const svg = d3
@@ -111,27 +113,35 @@ const Diagram = () => {
 
         // Scale
         const xScale = d3
-            .scaleLinear()
-            .domain(d3.extent(nodes, (d) => d.time))
-            .range([margin.left, width - margin.right]);
+            .scaleBand()
+            .domain(xDomain)
+            .range([0, width]);
 
         const yScale = d3
-            .scaleLinear()
-            .domain([0, d3.max(nodes, (d) => d.scale)])
-            .range([height - margin.bottom, margin.top]);
+            .scaleBand()
+            .domain(yDomain)
+            .range([height-margin.top-margin.bottom, 0]);
 
         // Axis
-        const xAxis = d3.axisTop(xScale).ticks(5);
-        const yAxis = d3.axisLeft(yScale);
+        const xAxis = d3.axisTop(xScale).tickValues(xDomain).tickFormat(d3.format("d"));
+        const yAxis = d3.axisLeft(yScale).tickValues(yDomain);
 
+        svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`)
+        .call(yAxis);
+
+        svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${height - margin.bottom})`)
+        .call(xAxis);
+
+        /*
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
             .call(xAxis)
             .append("text")
             .attr("x", width / 2)
             .attr("y", 35)
-            .attr("fill", "black")
-            .text("Year");
+            .attr("fill", "black");
 
         svg.append("g")
             .attr("transform", `translate(${margin.left},0)`)
@@ -140,11 +150,11 @@ const Diagram = () => {
             .attr("x", -height / 2)
             .attr("y", -40)
             .attr("transform", "rotate(-90)")
-            .attr("fill", "black")
-            .text("Scale");
-        
+            .attr("fill", "black");
+        */
         // Nodes
 
+        /*
         // Disegna i nodi con immagini
         svg.selectAll(".node")
         .data(nodes)
@@ -159,8 +169,8 @@ const Diagram = () => {
         .style("cursor", "pointer")
         .append("title")
         .text((d) => d.label); // Tooltip
-
-    }, [nodes]);
+        */
+    }, [xDomain, yDomain, nodes]);
 
     return <svg ref={svgRef}></svg>;
 };
