@@ -6,11 +6,12 @@ export const DocumentContext = createContext();
 export const useDocumentContext = () => useContext(DocumentContext);
 
 export const DocumentProvider = ({ children }) => {
-  const [documents, setDocuments] = useState([]);
-  const [markers, setMarkers] = useState([]); // Array of valid markers
-  const [areas, setAreas] = useState([]);
-  //const [municipalArea, setMunicipalArea] = useState([]); //Array for municipal areas documents
-  const [docList, setDocList] = useState([]);
+  const [documents, setDocuments] = useState([]); //all documents retrived
+  const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
+  const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
+  const [areas, setAreas] = useState([]); // all the areas retrived
+  const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
+  const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   
   useEffect(() => {
     
@@ -48,6 +49,9 @@ export const DocumentProvider = ({ children }) => {
   
   const setMapMarkers = (filterFn = () => true) => {
     const validMarkers = [];
+    const areasSet = new Set();
+    let isMunicipalArea = false;
+
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
@@ -55,15 +59,23 @@ export const DocumentProvider = ({ children }) => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-
-        validMarkers.push({
+       
+        if (doc.areaId === null) {
+          isMunicipalArea = true;
+        } else if (doc.areaId === undefined) {
+          validMarkers.push({
             ...doc,
             longitude: parseFloat(longitude),
             latitude: parseFloat(latitude)
-        });
+          });
+        } else if (doc.areaId) {
+          areasSet.add(doc.areaId);
+        }
     });
 
     setMarkers(validMarkers);
+    setDisplayedAreas(Array.from(areasSet));
+    setMunicipalArea(isMunicipalArea);
   };
 
   const setListContent = (filterFn = () => true) => {
@@ -118,6 +130,8 @@ export const DocumentProvider = ({ children }) => {
       areas,
       docList,
       areas,
+      displayedAreas,
+      municipalArea,
       setMapMarkers,
       updateDocument,
       updateDocCoords,

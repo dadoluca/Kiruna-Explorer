@@ -250,6 +250,7 @@
 
 .styles.popup {
     overflow-y: auto;
+    width: 500px;
 }
 
 .buttonGroupUI {

@@ -81,7 +81,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, areas, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -187,8 +187,8 @@ const MapComponent = () => {
                             ))
                         }
 
-                        {
-                            areas.map((area) => (
+                        {displayedAreas.length > 0 &&
+                            displayedAreas.map((area) => (
                                 <Marker
                                     key={area._id}
                                     position={[area.properties.centroid[1], area.properties.centroid[0]]}
@@ -220,7 +220,7 @@ const MapComponent = () => {
                         </Popup>
                     )}
 
-                    {
+                    {municipalArea &&
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
