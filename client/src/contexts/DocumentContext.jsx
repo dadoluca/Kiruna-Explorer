@@ -69,7 +69,7 @@ export const DocumentProvider = ({ children }) => {
             latitude: parseFloat(latitude)
           });
         } else if (doc.areaId) {
-          areasSet.add(doc.areaId);
+          areasSet.add(areas.filter((area) => area._id === doc.areaId));
         }
     });
 
