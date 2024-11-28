@@ -53,23 +53,24 @@ const addSorting = (function() {
     function loadColumns() {
         const colNodes = getTableHeader().querySelectorAll('th');
         const cols = [];
-        let col;
-        for (let i = 0; i < colNodes.length; i++) {
-            const colNode = colNodes[i];
-            col = {
+    
+        for (const colNode of colNodes) {
+            const col = {
                 key: colNode.getAttribute('data-col'),
                 sortable: !colNode.getAttribute('data-nosort'),
                 type: colNode.getAttribute('data-type') || 'string'
             };
             cols.push(col);
+    
             if (col.sortable) {
                 col.defaultDescSort = col.type === 'number';
-                colNode.innerHTML =
-                    colNode.innerHTML + '<span class="sorter"></span>';
+                colNode.innerHTML = colNode.innerHTML + '<span class="sorter"></span>';
             }
         }
+    
         return cols;
     }
+    
     // attaches a data attribute to every tr element with an object
     // of data values keyed by column name
     function loadRowData(tableRow) {
@@ -89,54 +90,59 @@ const addSorting = (function() {
     // loads all row data
     function loadData() {
         const rows = getTableBody().querySelectorAll('tr');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i].data = loadRowData(rows[i]);
+        for (const row of rows) {
+            row.data = loadRowData(row);
         }
     }
+    
     // sorts the table using the data for the ith column
-    function sortByIndex(index, desc) {
-        const key = cols[index].key;
-        const sorter = function(a, b) {
-            a = a.data[key];
-            b = b.data[key];
-    
-            let comparisonResult;
-    
-            // Extract the nested ternary operation into an independent statement
-            if (a < b) {
-                comparisonResult = -1;
-            } else if (a > b) {
-                comparisonResult = 1;
-            } else {
-                comparisonResult = 0;
-            }
-    
-            return comparisonResult;
-        };
-        
-        let finalSorter = sorter;
-        const tableBody = document.querySelector('.coverage-summary tbody');
-        const rowNodes = tableBody.querySelectorAll('tr');
-        const rows = [];
-        for (let i = 0; i < rowNodes.length; i++) {
-            rows.push(rowNodes[i]);
-            tableBody.removeChild(rowNodes[i]);
+    /* function sortByIndex(index, desc) {
+    const key = cols[index].key;
+    const sorter = function(a, b) {
+        a = a.data[key];
+        b = b.data[key];
+
+        let comparisonResult;
+
+        // Extract the nested ternary operation into an independent statement
+        if (a < b) {
+            comparisonResult = -1;
+        } else if (a > b) {
+            comparisonResult = 1;
+        } else {
+            comparisonResult = 0;
         }
 
-        rows.sort(finalSorter);
+        return comparisonResult;
+    };
 
-        for (let i = 0; i < rows.length; i++) {
-            tableBody.appendChild(rows[i]);
-        }
+    let finalSorter = sorter;
+    const tableBody = document.querySelector('.coverage-summary tbody');
+    const rowNodes = tableBody.querySelectorAll('tr');
+    const rows = [];
+
+    // Use for-of loop instead of for loop
+    for (const rowNode of rowNodes) {
+        rows.push(rowNode);
+        tableBody.removeChild(rowNode);
     }
+
+    rows.sort(finalSorter);
+
+    // Use for-of loop instead of for loop
+    for (const row of rows) {
+        tableBody.appendChild(row);
+    }
+}
+ */
     // removes sort indicators for current column being sorted
-    function removeSortIndicators() {
+    /* function removeSortIndicators() {
         const col = getNthColumn(currentSort.index);
         let cls = col.className;
 
         cls = cls.replace(/ sorted$/, '').replace(/ sorted-desc$/, '');
         col.className = cls;
-    }
+    } */
     // adds sort indicators for current column being sorted
     function addSortIndicators() {
         getNthColumn(currentSort.index).className += currentSort.desc

@@ -13,7 +13,7 @@ export const registerUser = async (req, res, next) => {
 
   try {
     // Validate email format before querying the database
-    const emailRegex = /.+\@.+\..+/;
+    const emailRegex = /.+@.+\..+/;
     if (!emailRegex.test(email)) {
       const error = new Error('Invalid email format');
       error.statusCode = 400;
@@ -23,7 +23,7 @@ export const registerUser = async (req, res, next) => {
     // Sanitize the email and avoid direct database query construction with user input
     const sanitizedEmail = email.trim().toLowerCase();
 
-    // Check if the email already exists with sanitized input
+    // Use parameterized queries (findOne with sanitized input)
     const existingUser = await User.findOne({ email: sanitizedEmail }).exec();
     if (existingUser) {
       const error = new Error('Email already in use');
@@ -33,7 +33,7 @@ export const registerUser = async (req, res, next) => {
 
     // Validate registration secret for Urban Planner role
     if (role === 'Urban Planner') {
-      if (registrationSecret !== URBAN_PLANNER_SECRET) {
+      if (registrationSecret !== process.env.URBAN_PLANNER_SECRET) {
         const error = new Error('Invalid registration secret for Urban Planner');
         error.statusCode = 403;
         return next(error);
@@ -52,12 +52,13 @@ export const registerUser = async (req, res, next) => {
 };
 
 
+
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     // Validate email format before querying the database
-    const emailRegex = /.+\@.+\..+/;
+    const emailRegex = /.+@.+\..+/;
     if (!emailRegex.test(email)) {
       const error = new Error('Invalid email format');
       error.statusCode = 400;
@@ -67,7 +68,7 @@ export const loginUser = async (req, res, next) => {
     // Sanitize the email by trimming spaces and converting to lowercase
     const sanitizedEmail = email.trim().toLowerCase();
 
-    // Find the user by sanitized email
+    // Use parameterized query to avoid direct construction with user data
     const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
@@ -93,6 +94,7 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Get user by ID
 export const getUserById = async (req, res, next) => {
@@ -163,7 +165,7 @@ export const forgotPassword = async (req, res, next) => {
 
   try {
     // Validate email format before querying the database
-    const emailRegex = /.+\@.+\..+/;
+    const emailRegex = /.+@.+\..+/;
     if (!emailRegex.test(email)) {
       const error = new Error('Invalid email format');
       error.statusCode = 400;
@@ -173,7 +175,7 @@ export const forgotPassword = async (req, res, next) => {
     // Sanitize email by trimming spaces and converting to lowercase
     const sanitizedEmail = email.trim().toLowerCase();
 
-    // Find the user by sanitized email
+    // Use parameterized query to avoid direct construction with user data
     const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
@@ -191,6 +193,7 @@ export const forgotPassword = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 export const resetPassword = async (req, res, next) => {
