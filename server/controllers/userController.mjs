@@ -20,10 +20,11 @@ export const registerUser = async (req, res, next) => {
       return next(error);
     }
 
-    // Sanitize the email and avoid direct database query construction with user input
+    // Sanitize the email by trimming spaces and converting to lowercase
     const sanitizedEmail = email.trim().toLowerCase();
 
-    // Use parameterized queries (findOne with sanitized input)
+    // Ensure no direct construction of queries with user-controlled data
+    // Use Mongoose's built-in parameterization for the query
     const existingUser = await User.findOne({ email: sanitizedEmail }).exec();
     if (existingUser) {
       const error = new Error('Email already in use');
@@ -53,6 +54,7 @@ export const registerUser = async (req, res, next) => {
 
 
 
+
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -68,7 +70,7 @@ export const loginUser = async (req, res, next) => {
     // Sanitize the email by trimming spaces and converting to lowercase
     const sanitizedEmail = email.trim().toLowerCase();
 
-    // Use parameterized query to avoid direct construction with user data
+    // Use the sanitized email to query the database securely
     const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
@@ -94,6 +96,7 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 // Get user by ID
@@ -176,6 +179,7 @@ export const forgotPassword = async (req, res, next) => {
     const sanitizedEmail = email.trim().toLowerCase();
 
     // Use parameterized query to avoid direct construction with user data
+    // Ensuring that the query is built safely
     const user = await User.findOne({ email: sanitizedEmail }).exec();
     if (!user) {
       const error = new Error('User not found');
@@ -193,6 +197,7 @@ export const forgotPassword = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 
