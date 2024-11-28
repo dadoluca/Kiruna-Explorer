@@ -234,8 +234,13 @@ const MapComponent = () => {
     return (
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
-                {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
-            <MapContainer center={position} zoom={8} className={styles.mapContainer} zoomControl={false}>
+            {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
+            <MapContainer 
+                center={position} 
+                zoom={8} 
+                className={` ${isListing ? styles.listing : styles.mapContainer}`} 
+                zoomControl={false}
+            >
                     <MapMouseEvents />
                     {/* <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/> */}
 
@@ -314,13 +319,9 @@ const MapComponent = () => {
 
 
                 {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList}/>}
+                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList}/>}
 
-                {isListing 
-                && loggedIn 
-                && <SearchBar 
-                    onFilter={handleFilterByTitleInList} />
-                }
+                
 
                 <div className={styles.buttonGroupUI}>
                     <button
