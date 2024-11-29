@@ -15,6 +15,10 @@ export const DocumentProvider = ({ children }) => {
     setDocuments(newDocuments);
   };
 
+  const visualizeDocumentfromDiagram = (doc) =>{
+    
+  }
+
   // Automatically update markers when documents change
   useEffect(() => {
     setMapMarkers(); // Default: include all documents

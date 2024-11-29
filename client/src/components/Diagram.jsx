@@ -4,7 +4,6 @@ import { useState, useContext } from "react";
 import API from "../services/api";
 
 const Diagram = () => {
-    const [nodes, setNodes] = useState([]);
     const [docList, setDocumentList] = useState([]);
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
 
@@ -33,6 +32,23 @@ const Diagram = () => {
         return match[3] || match[4];
     }
 
+    const calculateRadialPosition = (index, total, centerX, centerY) => {
+        const angle = (index / total) * 2 * Math.PI; // Angolo in radianti
+        const radius = 15; // Raggio del cerchio
+        return {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle)
+        };
+    };
+    
+    // Raggruppa i nodi con gli stessi valori di X e Y
+    const groupedNodes = d3.group(docList, (d) => {
+        const time = parseInt(extractYear(d.issuance_date.toString())); // Estrarre l'anno
+        return `${time}-${d.scale}`; // Chiave unica per la combinazione di asse X e Y
+    });
+    
+
+    /*
     //Use Effects for dynamic updates
     const addNodesFromDocs = (docs) => {
         const newNodes = docs.map((doc, index) => ({
@@ -48,14 +64,14 @@ const Diagram = () => {
 
     useEffect(() => {
         addNodesFromDocs(docList);
-    }, [docList]); 
+    }, [docList]); */
 
     useEffect(() => {
-        if (nodes.length > 0) {
+        if (docList.length > 0) {
             //Min/max year
             const newXDomain = range(
-                Math.min(...nodes.map((node) => node.time)), 
-                Math.max(...nodes.map((node) => node.time)), 
+                Math.min(...docList.map((doc) => extractYear(doc.issuance_date.toString()))), 
+                Math.max(...docList.map((doc) => extractYear(doc.issuance_date.toString()))), 
                 1
             );
 
@@ -63,7 +79,7 @@ const Diagram = () => {
             const regex = /^1 :/;
 
             setScaleNodes(() => [
-                ...nodes.filter((node) => regex.test(node.scale)).map((node)=>node.scale)
+                ...docList.filter((doc) => regex.test(doc.scale)).map((doc)=>doc.scale)
             ]);
 
             const newYDomainR = [...new Set(scaleNodes.sort((a, b)=>{
@@ -79,7 +95,7 @@ const Diagram = () => {
             setXDomain(newXDomain);
             setYDomain(newYDomain);
         }
-    }, [nodes]);
+    }, [docList]);
     
 
     //DIAGRAM
@@ -99,9 +115,9 @@ const Diagram = () => {
     }, []);
 
     useEffect(() => {
-        const width = 1000;
+        const width = 1010;
         const height = 300;
-        const margin = { top: 20, right: 20, bottom: 40, left: 100 };
+        const margin = { top: 20, right: 20, bottom: 40, left: 120 };
 
         d3.select(svgRef.current).selectAll("*").remove(); // Pulizia dell'SVG
 
@@ -115,7 +131,7 @@ const Diagram = () => {
         const xScale = d3
             .scalePoint()
             .domain(xDomain)
-            .range([0, width]);
+            .range([0, width-margin.left-margin.right]);
 
         const yScale = d3
             .scaleBand()
@@ -127,7 +143,7 @@ const Diagram = () => {
         const yAxis = d3.axisLeft(yScale).tickValues(yDomain);
 
         svg.append("g")
-        .attr("transform", `translate(${margin.left-10}, ${margin.top+10})`)
+        .attr("transform", `translate(${margin.left-30}, ${margin.top+10})`)
         .call(yAxis);
 
         svg.append("g")
@@ -135,19 +151,51 @@ const Diagram = () => {
         .call(xAxis);
 
         // Nodes
-        console.log(nodes);
+        // Creazione dei nodi
+        const nodesGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left-10}, ${margin.top+25})`) // Allinea agli assi
+        .selectAll("g.node-group")
+        .data(docList)
+        .enter()
+        .append("g")
+        .attr("class", "node-group")
+        .attr("transform", (d) => {
+            const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
+            const group = groupedNodes.get(groupKey); // Ottieni nodi nello stesso gruppo
+            const index = group.indexOf(d); // Indice del nodo nel gruppo
+            const { x, y } = calculateRadialPosition(
+                index,
+                group.length,
+                xScale(parseInt(extractYear(d.issuance_date.toString()))),
+                yScale(d.scale)
+            );
+            return `translate(${x}, ${y})`;
+        });
 
+        // Disegna le immagini per i nodi
+        nodesGroup.append("image")
+        .attr("xlink:href", (d) => d.icon) // Percorso dell'immagine
+        .attr("x", -10) // Centrato rispetto al nodo
+        .attr("y", -10)
+        .attr("width", 20)
+        .attr("height", 20);
+        
+        /*
         const nodesGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top+9})`) // Align with axes
         .selectAll("circle")
-        .data(nodes)
+        .data(docList)
         .enter()
         .append("image")
-        .attr("xlink:href", (d) => d.image)
-        .attr("x", (d) => xScale(parseInt(d.time)) - 10) // Adjust positioning
+        .attr("xlink:href", (d) => d.icon)
+        .attr("x", (d) => xScale(parseInt(extractYear(d.issuance_date.toString()))) - 10) // Adjust positioning
         .attr("y", (d) => yScale(d.scale) - 10)
         .attr("width", 20)
         .attr("height", 20);
+        */
+
+
+
         /*
         .enter()
         .append("circle")
@@ -157,6 +205,7 @@ const Diagram = () => {
         .attr("fill", "steelblue")
         .attr("stroke-width", 1.5);*/
 
+        /*
         nodesGroup.append("text")
         .text((d) => toString(d.id)) // Use the label from the node data
         .attr("x", 0) // Center the text horizontally
@@ -164,25 +213,9 @@ const Diagram = () => {
         .attr("text-anchor", "middle") // Center the text
         .attr("font-size", "10px")
         .attr("fill", "black");
-            
-
-        /*
-        // Disegna i nodi con immagini
-        svg.selectAll(".node")
-        .data(nodes)
-        .enter()
-        .append("image")
-        .attr("class", "node")
-        .attr("x", (d) => xScale(d.time) - 15) // Offset per centrare l'immagine
-        .attr("y", (d) => yScale(d.scale) - 15) // Offset per centrare l'immagine
-        .attr("width", 30) // Larghezza immagine
-        .attr("height", 30) // Altezza immagine
-        .attr("xlink:href", (d) => d.image) // Imposta il link all'immagine
-        .style("cursor", "pointer")
-        .append("title")
-        .text((d) => d.label); // Tooltip
         */
-    }, [xDomain, yDomain, nodes]);
+
+    }, [xDomain, yDomain, docList]);
 
     return <svg ref={svgRef}></svg>;
 };
