@@ -100,7 +100,7 @@ const createDocument = async (document) => {
       });
       if (response.ok) {
         let data = await response.json();
-        data = data.map(doc => ({
+        data = data.data.map(doc => ({
           ...doc,
           icon: `${SERVER_BASE_URL}${doc.icon_url}`,
         }));  

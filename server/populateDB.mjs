@@ -11,34 +11,6 @@ async function createDatabase() {
   try {
     await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    await Area.insertMany([{
-      "type": "Feature",
-      "properties": {
-        "name": "the entire municipality of Kiruna"
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [20.18, 67.88195091],
-            [20.21, 67.85],
-            [20.2, 67.841],
-            [20.23, 67.84037],
-            [20.288, 67.826],
-            [20.304, 67.8365],
-            [20.303, 67.842],
-            [20.315, 67.844],
-            [20.35, 67.835],
-            [20.37, 67.85],
-            [20.3, 67.86],
-            [20.18, 67.88195091]
-          ]
-        ]
-      }
-    }]);
-
-    const area = await Area.findOne({ "properties.name": "the entire municipality of Kiruna" });
-
     await Document.insertMany([{
       title: `Compilation of responses “So what the people of Kiruna think?” (15)`,
       stakeholders: ["Kiruna kommun", "Residents"],

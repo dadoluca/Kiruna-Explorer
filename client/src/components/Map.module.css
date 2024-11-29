@@ -12,6 +12,12 @@
     overflow: hidden;
 }
 
+.listing {
+    width: 55vw;
+    left: auto;
+    right: 0;
+  }
+
 /* Pulsante per aggiunta in basso a destra */
 .addButton {
     position: absolute;
@@ -244,6 +250,7 @@
 
 .styles.popup {
     overflow-y: auto;
+    width: 500px;
 }
 
 .buttonGroupUI {

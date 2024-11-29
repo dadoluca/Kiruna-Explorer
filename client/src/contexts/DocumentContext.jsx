@@ -1,55 +1,81 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import API from '../services/api';
 
 export const DocumentContext = createContext();
 
 export const useDocumentContext = () => useContext(DocumentContext);
 
 export const DocumentProvider = ({ children }) => {
-  const [documents, setDocuments] = useState([]);
-  const [markers, setMarkers] = useState([]); // Array of valid markers
-  const [municipalArea, setMunicipalArea] = useState([]); // Array for municipal areas documents
-  const [docList, setDocList] = useState([]);
+  const [documents, setDocuments] = useState([]); //all documents retrived
+  const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
+  const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
+  const [areas, setAreas] = useState([]); // all the areas retrived
+  const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
+  const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   
+  useEffect(() => {
+    
+    const fetchDocuments = async () => {
+      try {
+          const documents = await API.getDocuments();
+          setDocuments(documents);
+      } catch (error) {
+          console.error("Failed to fetch documents:", error);
+      }
+    };
 
-  const setDocumentList = (newDocuments) => {
-    setDocuments(newDocuments);
-  };
+    const fetchAreas = async () => {
+      try {
+          const areas = await API.getAllAreas();
+          console.log(areas);
+          setAreas(areas);
+      } catch (error) {
+          console.error("Failed to fetch areas:", error);
+      }
+    };
+
+    fetchDocuments();
+    fetchAreas();
+  }, []);
 
   // Automatically update markers when documents change
   useEffect(() => {
     setMapMarkers(); // Default: include all documents
   }, [documents]);
 
+
+
+  const isArea = (doc) => doc.areaId != null;
   
   const setMapMarkers = (filterFn = () => true) => {
     const validMarkers = [];
-    const municipalDocuments = [];
+    const areasSet = new Set();
+    let isMunicipalArea = false;
+
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
       .forEach(doc => {
-        console.log(doc);
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-
+       
         if (doc.areaId === null) {
-            municipalDocuments.push({
-              ...doc,
-              longitude: parseFloat(longitude),
-              latitude: parseFloat(latitude)
-            });
-        } else {
-            validMarkers.push({
-                ...doc,
-                longitude: parseFloat(longitude),
-                latitude: parseFloat(latitude)
-            });
+          isMunicipalArea = true;
+        } else if (doc.areaId === undefined) {
+          validMarkers.push({
+            ...doc,
+            longitude: parseFloat(longitude),
+            latitude: parseFloat(latitude)
+          });
+        } else if (doc.areaId) {
+          areasSet.add(areas.filter((area) => area._id === doc.areaId));
         }
     });
-    
+
     setMarkers(validMarkers);
-    setMunicipalArea(municipalDocuments);
+    setDisplayedAreas(Array.from(areasSet));
+    setMunicipalArea(isMunicipalArea);
   };
 
   const setListContent = (filterFn = () => true) => {
@@ -58,7 +84,6 @@ export const DocumentProvider = ({ children }) => {
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
       .forEach(doc => {
-        console.log(doc);
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
@@ -102,15 +127,18 @@ export const DocumentProvider = ({ children }) => {
     () => ({
       documents,
       markers,
-      municipalArea,
+      areas,
       docList,
-      setDocumentList,
+      areas,
+      displayedAreas,
+      municipalArea,
       setMapMarkers,
       updateDocument,
       updateDocCoords,
       setListContent,
+      isArea
     }),
-    [documents, markers, municipalArea, docList]
+    [documents, markers,docList]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
