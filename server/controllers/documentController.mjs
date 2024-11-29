@@ -654,5 +654,24 @@ export const downloadResource = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+  
 };
+
+// Retrieve selection fields options
+export const getSelectionFields = async (req, res) => {
+  try {
+    // Fetch stakeholders and document types from the database
+    const stakeholders = await Document.distinct('stakeholders'); // Example: Retrieve stakeholders
+    const documentTypes = await Document.distinct('tyoe'); // Example: Retrieve document types
+
+    // Return the data
+    res.json({
+      stakeholders,
+      documentTypes,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
