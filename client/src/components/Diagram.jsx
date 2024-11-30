@@ -6,6 +6,7 @@ import API from "../services/api";
 const Diagram = () => {
     const [docList, setDocumentList] = useState([]);
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
+    const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
 
     const [xDomain, setXDomain] = useState(range(2004, 2024, 1)); // Range iniziale per l'asse X
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Range iniziale per l'asse Y
@@ -13,7 +14,7 @@ const Diagram = () => {
     //Functions
     function range(start, end) {
         if (start > end) {
-            return []; // Gestione di un range vuoto
+            return []; 
         }
         return Array.from({ length: end - start + 1 }, (_, i) => start + i);
     }
@@ -23,13 +24,14 @@ const Diagram = () => {
     }    
 
     const extractYear = (dataString) => {
-        // Regex per validare e catturare l'anno dal formato dd/mm/yyyy
-        const match = dataString.match(/^(?:(\d{2})\/)?(\d{2})\/(\d{4})|(\d{4})$/);
+        // Regex for validating and take the year from the date (foramt yyyy-mm-dd, yyyy-mm, yyyy)
+        const match = dataString.match(/^(\d{4})-(\d{2})-(\d{2})$|^(\d{4})-(\d{2})$|^(\d{4})$/
+);
         if (!match) {
-            throw new Error("Date format is not valid. Must be dd/mm/yyyy.");
+            throw new Error("Date format is not valid. Must be yyyy-mm-dd, yyyy-mm or yyyy.");
         }
 
-        return match[3] || match[4];
+        return match[1] || match[4] || match[6];
     }
 
     const calculateRadialPosition = (index, total, centerX, centerY) => {
@@ -41,7 +43,7 @@ const Diagram = () => {
         };
     };
     
-    // Raggruppa i nodi con gli stessi valori di X e Y
+    //Takes the nodes with same coordinates
     const groupedNodes = d3.group(docList, (d) => {
         const time = parseInt(extractYear(d.issuance_date.toString())); // Estrarre l'anno
         return `${time}-${d.scale}`; // Chiave unica per la combinazione di asse X e Y
@@ -76,10 +78,14 @@ const Diagram = () => {
             );
 
             //Min/max scale
-            const regex = /^1 :/;
+            const regex = /^1\s*:\s*[\d.,]+$/;
 
             setScaleNodes(() => [
                 ...docList.filter((doc) => regex.test(doc.scale)).map((doc)=>doc.scale)
+            ]);
+
+            setScaleNodesT(() => [
+                ...docList.filter((doc) => !regex.test(doc.scale)).map((doc)=>doc.scale)
             ]);
 
             const newYDomainR = [...new Set(scaleNodes.sort((a, b)=>{
@@ -89,7 +95,9 @@ const Diagram = () => {
                 return numA - numB;
             }))];
 
-            const newYDomain = ["blueprints/effects", ...newYDomainR, "Concept", "Text"];
+            console.log(newYDomainR);
+
+            const newYDomain = ["blueprints/effects", ...newYDomainR, "Concept", "Text", ...scaleNodesT];
     
             //Update axis' domains
             setXDomain(newXDomain);
