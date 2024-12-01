@@ -73,9 +73,10 @@ const MapComponent = () => {
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { documents, markers, municipalArea,  setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const { documents, markers, municipalArea, setDocumentList, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
     const [changingDocument, setChangingDocument] = useState(null);
     const [customArea, setCustomArea] = useState(null);
+    const [areas, setAreas] = useState([]);
 
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -112,7 +113,7 @@ const MapComponent = () => {
     // Handler to update filtered documents on map
     const handleFilterByTitle = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if (!title || title === "All")
             setMapMarkers();
         else
             setMapMarkers((doc) => doc.title === title);//passing the filter
@@ -121,7 +122,7 @@ const MapComponent = () => {
     // Handler to update filtered documents on list
     const handleFilterByTitleInList = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if (!title || title === "All")
             setListContent();
         else
             setListContent((doc) => doc.title === title);//passing the filter
@@ -150,10 +151,21 @@ const MapComponent = () => {
             }
         };
 
-        fetchDocuments();
-    }, []);
+        const fetchAreas = async () => {
+            try {
+                const areaData = await API.getAllAreas();
+                setAreas(areaData); // Aggiorna lo stato con le aree
+                console.log("Aree ricevute:", areaData);
+            } catch (error) {
+                console.error("Failed to fetch areas:", error);
+            }
+        };
 
-    
+        fetchDocuments();
+        fetchAreas();
+    }, [confirmSelectedArea]);
+
+
 
     // Hook for mouse movement and updating coordinates
 
@@ -161,10 +173,10 @@ const MapComponent = () => {
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isSelecting && loggedIn && changingDocument == null ) {
-                    const newCoords = { 
-                    lat: e.latlng.lat.toFixed(5), 
-                    lng: e.latlng.lng.toFixed(5) 
+                if (isSelecting && loggedIn && changingDocument == null) {
+                    const newCoords = {
+                        lat: e.latlng.lat.toFixed(5),
+                        lng: e.latlng.lng.toFixed(5)
                     };
                     setMouseCoords(newCoords);
                 }
@@ -176,17 +188,17 @@ const MapComponent = () => {
                     setIsSelecting(false);
                     return;
                 }
-    
+
                 // Aggiorna le coordinate di un documento esistente
                 if (changingDocument) {
                     const { lat, lng } = e.latlng;
-    
+
                     // Prepara le nuove coordinate
                     const updatedCoordinates = {
                         type: changingDocument.coordinates.type,
                         coordinates: [lng, lat] // Formato GeoJSON: [lng, lat]
                     };
-    
+
                     // Aggiorna le coordinate sul server
                     API.updateDocumentCoordinates(
                         changingDocument._id,
@@ -201,17 +213,17 @@ const MapComponent = () => {
                         .catch(err => {
                             console.error('Errore durante l\'aggiornamento delle coordinate:', err.message);
                         });
-    
+
                     // Reset della modalità
                     setChangingDocument(null);
                     setIsSelecting(false);
                 }
             }
         });
-    
+
         return null;
     };
-    
+
     // Handle polygon click event
     const handlePolygonClick = () => {
         console.log("Hai cliccato sul bordo del poligono!");
@@ -219,16 +231,18 @@ const MapComponent = () => {
     };
 
     const handlePolygonDrawn = async (polygonLayer) => {
-        let coordinates = polygonLayer.getLatLngs()[0].map(latlng => [latlng.lat, latlng.lng]);
+        let coordinates = polygonLayer.getLatLngs()[0].map(latlng => [latlng.lng, latlng.lat]);
         setCustomArea(polygonLayer);
-        console.log(coordinates)
-        try {
-            // Attendere il completamento della creazione dell'area con la promise
-            await API.createArea([coordinates]);
-            console.log("Area creata con successo");
-        } catch (error) {
-            console.error("Errore durante la creazione dell'area:", error.message);
-        }
+        navigate('/document-creation', { state: { isMunicipal: true ,coordinatesArea: coordinates } });
+        // try {
+        //     // Attendere il completamento della creazione dell'area con la promise
+        //     await API.createArea([coordinates]);
+        //     console.log("Area creata con successo");
+            
+        //     setCustomArea(null);
+        // } catch (error) {
+        //     console.error("Errore durante la creazione dell'area:", error.message);
+        // }
     };
 
     // Function to navigate to document creation form for the entire municipality
@@ -244,11 +258,11 @@ const MapComponent = () => {
     return (
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
-                {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
-            <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
+                {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} />}
+                <MapContainer center={position} zoom={13} className={styles.mapContainer} zoomControl={false}>
                     <MapMouseEvents />
-                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
-                <TileLayer
+                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea} />
+                    <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
@@ -260,6 +274,9 @@ const MapComponent = () => {
                         fillOpacity={0.4}
                     />
 
+                    {areas.map(area => (
+                        <Polygon key={area.id} positions={area.geometry.coordinates} color="blue" />
+                    ))}
                     <MarkerClusterGroup
                         showCoverageOnHover={false}
                         disableClusteringAtZoom={16}
@@ -302,20 +319,20 @@ const MapComponent = () => {
                             eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
                         >
 
-                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/ }
+                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> {/* Tooltip with offset below the marker*/}
                         </Marker>}
                 </MapContainer>
 
                 <Legend />
 
 
-                {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList}/>}
+                {isListing
+                    && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} />}
 
-                {isListing 
-                && loggedIn 
-                && <SearchBar 
-                    onFilter={handleFilterByTitleInList} />
+                {isListing
+                    && loggedIn
+                    && <SearchBar
+                        onFilter={handleFilterByTitleInList} />
                 }
 
                 <div className={styles.buttonGroupUI}>
@@ -323,8 +340,8 @@ const MapComponent = () => {
 
                     {loggedIn && (
                         <button
-                        className={`${styles.listButton}`}
-                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
+                            className={`${styles.listButton}`}
+                            onClick={() => { setIsListing(prev => !prev); setListContent() }}
                         >
                             <i className="bi bi-list-task"></i>
                         </button>
@@ -333,18 +350,26 @@ const MapComponent = () => {
                     {/* NEW BUTTON FOR TOGGLING DRAW AREA */}
                     {true && (
                         <button
-                        onClick={() => { setToggleDrawing(prev => !prev); console.log(toggleDrawing)}}
+                            onClick={() => {
+                                setToggleDrawing(prev => !prev); 
+                                console.log(toggleDrawing);
+                                setConfirmSelectedArea(false);
+                            }}
                         >
-                            <i className="bi bi-list-task"></i>
+                            <i className="bi bi-list-task"></i> DRAW
                         </button>
                     )}
 
                     {/* NEW BUTTON FOR CONFIRMING */}
-                    {true && (
+                    {true && toggleDrawing && (
                         <button
-                        onClick={() => { setConfirmSelectedArea(prev => !prev); console.log("confirm:" + confirmSelectedArea)}}
+                            onClick={() => {
+                                setConfirmSelectedArea(prev => !prev);
+                                setToggleDrawing(prev => !prev);
+                                console.log("confirm:" + confirmSelectedArea);
+                            }}
                         >
-                            <i className="bi bi-list-task"></i>
+                            <i className="bi bi-list-task"></i> CONFIRM
                         </button>
                     )}
 
@@ -383,7 +408,7 @@ const MapComponent = () => {
                         </div>
                     )}
                 </div>
-                
+
             </div>
         </div>
     );

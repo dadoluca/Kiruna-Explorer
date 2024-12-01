@@ -16,7 +16,7 @@ import { useDocumentContext } from '../contexts/DocumentContext';
 function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
-    const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
+    const { coordinates, isMunicipal, coordinatesArea} = location.state || {}; // Extract coordinates and isMunicipal state
     const { documents } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
@@ -34,7 +34,7 @@ function DocumentInsert() {
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-
+    const [area, setArea] = useState(coordinatesArea || null);
     const [activeButton, setActiveButton] = useState(1);
     const [dateFormat, setDateFormat] = useState(false);
     const [formattedDate, setFormattedDate] = useState("");
@@ -104,7 +104,7 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        const document = {
+        var document = {
             title,
             stakeholders: stakeholdersArray,
             type: customType || type, // Use custom type if provided
@@ -123,6 +123,41 @@ function DocumentInsert() {
                 ]
             }
         };
+
+        if (area!== null){
+            var areaID;
+            console.log(area);
+            try {
+                // Attendere il completamento della creazione dell'area con la promise
+                areaID = await API.createArea([area]);
+                console.log("Area creata con successo");
+            } catch (error) {
+                console.error("Errore durante la creazione dell'area:", error.message);
+            }
+            // document.areaId = areaID._id;
+            // document.coordinates= {
+            //     type: "Polygon",
+            //     coordinates:  [
+            //         parseFloat(area[0][0]),
+            //         parseFloat(area[0][1])
+            //     ] 
+            // }
+
+            document = {
+                title,
+                stakeholders: stakeholdersArray,
+                type: customType || type, // Use custom type if provided
+                scale,
+                issuance_date: formattedDate,
+                language: customLanguage || language, // Use custom language if provided
+                connections: 0,
+                pages,
+                description,
+                areaId: areaID._id, // Set areaId to null if municipal area, else keep it undefined
+                coordinates: undefined
+            };
+    
+        }
 
         try {
             console.log(document);
