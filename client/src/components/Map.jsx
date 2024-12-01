@@ -119,8 +119,9 @@ const MapComponent = () => {
     
     const handlePolygonDrawn = async (polygonLayer) => {
         try {
-            await API.createArea(polygonLayer.toGeoJSON());
+            const area = await API.createArea(polygonLayer.toGeoJSON());
             console.log("Area successfully created.");
+            navigate('/document-creation', { state: { customArea: area } });
         } catch (error) {
             console.error("Error during area creation:", error.message);
         }
@@ -206,7 +207,7 @@ const MapComponent = () => {
                             displayedAreas.map((area) => (
                                 <>
                                     <Marker
-                                        key={area._id}
+                                        key={`${area._id}_Marker`}
                                         position={[area.properties.centroid.coordinates[1], area.properties.centroid.coordinates[0]]}
                                         icon={multipleDocumentsIcon}
                                         eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); setIsListing(true); } }}
@@ -215,7 +216,7 @@ const MapComponent = () => {
                                     <Tooltip direction="bottom">Area related documents</Tooltip>
                                     </Marker>
                                     <Polygon
-                                        key={area._id}
+                                        key={`${area._id}_Polygon`}
                                         positions={area.geometry.coordinates.map(ring =>
                                             ring.map(([longitude, latitude]) => [latitude, longitude])
                                         )}

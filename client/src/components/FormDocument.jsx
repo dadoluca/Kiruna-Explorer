@@ -167,7 +167,7 @@ function DocumentInsert() {
             pages,
             description,
             areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: (isMunicipal || !longitude || !latitude) ? undefined : { // Only include coordinates if not municipal
+            coordinates: (isMunicipal || customArea) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
@@ -178,7 +178,7 @@ function DocumentInsert() {
 
         if (customArea) {
             document.areaId = customArea._id;
-            document.coordinates= customArea.properties.centroid.coordinates;
+            document.coordinates= customArea.properties.centroid;
         }
 
         try {

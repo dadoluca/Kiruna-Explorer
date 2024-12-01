@@ -68,7 +68,17 @@ export const DocumentProvider = ({ children }) => {
             latitude: parseFloat(latitude)
           });
         } else if (doc.areaId) {
-          areasSet.add(areas.filter((area) => area._id === doc.areaId));
+          const matchingAreas = areas.filter((area) => area._id === doc.areaId);
+
+          matchingAreas.forEach((area) => {
+            if (area) {
+              if (!areasSet.has(area)) {
+                areasSet.add(area);
+              }
+            } else {
+              console.log(`Found invalid area for document ${doc.title || "senza titolo"}:`, area);
+            }
+          });
         }
     });
 
