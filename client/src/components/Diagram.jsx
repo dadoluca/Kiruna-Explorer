@@ -8,6 +8,8 @@ const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
 
+    const [links, setLinks] = useState([]); // Array di oggetti con le relazioni tra i documenti
+
     const [xDomain, setXDomain] = useState(range(2004, 2024, 1)); // Range iniziale per l'asse X
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Range iniziale per l'asse Y
 
@@ -24,8 +26,7 @@ const Diagram = () => {
     }    
 
     const extractYear = (dataString) => {
-        // Regex for validating and take the year from the date (foramt yyyy-mm-dd, yyyy-mm, yyyy)
-        const match = dataString.match(/^(\d{4})-(\d{2})-(\d{2})$|^(\d{4})-(\d{2})$|^(\d{4})$/
+        const match = dataString.match(/^(\d{4})-(\d{2})-(\d{2})$|^(\d{4})-(\d{2})$|^(\d{4})$/              // Regex for validating and take the year from the date (foramt yyyy-mm-dd, yyyy-mm, yyyy)
 );
         if (!match) {
             throw new Error("Date format is not valid. Must be yyyy-mm-dd, yyyy-mm or yyyy.");
@@ -42,9 +43,23 @@ const Diagram = () => {
             y: centerY + radius * Math.sin(angle)
         };
     };
+
+    const getLinkStyle = (type) => {                            //define Link style according to relationship type
+        switch (type) {
+            case "direct consequence":
+                return "5,0"; 
+            case "collateral consequence":
+                return "5,5"; 
+            case "projection":
+                return "1,5";
+            case "update":
+                return "5,5,1,5"; 
+            default:
+                return "5,0"; 
+        }
+    };
     
-    //Takes the nodes with same coordinates
-    const groupedNodes = d3.group(docList, (d) => {
+    const groupedNodes = d3.group(docList, (d) => {             //Takes the nodes with same coordinates
         const time = parseInt(extractYear(d.issuance_date.toString())); // Estrarre l'anno
         return `${time}-${d.scale}`; // Chiave unica per la combinazione di asse X e Y
     });
@@ -95,8 +110,6 @@ const Diagram = () => {
                 return numA - numB;
             }))];
 
-            console.log(newYDomainR);
-
             const newYDomain = ["blueprints/effects", ...newYDomainR, "Concept", "Text", ...scaleNodesT];
     
             //Update axis' domains
@@ -121,6 +134,18 @@ const Diagram = () => {
 
         fetchDocuments();
     }, []);
+
+    useEffect(() => {
+        const linksArray = docList.flatMap((doc) =>
+            doc.relationships.map((rel) => ({
+                source: doc._id, // Nodo sorgente
+                target: rel.documentId, // Nodo target
+                type: rel.type // Tipo di relazione
+            }))
+        );
+
+        setLinks(() => [...linksArray]);
+    }, [docList]);
 
     useEffect(() => {
         const width = 1010;
@@ -187,6 +212,41 @@ const Diagram = () => {
         .attr("y", -10)
         .attr("width", 20)
         .attr("height", 20);
+
+        //LINKS
+        console.log(links);
+
+        const linksGroup = svg.append("g")
+        .attr("class", "links-group")
+        .attr("transform", `translate(${margin.left}, ${margin.top+20})`);
+
+        linksGroup.selectAll("line")
+        .data(links)
+        .enter()
+        .append("line")
+        .attr("x1", (d) => {
+            const sourceNode = docList.find((node) => node._id === d.source);
+            console.log(sourceNode);
+            return xScale(parseInt(extractYear(sourceNode.issuance_date.toString())));
+        })
+        .attr("y1", (d) => {
+            const sourceNode = docList.find((node) => node._id === d.source);
+            return yScale(sourceNode.scale);
+        })
+        .attr("x2", (d) => {
+            console.log(d.target);
+            const targetNode = docList.find((node) => node._id === d.target);
+            console.log(targetNode);
+            return xScale(parseInt(extractYear(targetNode.issuance_date.toString())));
+        })
+        .attr("y2", (d) => {
+            const targetNode = docList.find((node) => node._id === d.target);
+            return yScale(targetNode.scale);
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 2) 
+        .attr("stroke-dasharray", (d) => getLinkStyle(d.type)); //Line style
+
         
         /*
         const nodesGroup = svg.append("g")
@@ -223,7 +283,7 @@ const Diagram = () => {
         .attr("fill", "black");
         */
 
-    }, [xDomain, yDomain, docList]);
+    }, [xDomain, yDomain, docList, links]);
 
     return <svg ref={svgRef}></svg>;
 };
