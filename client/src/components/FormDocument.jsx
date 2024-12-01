@@ -17,7 +17,7 @@ import * as turf from "@turf/turf";
 function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
-    const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
+    const { coordinates, isMunicipal, customArea } = location.state || {}; // Extract coordinates and isMunicipal state
     const { documents } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
@@ -36,7 +36,7 @@ function DocumentInsert() {
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-    
+    const [area, setArea] = useState(customArea || null);
     const [activeButton, setActiveButton] = useState(1);
     // date picker 
     const [date, setDate] = useState(null);
@@ -156,7 +156,7 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        const document = {
+        var document = {
             title,
             stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
@@ -167,14 +167,19 @@ function DocumentInsert() {
             pages,
             description,
             areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: isMunicipal ? undefined : { // Only include coordinates if not municipal
+            coordinates: (isMunicipal || !longitude || !latitude) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
                     parseFloat(latitude)
                 ]
             }
-        };
+        }
+
+        if (customArea) {
+            document.areaId = customArea._id;
+            document.coordinates= customArea.properties.centroid.coordinates;
+        }
 
         try {
             console.log(document);

@@ -3,74 +3,82 @@ import * as turf from '@turf/turf';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json' assert { type: 'json' };
 
 export const validateArea = [
-  body('points')
-  .isArray()
-  .withMessage('Coordinates must be an array.')
-  .custom((value) => {
-    if (value.length !== 1) {
-      throw new Error('Coordinates must contain exactly one ring for a full polygon (no holes allowed).');
+  body('geojson')
+  .isObject()
+  .withMessage('The body must contain a valid GeoJSON object.')
+  .custom((geojson) => {
+    if (geojson.type !== 'Feature') {
+      throw new Error('The GeoJSON must be of type "Feature".');
     }
 
-    const ring = value[0];
+    const { geometry } = geojson;
+
+    if (!geometry || geometry.type !== 'Polygon') {
+      throw new Error('The GeoJSON feature must have a geometry of type "Polygon".');
+    }
+
+    const coordinates = geometry.coordinates;
+
+    if (!Array.isArray(coordinates) || coordinates.length !== 1) {
+      throw new Error('Coordinates must contain exactly one ring (no holes allowed).');
+    }
+
+    const ring = coordinates[0];
+
     if (!Array.isArray(ring) || ring.length < 4) {
-      throw new Error('The ring must be an array with at least 4 points to form a valid polygon.');
+      throw new Error('The ring must have at least 4 points.');
     }
 
-    // [lat, long] -> [long, lat]
-    const invertedRing = ring.map(point => [point[1], point[0]]);
-
-    // Ensure the polygon is closed by checking the first and last point
-    const firstPoint = invertedRing[0];
-    const lastPoint = invertedRing[invertedRing.length - 1];
-
+    const firstPoint = ring[0];
+    const lastPoint = ring[ring.length - 1];
     if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
-      invertedRing.push(firstPoint); // Close the polygon by adding the first point at the end
+      throw new Error('The polygon is not closed. The first and last points must match.');
     }
 
-    invertedRing.forEach((point, index) => {
+    ring.forEach((point, index) => {
       if (!Array.isArray(point) || point.length !== 2) {
-        throw new Error(`Point ${index + 1} must be an array of two numbers.`);
+        throw new Error(`Point ${index + 1}: Must be an array of two numbers.`);
       }
 
       const [longitude, latitude] = point;
 
       if (typeof longitude !== 'number' || typeof latitude !== 'number') {
-        throw new Error(`Longitude and latitude of point ${index + 1} must be numbers.`);
+        throw new Error(`Point ${index + 1}: Longitude and latitude must be numbers.`);
       }
 
       if (longitude < -180 || longitude > 180) {
-        throw new Error(`Longitude of point ${index + 1} must be between -180 and 180.`);
+        throw new Error(`Point ${index + 1}: Longitude must be between -180 and 180.`);
       }
       if (latitude < -90 || latitude > 90) {
-        throw new Error(`Latitude of point ${index + 1} must be between -90 and 90.`);
+        throw new Error(`Point ${index + 1}: Latitude must be between -90 and 90.`);
       }
 
+      // Controlla se il punto è all'interno del comune di Kiruna
       const kirunaPolygon = kirunaGeoJSON.features[0].geometry;
-
       const vertex = turf.point([longitude, latitude]);
       const kiruna = turf.multiPolygon(kirunaPolygon.coordinates);
       if (!turf.booleanPointInPolygon(vertex, kiruna)) {
-        throw new Error(`Point ${index + 1} must be within the municipality of Kiruna.`);
+        throw new Error(`Point ${index + 1}: Must be within the municipality of Kiruna.`);
       }
     });
 
     return true;
   }),
     
-    body('name')
-    .optional()
-    .isString()
-    .withMessage('Name must be a string if provided.'),
-  
-    (req, res, next) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) { 
-        console.error('Validation errors:', errors.array());
-        return res.status(422).json({
-          success: false,
-          errors: errors.array(),
-        });
-      }
-      next();
-    },
+  body('name')
+  .optional()
+  .isString()
+  .withMessage('Name must be a string if provided.'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) { 
+      console.error('Validation errors:', errors.array());
+      return res.status(422).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
 ];

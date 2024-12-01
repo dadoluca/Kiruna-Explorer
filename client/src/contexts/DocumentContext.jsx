@@ -27,7 +27,6 @@ export const DocumentProvider = ({ children }) => {
     const fetchAreas = async () => {
       try {
           const areas = await API.getAllAreas();
-          console.log(areas);
           setAreas(areas);
       } catch (error) {
           console.error("Failed to fetch areas:", error);
@@ -129,7 +128,6 @@ export const DocumentProvider = ({ children }) => {
       markers,
       areas,
       docList,
-      areas,
       displayedAreas,
       municipalArea,
       setMapMarkers,
