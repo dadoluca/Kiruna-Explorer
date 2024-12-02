@@ -44,6 +44,18 @@ const Diagram = () => {
         };
     };
 
+    const fetchLinks = (docList) => {
+        const linksArray = docList.flatMap((doc) =>
+            doc.relationships.map((rel) => ({
+                source: doc._id, // Nodo sorgente
+                target: rel.documentId, // Nodo target
+                type: rel.type // Tipo di relazione
+            }))
+        );
+
+        setLinks(() => [...linksArray]);
+    };
+
     const getLinkStyle = (type) => {                            //define Link style according to relationship type
         switch (type) {
             case "direct consequence":
@@ -137,15 +149,7 @@ const Diagram = () => {
     }, []);
 
     useEffect(() => {
-        const linksArray = docList.flatMap((doc) =>
-            doc.relationships.map((rel) => ({
-                source: doc._id, // Nodo sorgente
-                target: rel.documentId, // Nodo target
-                type: rel.type // Tipo di relazione
-            }))
-        );
-
-        setLinks(() => [...linksArray]);
+        fetchLinks(docList);
     }, [docList]);
 
     useEffect(() => {
