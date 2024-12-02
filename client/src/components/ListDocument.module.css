@@ -1,0 +1,164 @@
+.container {
+    position: absolute;
+    top: 1px;
+    left: 0px;
+    width: 45vw;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    border-radius: 0px;
+    padding: 0; /* Rimosso il padding */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column; /* Layout verticale */
+  }
+  
+  .header {
+    position: sticky; /* L'intestazione rimane visibile */
+    top: 0;
+    z-index: 10; /* Sopra il contenuto scorrevole */
+    background-color: white; /* Sfondo fisso */
+    padding: 10px;
+    height: 70px;
+  }
+  
+  .headerRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0; /* Rimosso margine */
+  }
+  
+  .scrollableCardList {
+    flex: 1; 
+    overflow-y: auto; /* Abilita lo scorrimento verticale */
+    scrollbar-width: thin;
+    scrollbar-color: #aaa rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 10px; 
+  }
+
+.closeButtonContainer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.closeButton {
+    background-color: transparent;
+    border: none;
+    color: black;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.closeButton:hover {
+    background-color: black;
+    color: white;
+}
+
+.cardWrapper {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.cardWrapper:hover {
+    background-color: #f9f9f9;
+    transform: scale(1.02);
+}
+
+.cardContent {
+    background-color: transparent;
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.cardHeader {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #555;
+    padding-bottom: 8px;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 10px;
+}
+
+.cardTitle {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    gap: 10px;
+}
+
+.cardText {
+    font-size: 0.9rem;
+    color: #666;
+    overflow: hidden;
+    display: -webkit-box; /* multi-line ellipsis */
+    -webkit-line-clamp: 3; /* max number of rows to show */
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    max-height: 4.5rem; 
+    line-height: 1.5rem; 
+    align-items: start;
+}
+
+.cardIcon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+.cardFooterButton {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cardFooterButton:hover {
+    background-color: #555;
+}
+
+.separator {
+    border-bottom: 1px solid #ddd;
+}
+
+
+
+
+.rowStyle {
+    padding: 8px 10px;
+    font-weight: 500;
+    color: #a2a2a2;
+    font-family: 'Arial', sans-serif;
+}
+
+.rowStyleCol {
+    text-align: left;
+    padding: 0 8px;
+    overflow: hidden; /* Prevent overflow */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

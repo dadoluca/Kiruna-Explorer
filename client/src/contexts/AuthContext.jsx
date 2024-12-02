@@ -36,7 +36,7 @@ const AuthProvider = ({ children }) => {
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
       setUser(user);
     } catch (err) {
-      var jsonErr = JSON.parse(err);
+      const jsonErr = JSON.parse(err);
       setMessage({ msg: jsonErr.message, type: 'danger' });
     }
   };
@@ -49,7 +49,7 @@ const AuthProvider = ({ children }) => {
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
       setUser(user);
     } catch (err) {
-      var jsonErr = JSON.parse(err);
+      const jsonErr = JSON.parse(err);
       setMessage({ msg: jsonErr.message, type: 'danger' });
     }
   };

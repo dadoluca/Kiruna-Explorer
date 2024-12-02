@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 const areaSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
   type: {
     type: String,
     enum: ['Feature'],
@@ -11,8 +10,25 @@ const areaSchema = new mongoose.Schema({
   properties: {
     name: {
       type: String,
-      required: true
-    }
+      required: false
+    },
+    centroid: {
+      type: {
+        type: String,
+        enum: ['Point'], // GeoJSON Point
+        required: true
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+        validate: {
+          validator: function (coords) {
+            return coords.length === 2; // Must be an array of two numbers
+          },
+          message: 'Centroid coordinates must be an array of two numbers [longitude, latitude].'
+        }
+      }
+    },
   },
   geometry: {
     type: {

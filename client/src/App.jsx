@@ -1,6 +1,6 @@
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { RouterProvider, createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
 import { DocumentProvider } from './contexts/DocumentContext';
@@ -11,7 +11,7 @@ import MapPage from './pages/MapPage';
 import LoginPage  from './pages//LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DocumentCreationPage from './pages/DocumentCreationPage';
-import ResourceCreationPage from './pages/ResourceCreationPage';
+import ScrollableDocumentsList from './components/ListDocument';
 
 function App() {
   const { loggedIn } = useContext(AuthContext);
@@ -43,6 +43,10 @@ function App() {
         {
           path: "/document-creation",
           element: <DocumentCreationPage />
+        },
+        {
+          path: "/documents-list",
+          element: <ScrollableDocumentsList />
         },
         {
           path: "*",

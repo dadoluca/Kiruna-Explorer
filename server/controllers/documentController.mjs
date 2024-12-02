@@ -16,20 +16,20 @@ export const createDocument = async (req, res) => {
         icon_url = '/icons/design_doc.png';
         break;
       case 'Informative Doc.':
-        icon_url = '/icons/informative_icon.png';
+        icon_url = '/icons/informative_doc.png';
         break;
       case 'Prescriptive Doc.':
-        icon_url = '/icons/prescriptive_icon.png';
+        icon_url = '/icons/prescriptive_doc.png';
         break;
       case 'Technical Doc.':
-        icon_url = '/icons/technical_icon.png';
+        icon_url = '/icons/technical_doc.png';
         break;
       case 'default':
       default:
         icon_url = '/icons/default_doc.png';
     }
     
-    const document = new Document({ ...documentData, icon: icon_url });
+    const document = new Document({ ...documentData, icon_url: icon_url });
     
     await document.save();
     res.status(201).json(document);
@@ -38,15 +38,48 @@ export const createDocument = async (req, res) => {
   }
 };
 
-// Get all documents with optional filters
+// Get all documents with optional filters and pagination
 export const getAllDocuments = async (req, res) => {
   try {
-    const documents = await Document.find(req.query);
-    res.json(documents);
+    // Pagination and filter parameters
+    const { page = 1, limit = 100, title, type, tag } = req.query;
+
+    // Construct filter object based on query parameters
+    let filter = {};
+    if (title) {
+      filter.title = { $regex: title, $options: 'i' };  // Case-insensitive filter for title
+    }
+    if (type) {
+      filter.type = type;  // Filter by type
+    }
+    if (tag) {
+      filter.tags = { $in: [tag] };  // Filter by tags if specified
+    }
+
+    // Fetch the documents with the applied filters and pagination
+    const documents = await Document.find(filter)
+      .skip((page - 1) * limit)  // Skip based on the page number
+      .limit(parseInt(limit))    // Limit the number of documents per page
+      .exec();
+
+    // Get the total number of documents for pagination info
+    const totalDocuments = await Document.countDocuments(filter);
+
+    // Send the paginated documents along with pagination details
+    res.status(200).json({
+      data: documents,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalDocuments / limit),
+        totalDocuments,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // Get a document by ID
 export const getDocumentById = async (req, res, next) => {
@@ -318,28 +351,44 @@ export const addTagsToDocument = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
-//Retrive all document id and titles 
+
+//Retrive all document id, titles and array of available connection types
 export const getAvailableDocuments = async (req, res) => {
   try {
     const { id: currentDocumentID } = req.params;
-    const currentDocument = await Document.findById(currentDocumentID);
+
+    const currentDocument = await Document.findById(currentDocumentID).lean();
     if (!currentDocument) {
       return res.status(400).json({ message: 'Current document not found' });
     }
 
-    // Get IDs of connected documents
-    const connectedDocumentIds = currentDocument.relationships.map(rel => rel.documentId);
+    // Get all documents excluding the current document itself
+    const allDocuments = await Document.find(
+      { _id: { $ne: currentDocumentID } },
+      'title relationships'
+    ).lean();
 
-    // Add currentDocumentID to the list of excluded IDs
-    const excludeIds = [...connectedDocumentIds, currentDocumentID];
+    const enrichedDocuments = allDocuments.map(doc => {
+      // Find existing types of connections between this document and the current document
+      const existingTypes = doc.relationships
+        .filter(rel => rel.documentId.toString() === currentDocumentID)
+        .map(rel => rel.type);
 
-    // Find available documents excluding connected ones and the current document
-    const availableDocuments = await Document.find(
-      { _id: { $nin: excludeIds } },
-      'title'
-    );
+      // Determine available connection types for this document
+      const availableConnectionTypes = ['direct consequence', 'collateral consequence', 'projection', 'update']
+        .filter(type => !existingTypes.includes(type));
 
-    res.json(availableDocuments);
+      return {
+        _id: doc._id,
+        title: doc.title,
+        availableConnectionTypes
+      };
+    });
+
+    // Filter documents that still have available connection types
+    const filteredDocuments = enrichedDocuments.filter(doc => doc.availableConnectionTypes.length > 0);
+
+    res.json(filteredDocuments);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -605,4 +654,24 @@ export const downloadResource = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+  
 };
+
+// Retrieve selection fields options
+export const getSelectionFields = async (req, res) => {
+  try {
+    // Fetch stakeholders and document types from the database
+    const stakeholders = await Document.distinct('stakeholders'); // Example: Retrieve stakeholders
+    const documentTypes = await Document.distinct('tyoe'); // Example: Retrieve document types
+
+    // Return the data
+    res.json({
+      stakeholders,
+      documentTypes,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

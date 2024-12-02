@@ -1,31 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate} from 'react-router-dom';
+import React, { useState, useContext } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Row, Col } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Button from 'react-bootstrap/Button';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import PropTypes from "prop-types";
 import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
 import NewLinkModal from './NewLinkModal';
 import { useDocumentContext } from '../contexts/DocumentContext';
-import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import styles from './CardDocument.module.css';
 import NewResourceModal from './NewResourceModal';
 import ResourcesModal from './ResourcesModal';
+import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
-  const navigate = useNavigate();
-
   const { loggedIn } = useContext(AuthContext);
   const { documents } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
-  const [showModalResource, setShowModalResource] = useState(false); 
+  const [showModalResource, setShowModalResource] = useState(false);
   const [showResources, setShowResources] = useState(false);
 
   const handleAddConnection = async () => {
@@ -47,8 +41,8 @@ const DetailPlanCard = (props) => {
           <ListGroup.Item className={styles.listItem}>
             <FaUser className={styles.icon} />
             <strong> Stakeholders:</strong> {document.stakeholders?.length > 0 ? (
-              document.stakeholders.map((item, index) => (
-                <div key={index} className={styles.stakeholderItem}>{item}</div>
+              document.stakeholders.map((item) => (
+                <div key={item.id} className={styles.stakeholderItem}>{item}</div>
               ))
             ) : "N/A"}
           </ListGroup.Item>
@@ -68,19 +62,15 @@ const DetailPlanCard = (props) => {
             <strong> Type: </strong> {document.type || "N/A"}
           </ListGroup.Item>
 
-          {/* Connections number,  dropdown to show related documents, add connection btn */}
           <ListGroup.Item className={styles.listItem}>
             <FaProjectDiagram className={styles.icon} />
-            
             <strong> Connections: </strong> 
-            <span className={styles.connectionCount}>{document.connections || "N/A"}</span>
+            <span className={styles.connectionCount}>{document.connections || 0}</span>
 
-            {/* dropdown to show related documents*/}
             <Dropdown className={`${styles.dropdownButton}`}>
-              <Dropdown.Toggle variant="link" className={styles.dropdownToggle}>
-              </Dropdown.Toggle>
+              <Dropdown.Toggle variant="link" className={styles.dropdownToggle} />
               <Dropdown.Menu>
-                {document.relationships && document.relationships.length > 0 ? (
+                {document.relationships?.length > 0 ? (
                   document.relationships.map((rel, index) => (
                     <Dropdown.Item key={index}>
                       {rel.documentTitle} - {rel.type}
@@ -92,11 +82,12 @@ const DetailPlanCard = (props) => {
               </Dropdown.Menu>
             </Dropdown>
 
-          {/*add connection btn */}
-          {loggedIn && <FaPlus
-              className={`${styles.addConnectionIcon}`}
-              onClick={() => setShowModal(true)}
-            />}
+            {loggedIn && (
+              <FaPlus
+                className={styles.addConnectionIcon}
+                onClick={() => setShowModal(true)}
+              />
+            )}
           </ListGroup.Item>
 
           <ListGroup.Item className={styles.listItem}>
@@ -110,7 +101,6 @@ const DetailPlanCard = (props) => {
           </ListGroup.Item>
         </ListGroup>
 
-        {/* Modal to select a new document to connect */}
         <NewLinkModal
           show={showModal}
           onClose={() => setShowModal(false)}
@@ -119,7 +109,6 @@ const DetailPlanCard = (props) => {
           onAddConnection={handleAddConnection}
         />
 
-        {/* Modal to add resources to an existing document */}
         <NewResourceModal
           show={showModalResource}
           onClose={() => setShowModalResource(false)}
@@ -127,7 +116,6 @@ const DetailPlanCard = (props) => {
           documentTitle={document.title}
         />
 
-        {/* Modal to show resources */}
         <ResourcesModal
           show={showResources}
           onClose={() => setShowResources(false)}
@@ -137,24 +125,45 @@ const DetailPlanCard = (props) => {
 
         <Row>
           <Col>
-          <Button
+            <Button
               variant="light"
-              onClick={() => setShowResources(true)}     
+              onClick={() => setShowResources(true)}
               size="sm"
               className="mb-3"
             >
-                <i className="bi bi-folder2-open"></i> Show resources 
+              <i className="bi bi-folder2-open"></i> Show resources
             </Button>
           </Col>
           <Col>
-          {loggedIn && <Button
-              variant="light"
-              onClick={() => setShowModalResource(true)}
-              size="sm"
-              className="mb-3"
-            >
-                <i className="bi bi-file-earmark-medical-fill"></i> Add resources 
-            </Button>}
+            {loggedIn && (
+              <Button
+                variant="light"
+                onClick={() => setShowModalResource(true)}
+                size="sm"
+                className="mb-3"
+              >
+                <i className="bi bi-file-earmark-medical-fill"></i> Add resources
+              </Button>
+            )}
+          </Col>
+          <Col>
+            { loggedIn && (
+              <Button
+                variant="light"
+                onClick={() => {
+                  props.onClose(); // Close the popup
+                  setTimeout(() => {
+                    props.onChangeCoordinates(props.doc); // Trigger coordinate change
+                    props.onToggleSelecting(true); // Switch to selecting mode
+                  }, 0); // Delay execution for a tick
+                }}
+              
+                size="sm"
+                className="mb-3"
+              >
+                <i className="bi bi-geo-alt-fill"></i> Change coordinates
+              </Button>
+            )}
           </Col>
         </Row>
       </Card.Body>
@@ -164,7 +173,10 @@ const DetailPlanCard = (props) => {
 
 DetailPlanCard.propTypes = {
   doc: PropTypes.object,
-  onClose: PropTypes.func
+  onClose: PropTypes.func,
+  onChangeCoordinates: PropTypes.func.isRequired,
+  onToggleSelecting: PropTypes.func.isRequired,
 };
+
 
 export default DetailPlanCard;
