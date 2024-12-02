@@ -127,6 +127,7 @@ const Diagram = () => {
             try {
                 const documents = await API.getDocuments();
                 setDocumentList(documents);
+
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -148,9 +149,9 @@ const Diagram = () => {
     }, [docList]);
 
     useEffect(() => {
-        const width = 1010;
+        const width = 1200;
         const height = 300;
-        const margin = { top: 20, right: 20, bottom: 40, left: 120 };
+        const margin = { top: 20, right: 20, bottom: 40, left: 300 };
 
         d3.select(svgRef.current).selectAll("*").remove(); // Pulizia dell'SVG
 
@@ -184,7 +185,6 @@ const Diagram = () => {
         .call(xAxis);
 
         // Nodes
-        // Creazione dei nodi
         const nodesGroup = svg.append("g")
         .attr("transform", `translate(${margin.left-10}, ${margin.top+25})`) // Allinea agli assi
         .selectAll("g.node-group")
@@ -246,6 +246,55 @@ const Diagram = () => {
         .attr("stroke", "black")
         .attr("stroke-width", 2) 
         .attr("stroke-dasharray", (d) => getLinkStyle(d.type)); //Line style
+
+        //Legend
+        const legendGroup = svg.append("g")
+            .attr("class", "legend-group")
+            .attr("transform", `translate(${0}, ${margin.top})`); // Posiziona la legenda a sinistra
+
+        const legendData = [
+            { type: "direct consequence", style: "solid", label: "Direct Consequence" },
+            { type: "collateral consequence", style: "dashed", label: "Collateral Consequence" },
+            { type: "projection", style: "dotted", label: "Projection" },
+            { type: "update", style: "dash-dotted", label: "Update" },
+        ];
+
+        const lineStyles = {
+            solid: "",
+            dashed: "5,5",
+            dotted: "1,5",
+            "dash-dotted": "5,5,1,5",
+        };
+
+        //Draw legend
+        legendGroup.selectAll("g.legend-item")
+        .data(legendData)
+        .enter()
+        .append("g")
+        .attr("class", "legend-item")
+        .attr("transform", (d, i) => `translate(0, ${i * 25})`) //Vertical space between elements
+        .each(function (d) {
+            const group = d3.select(this);
+
+            // Linea della legenda
+            group.append("line")
+                .attr("x1", 0)
+                .attr("y1", 10)
+                .attr("x2", 40)
+                .attr("y2", 10)
+                .attr("stroke", "black")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", lineStyles[d.style]);
+
+            // Testo della legenda
+            group.append("text")
+                .attr("x", 50)
+                .attr("y", 15)
+                .text(d.label)
+                .attr("font-size", 12)
+                .attr("fill", "black")
+                .attr("alignment-baseline", "middle");
+        });
 
         
         /*
