@@ -112,6 +112,51 @@ describe('Document API', () => {
     expect(response.body.message).to.equal('Document not found');
   });
   
+  it('should return documents with pagination and default limit', async () => {
+   
+    const response = await request(app).get('/documents').query({ page: 1, limit: 2 });
+    expect(response.status).to.equal(200);
+    expect(response.body.data.length).to.be.at.most(2); 
+    expect(response.body.pagination.currentPage).to.equal(1);
+    expect(response.body.pagination.totalPages).to.be.greaterThan(0);
+    expect(response.body.pagination.totalDocuments).to.be.greaterThan(0);
+  });
+
+  it('should filter documents by title using case-insensitive search', async () => {
+    const response = await request(app).get('/documents').query({ title: 'test document' }); 
+    expect(response.status).to.equal(200);
+    expect(response.body.data.length).to.be.greaterThan(0);
+    expect(response.body.data[0].title).to.equal('Test Document'); 
+  });
+
+  it('should filter documents by type', async () => {
+    const response = await request(app).get('/documents').query({ type: 'Report' });
+    expect(response.status).to.equal(200);
+    expect(response.body.data.length).to.be.greaterThan(0);
+    response.body.data.forEach(doc => expect(doc.type).to.equal('Report'));
+  });
+
+  it('should filter documents by tag', async () => {
+    const response = await request(app).get('/documents').query({ tag: 'urgent' });
+    expect(response.status).to.equal(200);
+    expect(response.body.data.length).to.be.greaterThan(0);
+    response.body.data.forEach(doc => expect(doc.tags).to.include('urgent'));
+  });
+
+  it('should return paginated documents when multiple pages exist', async () => {
+    
+    await Document.insertMany([
+      { title: 'Extra Document 1', type: 'Report', tags: ['extra'] },
+      { title: 'Extra Document 2', type: 'Report', tags: ['extra'] },
+      { title: 'Extra Document 3', type: 'Report', tags: ['extra'] }
+    ]);
+
+    const response = await request(app).get('/documents').query({ page: 2, limit: 2 });
+    expect(response.status).to.equal(200);
+    expect(response.body.data.length).to.equal(2); 
+    expect(response.body.pagination.currentPage).to.equal(2);
+  });
+
 
 
   after(async () => {
