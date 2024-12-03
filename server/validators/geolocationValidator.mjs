@@ -1,6 +1,6 @@
 import { body, validationResult } from 'express-validator';
 import * as turf from '@turf/turf';
-import kirunaGeoJSON from '../data/KirunaMunicipality.json' assert { type: 'json' };
+import kirunaGeoJSON from '../data/KirunaMunicipality.json' with { type: 'json' };
 
 export const validateArea = [
   body('points')
