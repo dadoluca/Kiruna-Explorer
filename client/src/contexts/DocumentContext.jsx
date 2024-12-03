@@ -9,14 +9,14 @@ export const DocumentProvider = ({ children }) => {
   const [markers, setMarkers] = useState([]); // Array of valid markers
   const [municipalArea, setMunicipalArea] = useState([]); // Array for municipal areas documents
   const [docList, setDocList] = useState([]);
+  const [linksAdded, setLinksAdded] = useState(0);
   
-
   const setDocumentList = (newDocuments) => {
     setDocuments(newDocuments);
   };
 
   const visualizeDocumentfromDiagram = (doc) =>{
-    
+    //TO DO NEXT SPRINT IN ORDER TO VISUALIZE DOCUMENT WHEN IT'S CLICKED IN THE DIAGRAM 
   }
 
   // Automatically update markers when documents change
@@ -101,20 +101,34 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
+  const addNewLink = () => {
+    let newV = linksAdded + 1;
+
+    setLinksAdded(newV);
+    console.log("AGGIORNATO!!", linksAdded);
+  }
+
+  const getNumLinks = () => {
+    return linksAdded;
+  }
+
    // Memoize the value object
    const value = useMemo(
     () => ({
       documents,
       markers,
       municipalArea,
-      docList,
+      docList, 
+      linksAdded,
       setDocumentList,
       setMapMarkers,
       updateDocument,
       updateDocCoords,
       setListContent,
+      addNewLink,
+      getNumLinks,
     }),
-    [documents, markers, municipalArea, docList]
+    [documents, markers, municipalArea, docList, linksAdded]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

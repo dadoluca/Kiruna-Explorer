@@ -9,6 +9,7 @@ import Select from 'react-select';
 
 const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnection }) => {
   const { updateDocument } = useDocumentContext();
+  const { addNewLink } = useDocumentContext();
   const [availableDocuments, setAvailableDocuments] = useState([]);
   const [connections, setConnections] = useState([{ selectedDocumentId: '', selectedTypes: [] }]);
 
@@ -82,6 +83,7 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
 
       onAddConnection();
       setConnections([{ selectedDocumentId: '', selectedTypes: [] }]);
+      addNewLink();
     } catch (error) {
       console.error('Error creating connections:', error);
     }

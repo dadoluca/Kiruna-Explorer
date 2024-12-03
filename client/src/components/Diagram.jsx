@@ -2,16 +2,19 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { useState, useContext } from "react";
 import API from "../services/api";
+import { useDocumentContext } from '../contexts/DocumentContext';
 
 const Diagram = () => {
     const [docList, setDocumentList] = useState([]);
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodi per le scale numeriche, usati solo per aggiornare dinamicamente l'asse Y
+    const {getNumLinks} = useDocumentContext();
 
     const [links, setLinks] = useState([]); // Array di oggetti con le relazioni tra i documenti
 
     const [xDomain, setXDomain] = useState(range(2004, 2024, 1)); // Range iniziale per l'asse X
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Range iniziale per l'asse Y
+    const [numConnections, setNumConnections] = useState(0);
 
     //Functions
     function range(start, end) {
@@ -76,6 +79,12 @@ const Diagram = () => {
         return `${time}-${d.scale}`; // Chiave unica per la combinazione di asse X e Y
     });
     
+    
+    const getNumConnections = () =>{
+        //get num from context
+        setNumConnections(getNumLinks());
+        console.log(numConnections);
+    }
 
     /*
     //Use Effects for dynamic updates
@@ -139,7 +148,6 @@ const Diagram = () => {
             try {
                 const documents = await API.getDocuments();
                 setDocumentList(documents);
-
             } catch (error) {
                 console.error("Failed to fetch documents:", error);
             }
@@ -149,8 +157,12 @@ const Diagram = () => {
     }, []);
 
     useEffect(() => {
+        getNumConnections();
+    }, []);
+
+    useEffect(() => {
         fetchLinks(docList);
-    }, [docList]);
+    }, [docList, numConnections]);
 
     useEffect(() => {
         const width = 1200;
@@ -218,8 +230,6 @@ const Diagram = () => {
         .attr("height", 20);
 
         //LINKS
-        console.log(links);
-
         const linksGroup = svg.append("g")
         .attr("class", "links-group")
         .attr("transform", `translate(${margin.left}, ${margin.top+20})`);
@@ -230,7 +240,6 @@ const Diagram = () => {
         .append("line")
         .attr("x1", (d) => {
             const sourceNode = docList.find((node) => node._id === d.source);
-            console.log(sourceNode);
             return xScale(parseInt(extractYear(sourceNode.issuance_date.toString())));
         })
         .attr("y1", (d) => {
@@ -238,9 +247,7 @@ const Diagram = () => {
             return yScale(sourceNode.scale);
         })
         .attr("x2", (d) => {
-            console.log(d.target);
             const targetNode = docList.find((node) => node._id === d.target);
-            console.log(targetNode);
             return xScale(parseInt(extractYear(targetNode.issuance_date.toString())));
         })
         .attr("y2", (d) => {
@@ -299,32 +306,6 @@ const Diagram = () => {
                 .attr("fill", "black")
                 .attr("alignment-baseline", "middle");
         });
-
-        
-        /*
-        const nodesGroup = svg.append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top+9})`) // Align with axes
-        .selectAll("circle")
-        .data(docList)
-        .enter()
-        .append("image")
-        .attr("xlink:href", (d) => d.icon)
-        .attr("x", (d) => xScale(parseInt(extractYear(d.issuance_date.toString()))) - 10) // Adjust positioning
-        .attr("y", (d) => yScale(d.scale) - 10)
-        .attr("width", 20)
-        .attr("height", 20);
-        */
-
-
-
-        /*
-        .enter()
-        .append("circle")
-        .attr("cx", (d) => xScale(parseInt(d.time)) ) // Center the node in the band
-        .attr("cy", (d) => yScale(d.scale) + yScale.bandwidth() / 2) // Center the node in the band
-        .attr("r", 6) // Node radius
-        .attr("fill", "steelblue")
-        .attr("stroke-width", 1.5);*/
 
         /*
         nodesGroup.append("text")
