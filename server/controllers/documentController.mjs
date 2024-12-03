@@ -42,7 +42,8 @@ export const createDocument = async (req, res) => {
 export const getAllDocuments = async (req, res) => {
   try {
     // Pagination and filter parameters
-    const { page = 1, limit = 50, title, type, tag } = req.query;         //changed to 50 for trying
+    const { page = 1, limit = 100, title, type, tag } = req.query;
+
 
     // Construct filter object based on query parameters
     let filter = {};
