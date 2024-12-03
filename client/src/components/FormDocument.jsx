@@ -156,7 +156,7 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        var document = {
+        let document = {
             title,
             stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
