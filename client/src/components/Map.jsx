@@ -81,7 +81,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, isAddingToPoint } = useContext(DocumentContext);
     const [customArea, setCustomArea] = useState(null);
     const [satelliteView, setSatelliteView] = useState(true);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -167,70 +167,79 @@ const MapComponent = () => {
                         />
                     ))}
 
-                    <MarkerClusterGroup
-                        showCoverageOnHover={false}
-                        iconCreateFunction={createClusterIcon}
-                    >
-                        {
-                            markers
-                                .filter(marker => marker.areaId === undefined)
-                                .map((marker) => (
-                                <MemoizedMarker
-                                    key={marker._id}
-                                    marker={marker}
-                                    onClick={() => setSelectedMarker({
-                                        doc: marker,
-                                        position: [marker.latitude, marker.longitude]
-                                    })}
-                                />
-                            
-                            ))
-                        }
+                    {
+                    
+                    isAddingToPoint 
+                    ?
+                        <></>
+                    :
 
-                        {displayedAreas.length > 0 &&
-                            displayedAreas.map((area) => (
-                                <Marker
-                                    key={area._id}
-                                    position={[area.properties.centroid[1], area.properties.centroid[0]]}
-                                    icon={multipleDocumentsIcon}
-                                    eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); setIsListing(true) } }}
-                                >
-
-                                    <Tooltip direction="bottom">Area related documents</Tooltip> 
-                                </Marker>
-                            ))
-                        }
-                    </MarkerClusterGroup>
-
-                    {selectedMarker && (
-                        <Popup
-                            position={selectedMarker.position}
-                            onClose={() => setSelectedMarker(null)}
-                            maxWidth={800}
-                            minWidth={500}
-                            maxHeight={500}
-                            className={styles.popup}
+                    <>
+                        <MarkerClusterGroup
+                            showCoverageOnHover={false}
+                            iconCreateFunction={createClusterIcon}
                         >
-                            <DetailPlanCard
-                                doc={selectedMarker.doc}
+                            {
+                                markers
+                                    .filter(marker => marker.areaId === undefined)
+                                    .map((marker) => (
+                                    <MemoizedMarker
+                                        key={marker._id}
+                                        marker={marker}
+                                        onClick={() => setSelectedMarker({
+                                            doc: marker,
+                                            position: [marker.latitude, marker.longitude]
+                                        })}
+                                    />
+                                
+                                ))
+                            }
+
+                            {displayedAreas.length > 0 &&
+                                displayedAreas.map((area) => (
+                                    <Marker
+                                        key={area._id}
+                                        position={[area.properties.centroid[1], area.properties.centroid[0]]}
+                                        icon={multipleDocumentsIcon}
+                                        eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); setIsListing(true) } }}
+                                    >
+
+                                        <Tooltip direction="bottom">Area related documents</Tooltip> 
+                                    </Marker>
+                                ))
+                            }
+                        </MarkerClusterGroup>
+
+                        {selectedMarker && (
+                            <Popup
+                                position={selectedMarker.position}
                                 onClose={() => setSelectedMarker(null)}
-                                onChangeCoordinates={handleChangeCoordinates}
-                                onToggleSelecting={setIsSelecting}
-                            />
-                        </Popup>
-                    )}
+                                maxWidth={800}
+                                minWidth={500}
+                                maxHeight={500}
+                                className={styles.popup}
+                            >
+                                <DetailPlanCard
+                                    doc={selectedMarker.doc}
+                                    onClose={() => setSelectedMarker(null)}
+                                    onChangeCoordinates={handleChangeCoordinates}
+                                    onToggleSelecting={setIsSelecting}
+                                />
+                            </Popup>
+                        )}
 
-                    {municipalArea &&
-                        <Marker
-                            position={markerPosition} // Use calculated position with offset
-                            icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
-                        >
+                        {municipalArea &&
+                            <Marker
+                                position={markerPosition} // Use calculated position with offset
+                                icon={multipleDocumentsIcon}
+                                eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
+                            >
 
-                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
-                        </Marker>
+                                <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
+                            </Marker>
+                        }
+                    </>
                     }
-
                 </MapContainer>
 
                 <Legend />

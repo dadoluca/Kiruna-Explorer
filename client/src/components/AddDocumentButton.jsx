@@ -1,17 +1,19 @@
 import React, { useState, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMapEvents} from 'react-leaflet';
+import { DocumentContext } from '../contexts/DocumentContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
-import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import styles from './Map.module.css';
 
 function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinates }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
     const { loggedIn } = useContext(AuthContext);
+    const { setIsAddingToPoint } = useContext(DocumentContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+    const [isChoosingNewPoint, setIsChoosingNewPoint] = useState(false);
 
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
     const isPointInPolygon = (point, vs) => {
@@ -36,6 +38,16 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
         setIsSelecting(true); // Start selecting mode
     };
 
+    const handleChooseNewPoint = () => {
+        setIsChoosingNewPoint(true);
+        setIsSelecting(true);
+    }
+
+    const handleSelectExistingPoint = () => {
+        setProva(true);
+        setIsAddingToPoint(true);
+    };
+
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
@@ -49,6 +61,7 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
                 }
             },
             click: (e) => {
+
                 // Naviga alla creazione documento se in modalità selezione
                 if (isSelecting && loggedIn && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon => 
@@ -99,7 +112,10 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
 
     return (
         <>
-        <MapMouseEvents />
+        {
+            isChoosingNewPoint && <MapMouseEvents />
+        
+        }
         {loggedIn && (
             <div
                 className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
@@ -110,18 +126,22 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
                 {isSelecting ? (
                     <>
                         <div className={styles.coordinatesBar}>
-                            {mouseCoords.lat && mouseCoords.lng ? (
-                                <>
-                                    Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the{" "}
-                                    <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
-                                        Entire Municipality
-                                    </button>
+                            {isChoosingNewPoint && mouseCoords.lat && mouseCoords.lng ? (
+                                <>  
+                                     Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) 
                                 </>
                             ) : (
                                 <>
-                                    Move the mouse inside the area or chooose the{" "}
+                                   <button className={styles.buttonLink} onClick={handleChooseNewPoint}>
+                                        Choose a New Point
+                                    </button>
+                                    {" "}or{" "}
+                                    <button className={styles.buttonLink} onClick={handleSelectExistingPoint}>
+                                        Select an Existing Point
+                                    </button>
+                                    {" "}or{" "}
                                     <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
-                                        Entire Municipality
+                                        Choose the Entire Municipality
                                     </button>
                                 </>
                             )}

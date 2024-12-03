@@ -12,7 +12,8 @@ export const DocumentProvider = ({ children }) => {
   const [areas, setAreas] = useState([]); // all the areas retrived
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
-  
+  const [isAddingToPoint, setIsAddingToPoint] = useState(false); // state to track if user is adding a document to an existing point  
+    
   useEffect(() => {
     
     const fetchDocuments = async () => {
@@ -132,13 +133,15 @@ export const DocumentProvider = ({ children }) => {
       areas,
       displayedAreas,
       municipalArea,
+      isAddingToPoint, 
       setMapMarkers,
       updateDocument,
       updateDocCoords,
       setListContent,
-      isArea
+      isArea,
+      setIsAddingToPoint
     }),
-    [documents, markers,docList]
+    [documents, markers,docList, isAddingToPoint]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
