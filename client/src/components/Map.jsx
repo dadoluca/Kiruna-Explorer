@@ -144,18 +144,6 @@ const MapComponent = () => {
             >
                     {<AddDocumentButton isSelecting={isSelecting} setIsSelecting={setIsSelecting} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
-                    {/* NEW BUTTON FOR TOGGLING DRAW AREA */}
-                    <button
-                        onClick={() => { setToggleDrawing(prev => !prev); console.log(toggleDrawing)}}
-                        > DRAW
-                    </button>
-
-                    {/* NEW BUTTON FOR CONFIRMING */}
-                    <button
-                        onClick={() => { setConfirmSelectedArea(prev => !prev); console.log("confirm:" + confirmSelectedArea)}}
-                        > CONFIRM
-                    </button>
-
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
 
                     {satelliteView ? (
@@ -280,6 +268,32 @@ const MapComponent = () => {
                         onClick={() => { setIsListing(prev => !prev); setListContent() }}
                         >
                             <i className="bi bi-list-task"></i>
+                        </button>        
+                    )}
+                    {/* DRAW BUTTON */}
+                    {loggedIn && (              
+                        <button                        
+                            className={`${styles.areaButton}`}
+                            onClick={() => {
+                                setToggleDrawing(prev => !prev); 
+                                console.log(toggleDrawing);
+                                setConfirmSelectedArea(false);
+                            }}
+                        >
+                        <i className="bi bi-square"></i>
+                        </button>
+                    )}
+                    {/* CONFIRM BUTTON */}
+                    {loggedIn && toggleDrawing && (
+                        <button
+                            className={`${styles.addAreaButton}`}
+                            onClick={() => {
+                                setConfirmSelectedArea(prev => !prev);
+                                setToggleDrawing(prev => !prev);
+                                console.log("confirm:" + confirmSelectedArea);
+                            }}
+                        >
+                        <i className="bi bi-check"></i>
                         </button>
                     )}
                 </div>
