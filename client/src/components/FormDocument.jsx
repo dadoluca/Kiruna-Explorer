@@ -28,15 +28,12 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [customScale, setCustomScale] = useState(''); // New state for custom scale 
-    
-    //const [connections] = useState(0);
-    const [pages, setPages] = useState('Not specified');
+        const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-    const [area, setArea] = useState(customArea || null);
     const [activeButton, setActiveButton] = useState(1);
     // date picker 
     const [date, setDate] = useState(null);
@@ -156,7 +153,7 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        var document = {
+        let document = {
             title,
             stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
@@ -167,7 +164,7 @@ function DocumentInsert() {
             pages,
             description,
             areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: (isMunicipal || !longitude || !latitude) ? undefined : { // Only include coordinates if not municipal
+            coordinates: (isMunicipal || customArea) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
@@ -178,7 +175,7 @@ function DocumentInsert() {
 
         if (customArea) {
             document.areaId = customArea._id;
-            document.coordinates= customArea.properties.centroid.coordinates;
+            document.coordinates= customArea.properties.centroid;
         }
 
         try {

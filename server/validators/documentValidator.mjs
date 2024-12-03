@@ -106,20 +106,6 @@ export const validateDocument = [
   }),
   
   (req, res, next) => {
-    const { coordinates, areaId } = req.body;
-
-    if (coordinates && areaId) {
-      return res.status(422).json({
-        errors: [
-          {
-            msg: 'Only one of coordinates or areaId should be provided.',
-            param: 'coordinates or areaId',
-            location: 'body'
-          }
-        ]
-      });
-    }
-    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.error('Validation errors:', errors.array());
