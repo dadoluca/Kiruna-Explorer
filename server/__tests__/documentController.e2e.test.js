@@ -335,7 +335,7 @@ it('should return available documents for a valid current document', async () =>
       scale: 'Large',
       issuance_date: '2024-01-01',
       type: 'Report',
-      connections: 5,
+      connections: 0,
       language: 'English',
       pages: '1',
        coordinates: { "type": "Point", "coordinates": [20.2253, 67.8558] },
@@ -352,6 +352,8 @@ it('should return available documents for a valid current document', async () =>
       attachments: [],
       tags: ['urgent', 'important']
     };
+
+    console.log("XXXXXXRequest Payload:", newDocument);
   
     const response = await request(app)
       .post('/documents')
@@ -384,13 +386,37 @@ it('should return available documents for a valid current document', async () =>
     expect(response.body.attachments).to.deep.equal(newDocument.attachments);
   });
   
+
   
    
+
+
+
+
   it('should return all documents', async () => {
     const response = await request(app).get('/documents');
+ 
+
+    
     expect(response.status).to.equal(200);
-    expect(response.body.length).to.be.greaterThan(0); 
+    
+  
+    expect(response.body.data.length).to.be.greaterThan(0);
+    
+    
+    response.body.data.forEach((doc) => {
+  
+  
+      expect(doc).to.have.property('title');  
+      expect(doc).to.have.property('type');   
+      expect(doc).to.have.property('connections');  
+      expect(doc.connections).to.be.a('number'); 
+  
+      expect(doc).to.have.property('tags');
+      expect(doc.tags).to.be.an('array'); 
+    });
   });
+  
 
   it('should get resources for a document', async () => {
     const response = await request(app).get(`/documents/${createdDocumentId}/resources`);
@@ -496,14 +522,15 @@ it('should return available documents for a valid current document', async () =>
   it('should return filtered documents based on query', async () => {
     const response = await request(app).get('/documents').query({ title: 'Test Document' });
     expect(response.status).to.equal(200);
-    expect(response.body.length).to.be.greaterThan(0); 
-    expect(response.body[0].title).to.equal('Test Document');
+    expect(response.body.data.length).to.be.greaterThan(0); 
+    expect(response.body.data[0].title).to.equal('Test Document');
+    
   });
 
   it('should return an empty array if no documents match the query', async () => {
     const response = await request(app).get('/documents').query({ title: 'Nonexistent Document' });
     expect(response.status).to.equal(200);
-    expect(response.body).to.deep.equal([]); 
+    expect(response.body.data).to.deep.equal([]); 
   });
 
   it('should get a document by ID', async () => {
