@@ -277,7 +277,6 @@ const MapComponent = () => {
                             className={`${styles.areaButton}`}
                             onClick={() => {
                                 setToggleDrawing(prev => !prev); 
-                                console.log(toggleDrawing);
                                 setConfirmSelectedArea(false);
                             }}
                         >
