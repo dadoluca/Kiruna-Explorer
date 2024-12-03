@@ -6,12 +6,15 @@ export const DocumentContext = createContext();
 export const useDocumentContext = () => useContext(DocumentContext);
 
 export const DocumentProvider = ({ children }) => {
+
   const [documents, setDocuments] = useState([]); //all documents retrived
   const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
   const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
   const [areas, setAreas] = useState([]); // all the areas retrived
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
+  
+  const [linksAdded, setLinksAdded] = useState(0);
   
   useEffect(() => {
     
@@ -36,6 +39,10 @@ export const DocumentProvider = ({ children }) => {
     fetchDocuments();
     fetchAreas();
   }, []);
+
+  const visualizeDocumentfromDiagram = (doc) =>{
+    //TO DO NEXT SPRINT IN ORDER TO VISUALIZE DOCUMENT WHEN IT'S CLICKED IN THE DIAGRAM 
+  }
 
   // Automatically update markers when documents change
   useEffect(() => {
@@ -121,11 +128,23 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
+  const addNewLink = () => {
+    let newV = linksAdded + 1;
+
+    setLinksAdded(newV);
+    console.log("AGGIORNATO!!", linksAdded);
+  }
+
+  const getNumLinks = () => {
+    return linksAdded;
+  }
+
    // Memoize the value object
    const value = useMemo(
     () => ({
       documents,
       markers,
+      linksAdded,
       areas,
       docList,
       displayedAreas,
@@ -134,9 +153,12 @@ export const DocumentProvider = ({ children }) => {
       updateDocument,
       updateDocCoords,
       setListContent,
+      addNewLink,
+      getNumLinks,
+
       isArea
     }),
-    [documents, markers,docList]
+    [documents, markers,docList, linksAdded]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
