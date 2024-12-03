@@ -85,6 +85,7 @@ const MapComponent = () => {
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
+    const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
     // Handler to update filtered documents on map
@@ -198,7 +199,7 @@ const MapComponent = () => {
                                         key={`${area._id}_Marker`}
                                         position={[area.properties.centroid.coordinates[1], area.properties.centroid.coordinates[0]]}
                                         icon={multipleDocumentsIcon}
-                                        eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); setIsListing(true); } }}
+                                        eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); if(loggedIn){setAddButton(area)}; setIsListing(true);} }}
                                     >
 
                                     <Tooltip direction="bottom">Area related documents</Tooltip>
@@ -237,7 +238,7 @@ const MapComponent = () => {
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true) } }}
                         >
 
                             <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
@@ -250,7 +251,7 @@ const MapComponent = () => {
 
 
                 {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList}/>}
+                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
 
                 
 
