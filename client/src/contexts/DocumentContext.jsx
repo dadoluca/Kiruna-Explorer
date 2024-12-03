@@ -108,6 +108,14 @@ export const DocumentProvider = ({ children }) => {
     setDocList(displayedDocument);
   };
 
+  const addDocument = (newDocument) => {
+    setDocuments((prev) => [...prev, newDocument]);
+  };
+
+  const addArea = (newArea) => {
+    setAreas((prev) => [...prev, newArea]);
+  };
+
   const updateDocument = (updatedDocument) => {
     setDocuments((prev) => 
       prev.map(doc => 
@@ -142,6 +150,8 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       setMapMarkers,
+      addDocument,
+      addArea,
       updateDocument,
       updateDocCoords,
       setListContent,

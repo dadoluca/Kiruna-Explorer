@@ -81,7 +81,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent } = useContext(DocumentContext);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -121,6 +121,7 @@ const MapComponent = () => {
     const handlePolygonDrawn = async (polygonLayer) => {
         try {
             const area = await API.createArea(polygonLayer.toGeoJSON());
+            addArea(area);
             console.log("Area successfully created.");
             navigate('/document-creation', { state: { customArea: area } });
         } catch (error) {

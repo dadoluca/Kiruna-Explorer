@@ -18,7 +18,7 @@ function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
     const { coordinates, isMunicipal, customArea } = location.state || {}; // Extract coordinates and isMunicipal state
-    const { documents } = useDocumentContext();
+    const { documents, addDocument } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
@@ -181,6 +181,7 @@ function DocumentInsert() {
         try {
             console.log(document);
             const newDoc = await API.createDocument(document);
+            addDocument(newDoc);
 
             for (const connection of connections) {
                 const selectedDocument = documents.find((doc) => doc._id === connection.selectedDocumentId);
@@ -203,12 +204,14 @@ function DocumentInsert() {
                 }
             }
 
-            await API.addResources(newDoc._id, resources);
+            if(resources.length > 0) {
+                await API.addResources(newDoc._id, resources);
+            }
 
             // Reset form fields after submission
             resetForm();
             alert("Document added successfully!");
-            navigate('/');
+            navigate('/map');
         } catch (error) {
             console.error("Failed to create a new document:", error);
         }
