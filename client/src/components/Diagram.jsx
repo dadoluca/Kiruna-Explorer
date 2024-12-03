@@ -256,9 +256,9 @@ const Diagram = () => {
             })
             .attr("fill", "none")
             .attr("stroke", (d) => {
-                return d.type === "direct consequence" ? "green" :
-                       d.type === "collateral consequence" ? "orange" :
-                       d.type === "projection" ? "blue" : "gray";
+                return d.type === "direct consequence" ? "#FF8C00" :
+                       d.type === "collateral consequence" ? "#32CD32" :
+                       d.type === "projection" ? "#D32F2F" : "#003366";
             })
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", (d) => getLinkStyle(d.type));
@@ -269,10 +269,10 @@ const Diagram = () => {
         .attr("transform", `translate(${0}, ${margin.top})`);
 
         const legendData = [
-            { type: "direct consequence", style: "solid", label: "Direct Consequence", color: "green" },
-            { type: "collateral consequence", style: "dashed", label: "Collateral Consequence", color: "orange" },
-            { type: "projection", style: "dotted", label: "Projection", color: "blue" },
-            { type: "update", style: "dash-dotted", label: "Update", color: "gray" },
+            { type: "direct consequence", style: "solid", label: "Direct Consequence", color: "#FF8C00" },
+            { type: "collateral consequence", style: "dashed", label: "Collateral Consequence", color: "#32CD32" },
+            { type: "projection", style: "dotted", label: "Projection", color: "#D32F2F" },
+            { type: "update", style: "dash-dotted", label: "Update", color: "#003366" },
         ];
         
         const lineStyles = {
