@@ -115,7 +115,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea, EnableDrawing, confirmSelectedA
   useEffect(()=> {
     if (drawnPolygon!==null && confirmSelectedArea===true){
       onPolygonDrawn(drawnPolygon);
-      setDrawnPolygon === null;
+      setDrawnPolygon(null);
     }
   }, [confirmSelectedArea]);
 };
