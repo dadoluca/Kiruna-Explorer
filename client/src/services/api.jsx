@@ -159,8 +159,15 @@ const createDocument = async (document) => {
         },
         body: JSON.stringify({ documentId: newDocumentId, type, title }), 
       });
-  
-      if (!response.ok) {
+      
+      if (response.ok) {
+        let document = await response.json();
+        document = {
+          ...document,
+          icon: `${SERVER_BASE_URL}${document.icon_url}`,
+        };  
+        return document;
+      } else {
         throw new Error(`Failed to create connection: ${response.statusText}`);
       }
   

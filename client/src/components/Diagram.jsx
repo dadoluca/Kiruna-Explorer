@@ -265,52 +265,52 @@ const Diagram = () => {
 
         //Legend
         const legendGroup = svg.append("g")
-            .attr("class", "legend-group")
-            .attr("transform", `translate(${0}, ${margin.top})`); // Posiziona la legenda a sinistra
+        .attr("class", "legend-group")
+        .attr("transform", `translate(${0}, ${margin.top})`);
 
         const legendData = [
-            { type: "direct consequence", style: "solid", label: "Direct Consequence" },
-            { type: "collateral consequence", style: "dashed", label: "Collateral Consequence" },
-            { type: "projection", style: "dotted", label: "Projection" },
-            { type: "update", style: "dash-dotted", label: "Update" },
+            { type: "direct consequence", style: "solid", label: "Direct Consequence", color: "green" },
+            { type: "collateral consequence", style: "dashed", label: "Collateral Consequence", color: "orange" },
+            { type: "projection", style: "dotted", label: "Projection", color: "blue" },
+            { type: "update", style: "dash-dotted", label: "Update", color: "gray" },
         ];
-
+        
         const lineStyles = {
             solid: "",
             dashed: "5,5",
             dotted: "1,5",
             "dash-dotted": "5,5,1,5",
         };
-
-        //Draw legend
+        
+        // Draw legend
         const legendItems = legendGroup.selectAll("g.legend-item")
-        .data(legendData)
-        .join(
-            enter => {
-                const group = enter.append("g")
-                    .attr("class", "legend-item")
-                    .attr("transform", (d, i) => `translate(0, ${i * 25})`); // Vertical space between elements
-
-                // Legend line
-                group.append("line")
-                    .attr("x1", 0)
-                    .attr("y1", 10)
-                    .attr("x2", 40)
-                    .attr("y2", 10)
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 2)
-                    .attr("stroke-dasharray", d => lineStyles[d.style]);
-
-                // Legend text
-                group.append("text")
-                    .attr("x", 50)
-                    .attr("y", 15)
-                    .text(d => d.label)
-                    .attr("font-size", 12)
-                    .attr("fill", "black")
-                    .attr("alignment-baseline", "middle");
-            }
-        );
+            .data(legendData)
+            .join(
+                enter => {
+                    const group = enter.append("g")
+                        .attr("class", "legend-item")
+                        .attr("transform", (d, i) => `translate(0, ${i * 25})`); // Vertical space between elements
+        
+                    // Legend line
+                    group.append("line")
+                        .attr("x1", 0)
+                        .attr("y1", 10)
+                        .attr("x2", 40)
+                        .attr("y2", 10)
+                        .attr("stroke", d => d.color)  // Set the line color based on the `color` property (using named colors)
+                        .attr("stroke-width", 2)
+                        .attr("stroke-dasharray", d => lineStyles[d.style]);
+        
+                    // Legend text
+                    group.append("text")
+                        .attr("x", 50)
+                        .attr("y", 15)
+                        .text(d => d.label)
+                        .attr("font-size", 12)
+                        .attr("fill", "black")
+                        .attr("alignment-baseline", "middle");
+                }
+            );
     }, [documents, xDomain, yDomain, links]);
 
     return (
