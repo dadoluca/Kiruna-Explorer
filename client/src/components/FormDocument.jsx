@@ -17,8 +17,8 @@ import * as turf from "@turf/turf";
 function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
-    const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
-    const { documents } = useDocumentContext();
+    const { coordinates, isMunicipal, customArea } = location.state || {}; // Extract coordinates and isMunicipal state
+    const { documents, addDocument } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
@@ -28,15 +28,12 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [customScale, setCustomScale] = useState(''); // New state for custom scale 
-    
-    //const [connections] = useState(0);
-    const [pages, setPages] = useState('Not specified');
+        const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-    
     const [activeButton, setActiveButton] = useState(1);
     // date picker 
     const [date, setDate] = useState(null);
@@ -156,7 +153,7 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        const document = {
+        let document = {
             title,
             stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
@@ -167,18 +164,24 @@ function DocumentInsert() {
             pages,
             description,
             areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: isMunicipal ? undefined : { // Only include coordinates if not municipal
+            coordinates: (isMunicipal || customArea) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
                     parseFloat(latitude)
                 ]
             }
-        };
+        }
+
+        if (customArea) {
+            document.areaId = customArea._id;
+            document.coordinates= customArea.properties.centroid;
+        }
 
         try {
             console.log(document);
             const newDoc = await API.createDocument(document);
+            addDocument(newDoc);
 
             for (const connection of connections) {
                 const selectedDocument = documents.find((doc) => doc._id === connection.selectedDocumentId);
@@ -201,12 +204,14 @@ function DocumentInsert() {
                 }
             }
 
-            await API.addResources(newDoc._id, resources);
+            if(resources.length > 0) {
+                await API.addResources(newDoc._id, resources);
+            }
 
             // Reset form fields after submission
             resetForm();
             alert("Document added successfully!");
-            navigate('/');
+            navigate('/map');
         } catch (error) {
             console.error("Failed to create a new document:", error);
         }

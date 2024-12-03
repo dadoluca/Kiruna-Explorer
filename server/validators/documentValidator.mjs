@@ -1,6 +1,6 @@
 import { body, validationResult } from 'express-validator';
 import * as turf from '@turf/turf';
-import kirunaGeoJSON from '../data/KirunaMunicipality.json' assert { type: 'json' };
+import kirunaGeoJSON from '../data/KirunaMunicipality.json' with { type: 'json' };
 
 export const validateDocument = [
   body('title')
@@ -106,20 +106,6 @@ export const validateDocument = [
   }),
   
   (req, res, next) => {
-    const { coordinates, areaId } = req.body;
-
-    if (coordinates && areaId) {
-      return res.status(422).json({
-        errors: [
-          {
-            msg: 'Only one of coordinates or areaId should be provided.',
-            param: 'coordinates or areaId',
-            location: 'body'
-          }
-        ]
-      });
-    }
-    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.error('Validation errors:', errors.array());

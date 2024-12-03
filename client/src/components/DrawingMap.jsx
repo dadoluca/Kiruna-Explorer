@@ -5,9 +5,8 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import * as turf from '@turf/turf';
 
-const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
+const DrawingMap = ({ onPolygonDrawn, limitArea, EnableDrawing, confirmSelectedArea }) => {
   const map = useMap();
-  const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [drawControl, setDrawControl] = useState(null);
   const listenerRef = useRef(null);  // Reference to store the listener state
@@ -55,7 +54,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
     if (latlngs[0].lat !== latlngs[latlngs.length - 1].lat || latlngs[0].lng !== latlngs[latlngs.length - 1].lng) {
       latlngs.push(latlngs[0]);  // Add the first point to the end to close the polygon
     }
-    const drawnPolygon = turf.polygon([latlngs.map(latlng => [latlng.lng, latlng.lat])]);
+    const polygon = turf.polygon([latlngs.map(latlng => [latlng.lng, latlng.lat])]);
 
     // Convert limitArea to a MultiPolygon if it is an array of polygons
     const limitPolygon = Array.isArray(limitArea[0])
@@ -63,13 +62,13 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
       : turf.polygon([limitArea.map(latlng => [latlng[1], latlng[0]])]);
 
     // Check if the drawn polygon is within the limit area (either MultiPolygon or Polygon)
-    const isInside = turf.booleanWithin(drawnPolygon, limitPolygon);
+    const isInside = turf.booleanWithin(polygon, limitPolygon);
     if (isInside) {
-      previousPolygonRef.current = drawnPolygon;  // Store the valid polygon
+      previousPolygonRef.current = polygon;  // Store the valid polygon
       drawnItems.clearLayers();
       drawnItems.addLayer(layer);
       setDrawnPolygon(layer);
-      console.log('Polygon drawn/edited within the limit area:', layer.getLatLngs());
+      console.log('Polygon drawn/edited within the limit area:', layer.toGeoJSON());
     } else {
       drawnItems.removeLayer(layer);
       if (previousPolygonRef.current) {
@@ -100,39 +99,25 @@ const DrawingMap = ({ onPolygonDrawn, limitArea }) => {
   };
 
   useEffect(() => {
-    if (drawingEnabled && drawControl) {
+    if (EnableDrawing && drawControl) {
       map.addControl(drawControl);
       drawPolygon();
     } else if (drawControl) {
       map.removeControl(drawControl);
     }
-  }, [drawingEnabled, drawControl, map]);
+  }, [EnableDrawing, drawControl, map]);
 
   const drawPolygon = () => {
     const polygonHandler = drawControl._toolbars.draw._modes.polygon.handler;
     polygonHandler.enable(); // Enable the polygon drawing mode
   };
 
-  const toggleDrawing = () => {
-    setDrawingEnabled((prev) => !prev);
-  };
-
-  const handleSendPolygon = () => {
-    if (drawnPolygon) {
+  useEffect(()=> {
+    if (drawnPolygon!==null && confirmSelectedArea===true){
       onPolygonDrawn(drawnPolygon);
+      setDrawnPolygon(null);
     }
-  };
-
-  return (
-    <div>
-      <button onClick={toggleDrawing}>
-        {drawingEnabled ? 'Disable Drawing' : 'Enable Polygon Drawing'}
-      </button>
-      <button onClick={handleSendPolygon} disabled={!drawnPolygon}>
-        Send Polygon
-      </button>
-    </div>
-  );
+  }, [confirmSelectedArea]);
 };
 
 export default DrawingMap;

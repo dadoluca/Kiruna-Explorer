@@ -31,11 +31,6 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
         navigate('/document-creation', { state: { isMunicipal: true } });
     };
 
-    const handleChangeCoordinates = (doc) => {
-        setChangingDocument(doc);
-        setIsSelecting(true); // Start selecting mode
-    };
-
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {

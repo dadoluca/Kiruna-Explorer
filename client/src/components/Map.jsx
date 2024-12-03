@@ -81,9 +81,11 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isSelecting, setIsSelecting] = useState(false); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, updateDocCoords, setListContent } = useContext(DocumentContext);
-    const [customArea, setCustomArea] = useState(null);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
+    const [toggleDrawing, setToggleDrawing] = useState(false);
+    const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
+    const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
     // Handler to update filtered documents on map
@@ -116,12 +118,16 @@ const MapComponent = () => {
     };
 
     
-    const handlePolygonDrawn = (polygonLayer) => {
-        setCustomArea(polygonLayer);
-        console.log("Poligono ricevuto nel padre:", polygonLayer.getLatLngs());
-        API.createArea(polygonLayer.getLatLngs());
+    const handlePolygonDrawn = async (polygonLayer) => {
+        try {
+            const area = await API.createArea(polygonLayer.toGeoJSON());
+            addArea(area);
+            console.log("Area successfully created.");
+            navigate('/document-creation', { state: { customArea: area } });
+        } catch (error) {
+            console.error("Error during area creation:", error.message);
+        }
     };
-
 
     const handleChangeCoordinates = (doc) => {
         setChangingDocument(doc);
@@ -140,7 +146,7 @@ const MapComponent = () => {
             >
                     {<AddDocumentButton isSelecting={isSelecting} setIsSelecting={setIsSelecting} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
-                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
+                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
 
                     {satelliteView ? (
                         <TileLayer
@@ -189,15 +195,24 @@ const MapComponent = () => {
 
                         {displayedAreas.length > 0 &&
                             displayedAreas.map((area) => (
-                                <Marker
-                                    key={area._id}
-                                    position={[area.properties.centroid[1], area.properties.centroid[0]]}
-                                    icon={multipleDocumentsIcon}
-                                    eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); setIsListing(true) } }}
-                                >
+                                <>
+                                    <Marker
+                                        key={`${area._id}_Marker`}
+                                        position={[area.properties.centroid.coordinates[1], area.properties.centroid.coordinates[0]]}
+                                        icon={multipleDocumentsIcon}
+                                        eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); if(loggedIn){setAddButton(area)}; setIsListing(true);} }}
+                                    >
 
-                                    <Tooltip direction="bottom">Area related documents</Tooltip> 
-                                </Marker>
+                                    <Tooltip direction="bottom">Area related documents</Tooltip>
+                                    </Marker>
+                                    <Polygon
+                                        key={`${area._id}_Polygon`}
+                                        positions={area.geometry.coordinates.map(ring =>
+                                            ring.map(([longitude, latitude]) => [latitude, longitude])
+                                        )}
+                                        color="blue"
+                                    />
+                                </>
                             ))
                         }
                     </MarkerClusterGroup>
@@ -224,7 +239,7 @@ const MapComponent = () => {
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setIsListing(true) } }}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true) } }}
                         >
 
                             <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
@@ -237,7 +252,7 @@ const MapComponent = () => {
 
 
                 {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList}/>}
+                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
 
                 
 
@@ -255,12 +270,34 @@ const MapComponent = () => {
                         onClick={() => { setIsListing(prev => !prev); setListContent() }}
                         >
                             <i className="bi bi-list-task"></i>
+                        </button>        
+                    )}
+                    {/* DRAW BUTTON */}
+                    {loggedIn && (              
+                        <button                        
+                            className={`${styles.areaButton}`}
+                            onClick={() => {
+                                setToggleDrawing(prev => !prev); 
+                                setConfirmSelectedArea(false);
+                            }}
+                        >
+                        <i className="bi bi-square"></i>
                         </button>
                     )}
-
-            
+                    {/* CONFIRM BUTTON */}
+                    {loggedIn && toggleDrawing && (
+                        <button
+                            className={`${styles.addAreaButton}`}
+                            onClick={() => {
+                                setConfirmSelectedArea(prev => !prev);
+                                setToggleDrawing(prev => !prev);
+                                console.log("confirm:" + confirmSelectedArea);
+                            }}
+                        >
+                        <i className="bi bi-check"></i>
+                        </button>
+                    )}
                 </div>
-                
             </div>
         </div>
     );

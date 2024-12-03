@@ -1,5 +1,5 @@
 .mapPage{
-    height: 91vh;
+    height: 65vh;           /*decreased in order to have space for the diagram*/
 }
 
 .mapContainer {
@@ -17,6 +17,66 @@
     left: auto;
     right: 0;
   }
+
+.areaButton {
+    position: absolute;
+    bottom: 180px;
+    right: 10px;
+    background-color: #333333; /* Grigio scuro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare quando chiuso */
+    width: 3rem; /* Larghezza e altezza per il cerchio */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo al clic */
+    overflow: hidden; 
+}
+
+.areaButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+.addAreaButton {
+    position: absolute;
+    bottom: 180px;
+    right: 60px;
+    background-color: #333333; /* Grigio scuro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare quando chiuso */
+    width: 3rem; /* Larghezza e altezza per il cerchio */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo al clic */
+    overflow: hidden; 
+}
+
+.addAreaButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
 
 /* Pulsante per aggiunta in basso a destra */
 .addButton {

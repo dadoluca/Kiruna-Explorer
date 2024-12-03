@@ -74,7 +74,14 @@ const createDocument = async (document) => {
         body: JSON.stringify(document),
       });
   
-      if (!response.ok) {
+      if (response.ok) {
+        let document = await response.json();
+        document = {
+          ...document,
+          icon: `${SERVER_BASE_URL}${document.icon_url}`,
+        };  
+        return document;
+      } else {
         throw new Error(`Failed to create document: ${response.statusText}`);
       }
   
@@ -159,8 +166,15 @@ const createDocument = async (document) => {
         },
         body: JSON.stringify({ documentId: newDocumentId, type, title }), 
       });
-  
-      if (!response.ok) {
+      
+      if (response.ok) {
+        let document = await response.json();
+        document = {
+          ...document,
+          icon: `${SERVER_BASE_URL}${document.icon_url}`,
+        };  
+        return document;
+      } else {
         throw new Error(`Failed to create connection: ${response.statusText}`);
       }
   
@@ -257,20 +271,11 @@ const createDocument = async (document) => {
     }
   }
 
-  /* Example: points = [
-                [
-                  [67.881950910, 20.18],
-                  [67.850, 20.2100],   
-                  [67.8410, 20.2000],
-                  [67.84037, 20.230],
-                  [67.8260, 20.288] (can be closed or not)
-                ]
-              ]; */
-  const createArea = async (points, name = null) => {
+  const createArea = async (geojson, name = null) => {
     try {
-      const area = {
-        points,
-        ...(name && { name })
+      const payload = {
+        geojson,
+        ...(name && { name }),
       };
   
       const response = await fetch(`${AREAS_API_BASE_URL}/`, {
@@ -278,7 +283,7 @@ const createDocument = async (document) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(area),
+        body: JSON.stringify(payload),
       });
   
       if (!response.ok) {

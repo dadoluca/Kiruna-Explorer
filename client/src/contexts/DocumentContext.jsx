@@ -6,6 +6,7 @@ export const DocumentContext = createContext();
 export const useDocumentContext = () => useContext(DocumentContext);
 
 export const DocumentProvider = ({ children }) => {
+
   const [documents, setDocuments] = useState([]); //all documents retrived
   const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
   const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
@@ -27,7 +28,6 @@ export const DocumentProvider = ({ children }) => {
     const fetchAreas = async () => {
       try {
           const areas = await API.getAllAreas();
-          console.log(areas);
           setAreas(areas);
       } catch (error) {
           console.error("Failed to fetch areas:", error);
@@ -69,7 +69,17 @@ export const DocumentProvider = ({ children }) => {
             latitude: parseFloat(latitude)
           });
         } else if (doc.areaId) {
-          areasSet.add(areas.filter((area) => area._id === doc.areaId));
+          const matchingAreas = areas.filter((area) => area._id === doc.areaId);
+
+          matchingAreas.forEach((area) => {
+            if (area) {
+              if (!areasSet.has(area)) {
+                areasSet.add(area);
+              }
+            } else {
+              console.log(`Found invalid area for document ${doc.title || "senza titolo"}:`, area);
+            }
+          });
         }
     });
 
@@ -96,6 +106,14 @@ export const DocumentProvider = ({ children }) => {
     });
     
     setDocList(displayedDocument);
+  };
+
+  const addDocument = (newDocument) => {
+    setDocuments((prev) => [...prev, newDocument]);
+  };
+
+  const addArea = (newArea) => {
+    setAreas((prev) => [...prev, newArea]);
   };
 
   const updateDocument = (updatedDocument) => {
@@ -129,16 +147,17 @@ export const DocumentProvider = ({ children }) => {
       markers,
       areas,
       docList,
-      areas,
       displayedAreas,
       municipalArea,
       setMapMarkers,
+      addDocument,
+      addArea,
       updateDocument,
       updateDocCoords,
       setListContent,
       isArea
     }),
-    [documents, markers,docList]
+    [documents, areas, markers, docList, displayedAreas, municipalArea]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

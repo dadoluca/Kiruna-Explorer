@@ -44,6 +44,7 @@ export const getAllDocuments = async (req, res) => {
     // Pagination and filter parameters
     const { page = 1, limit = 100, title, type, tag } = req.query;
 
+
     // Construct filter object based on query parameters
     let filter = {};
     if (title) {
