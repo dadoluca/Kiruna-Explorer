@@ -219,49 +219,53 @@ const Diagram = () => {
 
         // Draw links between nodes based on calculated links
         const linkLines = svg.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
-            .selectAll("path")
-            .data(links)
-            .join("path")
-            .attr("d", (link) => {
-                const sourceNode = documents.find((doc) => doc._id === link.source);
-                const targetNode = documents.find((doc) => doc._id === link.target);
-                const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
-                const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
+        .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
+        .selectAll("path")
+        .data(links)
+        .join("path")
+        .attr("d", (link) => {
+            const sourceNode = documents.find((doc) => doc._id === link.source);
+            const targetNode = documents.find((doc) => doc._id === link.target);
+            const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
+            const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
 
-                const sourceGroup = groupedNodes.get(sourceKey);
-                const targetGroup = groupedNodes.get(targetKey);
+            const sourceGroup = groupedNodes.get(sourceKey);
+            const targetGroup = groupedNodes.get(targetKey);
 
-                const sourceIndex = sourceGroup.indexOf(sourceNode);
-                const targetIndex = targetGroup.indexOf(targetNode);
+            const sourceIndex = sourceGroup.indexOf(sourceNode);
+            const targetIndex = targetGroup.indexOf(targetNode);
 
-                const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
-                const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
+            const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
+            const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
 
-                const sourcePos = calculateRadialPosition(
-                    sourceIndex,
-                    sourceGroup.length,
-                    xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
-                    yScale(validSourceScale)
-                );
+            const sourcePos = calculateRadialPosition(
+                sourceIndex,
+                sourceGroup.length,
+                xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
+                yScale(validSourceScale)
+            );
 
-                const targetPos = calculateRadialPosition(
-                    targetIndex,
-                    targetGroup.length,
-                    xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
-                    yScale(validTargetScale)
-                );
+            const targetPos = calculateRadialPosition(
+                targetIndex,
+                targetGroup.length,
+                xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
+                yScale(validTargetScale)
+            );
 
-                return `M ${sourcePos.x} ${sourcePos.y} L ${targetPos.x} ${targetPos.y}`;
-            })
-            .attr("fill", "none")
-            .attr("stroke", (d) => {
-                return d.type === "direct consequence" ? "#FF8C00" :
-                       d.type === "collateral consequence" ? "#32CD32" :
-                       d.type === "projection" ? "#D32F2F" : "#003366";
-            })
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", (d) => getLinkStyle(d.type));
+            // Use a cubic Bezier curve for a smooth connection
+            const midX = (sourcePos.x + targetPos.x) / 2;  // Midpoint for the curve
+            const midY = (sourcePos.y + targetPos.y) / 2;  // Midpoint for the curve
+
+            return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
+        })
+        .attr("fill", "none")
+        .attr("stroke", (d) => {
+            return d.type === "direct consequence" ? "#FF8C00" :
+                d.type === "collateral consequence" ? "#32CD32" :
+                d.type === "projection" ? "#D32F2F" : "#003366";
+        })
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", (d) => getLinkStyle(d.type));
 
         //Legend
         const legendGroup = svg.append("g")
