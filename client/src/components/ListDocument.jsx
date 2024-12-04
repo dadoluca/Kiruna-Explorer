@@ -42,10 +42,18 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.scrollableCardList}>
         {docList.map((doc) => (
           <div
-            key={doc._id}
-            className={styles.cardWrapper}
-            onClick={() => props.handleVisualize(doc)}
-          >
+          key={doc._id}
+          className={styles.cardWrapper}
+          role="button" // Add semantic role
+          tabIndex={0} // Make the div focusable
+          onClick={() => props.handleVisualize(doc)} // Handle mouse clicks
+          onKeyDown={(e) => { // Handle keyboard interaction
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              props.handleVisualize(doc);
+            }
+          }}
+        >        
             <div className={styles.cardContent}>
               <div className={styles.cardBody}>
                 <div className={styles.cardTitle}>{doc.title}</div>

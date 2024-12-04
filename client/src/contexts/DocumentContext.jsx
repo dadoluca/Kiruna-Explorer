@@ -59,8 +59,7 @@ export const DocumentProvider = ({ children }) => {
       .forEach(doc => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
-        //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-       
+        
         if (doc.areaId === null) {
           isMunicipalArea = true;
         } else if (doc.areaId === undefined) {
@@ -97,8 +96,7 @@ export const DocumentProvider = ({ children }) => {
       .forEach(doc => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
-        //console.log(`Verifica coordinate per il documento ${doc.title || "senza titolo"}: [${longitude}, ${latitude}]`);
-
+        
         displayedDocument.push({
           ...doc,
           longitude: parseFloat(longitude),

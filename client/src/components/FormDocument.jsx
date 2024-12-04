@@ -44,9 +44,16 @@ function DocumentInsert() {
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
     //municipality/single point button group
-    const [isArea, setIsArea] = useState(customArea || null);
-    const [municipal, setMunicipal] = useState(isMunicipal) 
-    const [radioValue, setRadioValue] = useState(isArea !== null ? 'coordinates' : (municipal ? 'entire-municipality' : 'coordinates'));
+    const [isArea] = useState(customArea || null);
+    const [municipal, setMunicipal] = useState(isMunicipal);
+    
+    let initialRadioValue;
+        if (isArea !== null) {
+        initialRadioValue = 'coordinates';
+        } else {
+        initialRadioValue = municipal ? 'entire-municipality' : 'coordinates';
+        }
+    const [radioValue, setRadioValue] = useState(initialRadioValue);
 
 
     const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates;

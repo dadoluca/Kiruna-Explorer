@@ -154,7 +154,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea, isAddingToPoint } = useContext(DocumentContext);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -236,9 +236,9 @@ const MapComponent = () => {
 
 
 
-                    {kirunaPolygonCoordinates.map((polygonCoordinates, index) => (
+                    {kirunaPolygonCoordinates.map((polygonCoordinates) => (
                         <Polygon
-                            key={index}
+                            key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
                             positions={polygonCoordinates}
                             color="gray"
                             fillColor="#D3D3D3"

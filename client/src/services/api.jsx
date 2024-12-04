@@ -65,32 +65,33 @@ const register = async (newUser) => {
   
 
 const createDocument = async (document) => {
-    try {
-      const response = await fetch(`${DOCUMENTS_API_BASE_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(document),
-      });
-  
-      if (response.ok) {
-        let document = await response.json();
-        document = {
-          ...document,
-          icon: `${SERVER_BASE_URL}${document.icon_url}`,
-        };  
-        return document;
-      } else {
-        throw new Error(`Failed to create document: ${response.statusText}`);
-      }
-  
-      return await response.json();
-    } catch (error) {
-      console.error("Error in createDocument:", error);
-      throw error;
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(document),
+    });
+
+    if (response.ok) {
+      // Parse and enhance the document data
+      const responseData = await response.json();
+      return {
+        ...responseData,
+        icon: `${SERVER_BASE_URL}${responseData.icon_url}`,
+      };
+    } else {
+      // Throw an error with the status text
+      throw new Error(`Failed to create document: ${response.statusText}`);
     }
+  } catch (error) {
+    // Log and rethrow the error
+    console.error("Error in createDocument:", error);
+    throw error;
   }
+};
+
 
   // Returns a list of documents
   // Optional filters example: { title: "Example Document", issuance_date: "2023-10-12" }
@@ -164,26 +165,27 @@ const createDocument = async (document) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ documentId: newDocumentId, type, title }), 
+        body: JSON.stringify({ documentId: newDocumentId, type, title }),
       });
       
       if (response.ok) {
-        let document = await response.json();
-        document = {
-          ...document,
-          icon: `${SERVER_BASE_URL}${document.icon_url}`,
-        };  
-        return document;
+        // Parse and enhance the response document
+        const responseData = await response.json();
+        return {
+          ...responseData,
+          icon: `${SERVER_BASE_URL}${responseData.icon_url}`,
+        };
       } else {
+        // Throw an error with the response status
         throw new Error(`Failed to create connection: ${response.statusText}`);
       }
-  
-      return await response.json();
     } catch (error) {
+      // Log and rethrow the error
       console.error("Error in createConnection:", error);
       throw error;
     }
   };
+  
 
   // type should be 'Point'
   const updateDocumentCoordinates = async (documentId, type, coordinates) => {
