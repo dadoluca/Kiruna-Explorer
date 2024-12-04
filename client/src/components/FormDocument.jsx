@@ -13,6 +13,7 @@ import styles from './FormDocument.module.css';
 import { useDocumentContext } from '../contexts/DocumentContext';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import * as turf from "@turf/turf";
+import { ButtonGroup, ToggleButton } from 'react-bootstrap';
 
 function DocumentInsert() {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ function DocumentInsert() {
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [customScale, setCustomScale] = useState(''); // New state for custom scale 
-        const [pages, setPages] = useState('Not specified');
+    const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
@@ -42,6 +43,11 @@ function DocumentInsert() {
 
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
+    //municipality/single point button group
+    const [isArea, setIsArea] = useState(customArea || null);
+    const [municipal, setMunicipal] = useState(isMunicipal) 
+    const [radioValue, setRadioValue] = useState(isArea !== null ? 'coordinates' : (municipal ? 'entire-municipality' : 'coordinates'));
+
 
     const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates;
 
@@ -163,8 +169,8 @@ function DocumentInsert() {
             connections: 0,
             pages,
             description,
-            areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: (isMunicipal || customArea) ? undefined : { // Only include coordinates if not municipal
+            areaId: municipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
+            coordinates: (municipal || customArea) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
@@ -267,7 +273,7 @@ function DocumentInsert() {
         if (!date) newErrors.date = 'Date is required';
 
         // Only validate latitude and longitude if not a municipal document
-        if (!isMunicipal) {
+        if (!municipal) {
             if (!latitude) newErrors.latitude = 'Latitude is required';
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
@@ -537,7 +543,37 @@ function DocumentInsert() {
                 </Row>
                 
                 {/* Coordinates */}
-                {!isMunicipal && (
+                {isArea === null &&(
+                    <div className="mb-4">
+                        <ButtonGroup>
+                            <ToggleButton
+                                id="radio-0"
+                                type="radio"
+                                variant={radioValue === "coordinates" ? "success" : "dark"}
+                                name="radio"
+                                value="coordinates"
+                                checked={radioValue === "coordinates"}
+                                onChange={(e) => setRadioValue(e.currentTarget.value)}
+                                onClick={() => {setMunicipal(false)}}
+                            >
+                                Coordinates
+                            </ToggleButton>
+                            <ToggleButton
+                                id="radio-1"
+                                type="radio"
+                                variant={radioValue === "entire-municipality" ? "success" : "dark"}  
+                                name="radio"
+                                value="entire-municipality"
+                                checked={radioValue === "entire-municipality"}
+                                onChange={(e) => setRadioValue(e.currentTarget.value)}
+                                onClick={() => {setMunicipal(true)}}
+                            >
+                                Entire municipality
+                            </ToggleButton>
+                        </ButtonGroup>
+                    </div>
+                )}
+                {!municipal && (
                     <Row className="mb-4">
                         <Col md={6}>
                             <FloatingLabel label="Longitude *">
