@@ -6,14 +6,20 @@ export const createArea = async (req, res) => {
   try {
     const { geojson, name } = req.body;
 
+    // Assign a name if provided
     if (name) {
       geojson.properties.name = name;
     }
 
+    // Calculate and assign the centroid
     const center = centroid(geojson);
-
     geojson.properties.centroid = center.geometry;
 
+    // Generate a random color
+    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    geojson.properties.color = randomColor;
+
+    // Save the area to the database
     const area = new Area(geojson);
     await area.save();
 

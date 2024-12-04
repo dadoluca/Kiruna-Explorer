@@ -2,7 +2,7 @@ import Document from '../models/Document.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import Joi from 'joi';
 
 // Create a new document
 export const createDocument = async (req, res) => {
@@ -39,46 +39,60 @@ export const createDocument = async (req, res) => {
 };
 
 // Get all documents with optional filters and pagination
+const sanitizeInput = (input) =>
+  typeof input === 'string' ? validator.escape(input.trim()) : input;
+
 export const getAllDocuments = async (req, res) => {
   try {
-    // Pagination and filter parameters
-    const { page = 1, limit = 100, title, type, tag } = req.query;
+    // Define a validation schema using Joi
+    const schema = Joi.object({
+      page: Joi.number().integer().min(1).default(1),
+      limit: Joi.number().integer().min(1).max(100).default(10),
+      title: Joi.string().max(255).allow(null, ''),
+      type: Joi.string().valid('type1', 'type2', 'type3').allow(null, ''), // Replace 'type1', etc., with actual types
+      tag: Joi.string().max(255).allow(null, ''),
+    });
 
+    // Validate the request query parameters against the schema
+    const { page, limit, title, type, tag } = await schema.validateAsync(req.query);
 
-    // Construct filter object based on query parameters
-    let filter = {};
+    // Construct filter object with sanitized inputs
+    const filter = {};
     if (title) {
-      filter.title = { $regex: title, $options: 'i' };  // Case-insensitive filter for title
+      filter.title = { $regex: new RegExp(`^${sanitizeInput(title)}`, 'i') }; // Case-insensitive regex
     }
     if (type) {
-      filter.type = type;  // Filter by type
+      filter.type = sanitizeInput(type); // Exact match
     }
     if (tag) {
-      filter.tags = { $in: [tag] };  // Filter by tags if specified
+      filter.tags = { $in: [sanitizeInput(tag)] }; // Filter by tags
     }
 
-    // Fetch the documents with the applied filters and pagination
+    // Fetch documents securely with pagination
     const documents = await Document.find(filter)
-      .skip((page - 1) * limit)  // Skip based on the page number
-      .limit(parseInt(limit))    // Limit the number of documents per page
+      .skip((page - 1) * limit) // Skip documents for pagination
+      .limit(limit) // Limit number of documents per page
       .exec();
 
-    // Get the total number of documents for pagination info
+    // Count documents securely with the same filter
     const totalDocuments = await Document.countDocuments(filter);
 
-    // Send the paginated documents along with pagination details
+    // Return response with paginated documents and metadata
     res.status(200).json({
       data: documents,
       pagination: {
-        currentPage: parseInt(page),
+        currentPage: page,
         totalPages: Math.ceil(totalDocuments / limit),
         totalDocuments,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching documents:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
 
 
 
