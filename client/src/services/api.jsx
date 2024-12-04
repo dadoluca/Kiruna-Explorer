@@ -33,15 +33,6 @@ const logOut = async() => {
 }
   
 const getUserInfo = async () => {
-    /*const response = await fetch(SERVER_URL + '/api/sessions/current', {
-      credentials: 'include',
-    });
-    const user = await response.json();
-    if (response.ok) {
-      return user;
-    } else {
-      throw user;  // an object with the error coming from the server
-    }*/
    throw new Error('Not authenticated');
 };
 

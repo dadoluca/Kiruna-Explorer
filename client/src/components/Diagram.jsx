@@ -180,7 +180,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
             .attr("transform", `translate(${margin.left}, ${margin.top})`)
             .call(xAxis);
     
-        // Update existing nodes instead of removing them
+        /* Update existing nodes instead of removing them
         const nodesGroup = svg.append("g")
             .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
             .selectAll("g.node-group")
@@ -223,9 +223,9 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
                     }),
                 exit => exit.remove()  // Remove nodes if necessary
             );
-
+*/
         // Draw links between nodes based on calculated links
-        const linkLines = svg.append("g")
+        svg.append("g")
         .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
         .selectAll("path")
         .data(links)
@@ -261,15 +261,24 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
 
             // Use a cubic Bezier curve for a smooth connection
             const midX = (sourcePos.x + targetPos.x) / 2;  // Midpoint for the curve
-            const midY = (sourcePos.y + targetPos.y) / 2;  // Midpoint for the curve
+            //const midY = (sourcePos.y + targetPos.y) / 2;  // Midpoint for the curve
 
             return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
         })
         .attr("fill", "none")
         .attr("stroke", (d) => {
-            return d.type === "direct consequence" ? "#FF8C00" :
-                d.type === "collateral consequence" ? "#32CD32" :
-                d.type === "projection" ? "#D32F2F" : "#003366";
+            let color;
+            if (d.type === "direct consequence") {
+                color = "#FF8C00";
+            } else if (d.type === "collateral consequence") {
+                color = "#32CD32";
+            } else if (d.type === "projection") {
+                color = "#D32F2F";
+            } else {
+                color = "#003366";
+            }
+            
+            return color;
         })
         .attr("stroke-width", 1)
         .attr("stroke-dasharray", (d) => getLinkStyle(d.type));
@@ -294,7 +303,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
         };
         
         // Draw legend
-        const legendItems = legendGroup.selectAll("g.legend-item")
+        legendGroup.selectAll("g.legend-item")
             .data(legendData)
             .join(
                 enter => {
