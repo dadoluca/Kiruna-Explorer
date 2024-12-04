@@ -47,30 +47,64 @@ const createClusterIcon = (cluster) => {
 };
 
 const MemoizedMarker = React.memo(
-    ({ marker, onClick }) => {
-        return (
-            <Marker
-                position={[marker.latitude, marker.longitude]}
-                icon={new L.Icon({
-                    iconUrl: marker.icon,
-                    iconSize: [28, 28],
-                    iconAnchor: [16, 32],
-                    popupAnchor: [0, -32]
-                })}
-                eventHandlers={{
-                    click: onClick
-                }}
-            >
-                <Tooltip direction="bottom">{marker.title}</Tooltip>
-            </Marker>
-        );
-    },
-    (prevProps, nextProps) => {
-        // Check if the important properties have changed (e.g., coordinates)
-        return prevProps.marker.latitude === nextProps.marker.latitude &&
-            prevProps.marker.longitude === nextProps.marker.longitude;
-    }
-);
+    ({ marker, onClick }) => (
+      <Marker
+        position={[marker.latitude, marker.longitude]}
+        icon={
+          new L.Icon({
+            iconUrl: marker.icon,
+            iconSize: [28, 28],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          })
+        }
+        eventHandlers={{ click: onClick }}
+      >
+        <Tooltip direction="bottom">{marker.title}</Tooltip>
+      </Marker>
+    ),
+    (prevProps, nextProps) => 
+      prevProps.marker.latitude === nextProps.marker.latitude &&
+      prevProps.marker.longitude === nextProps.marker.longitude &&
+      prevProps.marker.icon === nextProps.marker.icon
+  );
+  
+  const MemoizedAreaMarker = React.memo(
+    ({ area, onClick }) => (
+      <Marker
+        position={[
+          area.properties.centroid.coordinates[1],
+          area.properties.centroid.coordinates[0],
+        ]}
+        icon={multipleDocumentsIcon}
+        eventHandlers={{ click: onClick }}
+      >
+        <Tooltip direction="bottom">Area related documents</Tooltip>
+      </Marker>
+    ),
+    (prevProps, nextProps) => 
+      prevProps.area._id === nextProps.area._id &&
+      prevProps.area.properties.centroid.coordinates[0] ===
+        nextProps.area.properties.centroid.coordinates[0] &&
+      prevProps.area.properties.centroid.coordinates[1] ===
+        nextProps.area.properties.centroid.coordinates[1]
+  );
+  
+  const MemoizedPolygon = React.memo(
+    ({ area }) => (
+      <Polygon
+        key={`${area._id}_Polygon`}
+        positions={area.geometry.coordinates.map((ring) =>
+          ring.map(([longitude, latitude]) => [latitude, longitude])
+        )}
+        color="blue"
+      />
+    ),
+    (prevProps, nextProps) => 
+      prevProps.area._id === nextProps.area._id &&
+      JSON.stringify(prevProps.area.geometry.coordinates) ===
+        JSON.stringify(nextProps.area.geometry.coordinates)
+  );
 
 const markerPosition = [67.8636, 20.280];
 
@@ -177,44 +211,35 @@ const MapComponent = () => {
                         showCoverageOnHover={false}
                         iconCreateFunction={createClusterIcon}
                     >
-                        {
-                            markers
-                                .filter(marker => marker.areaId === undefined)
-                                .map((marker) => (
-                                <MemoizedMarker
-                                    key={marker._id}
-                                    marker={marker}
-                                    onClick={() => setSelectedMarker({
-                                        doc: marker,
-                                        position: [marker.latitude, marker.longitude]
-                                    })}
-                                />
-                            
-                            ))
-                        }
+                        {markers
+                            .filter((marker) => marker.areaId === undefined)
+                            .map((marker) => (
+                            <MemoizedMarker
+                                key={marker._id}
+                                marker={marker}
+                                onClick={() =>
+                                setSelectedMarker({
+                                    doc: marker,
+                                    position: [marker.latitude, marker.longitude],
+                                })
+                                }
+                            />
+                            ))}
 
                         {displayedAreas.length > 0 &&
                             displayedAreas.map((area) => (
-                                <>
-                                    <Marker
-                                        key={`${area._id}_Marker`}
-                                        position={[area.properties.centroid.coordinates[1], area.properties.centroid.coordinates[0]]}
-                                        icon={multipleDocumentsIcon}
-                                        eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === area._id); if(loggedIn){setAddButton(area)}; setIsListing(true);} }}
-                                    >
-
-                                    <Tooltip direction="bottom">Area related documents</Tooltip>
-                                    </Marker>
-                                    <Polygon
-                                        key={`${area._id}_Polygon`}
-                                        positions={area.geometry.coordinates.map(ring =>
-                                            ring.map(([longitude, latitude]) => [latitude, longitude])
-                                        )}
-                                        color="blue"
-                                    />
-                                </>
-                            ))
-                        }
+                            <React.Fragment key={area._id}>
+                                <MemoizedAreaMarker
+                                area={area}
+                                onClick={() => {
+                                    setListContent((doc) => doc.areaId === area._id);
+                                    if (loggedIn) setAddButton(area);
+                                    setIsListing(true);
+                                }}
+                                />
+                                <MemoizedPolygon area={area} />
+                            </React.Fragment>
+                            ))}
                     </MarkerClusterGroup>
 
                     {selectedMarker && (

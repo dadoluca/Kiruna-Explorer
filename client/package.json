@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mui/icons-material": "^6.1.10",
     "@turf/turf": "^7.1.0",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",

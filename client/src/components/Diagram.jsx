@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import styles from './Diagram.module.css';
 
-const Diagram = () => {
+const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
@@ -10,6 +12,10 @@ const Diagram = () => {
     const [xDomain, setXDomain] = useState(range(2004, 2024, 1)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
+
+    const handleToggleClick = () => {
+        setIsDiagramOpen(!isDiagramOpen);
+    };
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -138,6 +144,8 @@ const Diagram = () => {
     const svgRef = useRef();
 
     useEffect(() => {
+        if(!isDiagramOpen) return;
+
         const width = 1200;
         const height = 300;
         const margin = { top: 20, right: 20, bottom: 40, left: 300 };
@@ -315,11 +323,23 @@ const Diagram = () => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links]);
+    }, [documents, xDomain, yDomain, links, isDiagramOpen]);
 
     return (
-        <div>
-            <svg ref={svgRef}></svg>
+        <div className={styles.diagramWrapper}>
+          <div 
+            className={styles.toggleContainer}
+            onClick={handleToggleClick}
+          >
+            <ExpandMoreIcon
+                className={`${styles.toggleIcon} ${
+                    isDiagramOpen ? styles.rotate : ''
+                }`}
+                fontSize="large"
+            />
+          </div>
+    
+          <svg ref={svgRef} className={`${styles.diagram} ${isDiagramOpen ? styles.openDiagram : styles.closedDiagram}`}></svg>
         </div>
     );
 };
