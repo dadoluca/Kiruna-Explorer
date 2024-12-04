@@ -1,3 +1,7 @@
-.prova {
-    height: 91vh;
+.wrap {
+    min-height: 91vh;
+    flex: 1; /* Allows content to grow and take available space */
+    display: flex;
+    flex-direction: column; /* Makes the layout flexible */
 }
+
