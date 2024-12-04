@@ -52,7 +52,7 @@ describe('Document API', () => {
   
   expect(response.status).to.equal(201);
   createdDocumentId = response.body._id;
-  // console.log('Created Document ID:', createdDocumentId);
+  
 
  // Create another related document for the relationship
  const relatedDocument = {
@@ -78,7 +78,7 @@ const relatedResponse = await request(app)
 
 expect(relatedResponse.status).to.equal(201);
 relatedDocumentId = relatedResponse.body._id;
-// console.log('Related Document ID:', relatedDocumentId);
+
 
 } catch (err) {
   console.log('Error connecting to DB:', err);
@@ -86,18 +86,7 @@ relatedDocumentId = relatedResponse.body._id;
 }
 });
 
-// it('should return fields for all documents sorted by title', async () => {
-//   const response = await request(app)
-//     .get('/documents/:id') // Add the correct route
-//     .expect(200);
 
-//   // Check the structure of the response
-//   expect(response.body).to.be.an('array');
-//   expect(response.body).to.have.length.greaterThan(0); 
-//   expect(response.body[0]).to.have.property('title');
-//   expect(response.body[0]).to.have.property('issuance_date');
-//   expect(response.body[0].title).to.equal('Related Document 1'); // Sorting check (alphabetically)
-// });
 
 beforeEach(async () => {
   await Document.updateOne(
@@ -116,7 +105,7 @@ it('should add a new relationship to a document', async () => {
   const response = await request(app)
   .post(`/documents/${createdDocumentId}/relationships`)  
   .send(relationshipData);
-  // console.log('Response Body:', response.body);
+  
 
   expect(response.status).to.equal(201);
   expect(response.body.relationships).to.have.lengthOf(1);
@@ -137,15 +126,14 @@ it('should update an existing relationship of a document', async () => {
     .post(`/documents/${createdDocumentId}/relationships`)
     .send(relationshipData);
 
-    // console.log('Response after adding relationship:', addRelationshipResponse.body);
+    
 
     const relationshipId = addRelationshipResponse.body.relationships[0]._id;
-  // console.log('Created Relationship ID:', relationshipId);
+  
 
 
     const documentResponse = await request(app).get(`/documents/${createdDocumentId}`);
-    // console.log('Document Relationships after creation:' , documentResponse.body.relationships);
-
+    
     expect(documentResponse.body.relationships).to.have.lengthOf(1);
     expect(documentResponse.body.relationships[0]._id).to.equal(relationshipId);
 
@@ -157,8 +145,7 @@ it('should update an existing relationship of a document', async () => {
     .put(`/documents/${createdDocumentId}/relationships/${relationshipId}`)
     .send(updatedData)
 
-    // console.log('Response after updating relationships:',updatedResponse.body);
-
+    
     expect(updatedResponse.status).to.equal(200);
     expect(updatedResponse.body.relationships[0].type).to.equal('update');
 });
@@ -230,8 +217,7 @@ it('should delete a relationship from a document', async () => {
   expect(addRelationshipResponse.status).to.equal(201);
 
   const relationshipId = addRelationshipResponse.body.relationships[0]._id;
-  // console.log('Created Relationship ID:', relationshipId);
-
+  
   // Step 2: Delete the relationship
   const deleteResponse = await request(app)
     .delete(`/documents/${createdDocumentId}/relationships/${relationshipId}`);
@@ -272,11 +258,7 @@ it('should return all relationships of a document', async () => {
     documentTitle: 'Related Document 1',
     type: 'direct consequence'
   });
-  // console.log('Response documentId:', relationshipsResponse.body[0].documentId);
-  // console.log('Expected relatedDocumentId:', relatedDocumentId);
-  // console.log('Type of relatedDocumentId:', typeof relatedDocumentId);
-  // console.log('relatedDocumentId (as string):', String(relatedDocumentId));
-
+  
   expect(relationshipsResponse.body[0].documentId._id).to.equal(relatedDocumentId);
 
 
@@ -367,7 +349,6 @@ it('should return available documents for a valid current document', async () =>
     expect(response.body.coordinates).to.deep.equal(newDocument.coordinates);
     createdDocumentId = response.body._id;
 
-  // console.log('Created Document ID:', createdDocumentId);
   
     
     const receivedRelationships = response.body.relationships.map(rel => ({
@@ -450,7 +431,7 @@ it('should return available documents for a valid current document', async () =>
     
   });
   it('should delete a resource from a document', async () => {
-    const resourceData = { filename: 'testfile.pdf' };
+    
   
     // Upload a resource first
     const uploadResponse = await request(app)
@@ -509,7 +490,7 @@ it('should return available documents for a valid current document', async () =>
     // Extract the filename from the uploaded resource
     const { filename } = uploadResponse.body.resource;
   
-    // Now, test the download functionality
+    // test the download functionality
     const downloadResponse = await request(app)
       .get(`/documents/${createdDocumentId}/resources/${filename}`)
       .expect('Content-Type', /pdf/);  // Assuming the resource is a PDF file
@@ -534,7 +515,6 @@ it('should return available documents for a valid current document', async () =>
   });
 
   it('should get a document by ID', async () => {
-    // console.log('Created Document ID:', createdDocumentId); 
     const response = await request(app).get(`/documents/${createdDocumentId}`);
     expect(response.status).to.equal(200);
     expect(response.body).to.have.property('_id');
@@ -545,7 +525,6 @@ it('should return available documents for a valid current document', async () =>
   it('should return 404 if document is not found by ID', async () => {
     const invalidId = new mongoose.Types.ObjectId();
     const response = await request(app).get(`/documents/${invalidId}`);
-    // console.log('Response body:', response.body);
     expect(response.status).to.equal(404);
     expect(response.body.message).to.equal('Document not found');
   });

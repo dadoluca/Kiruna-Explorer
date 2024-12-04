@@ -130,8 +130,7 @@ describe('Area Controller', () => {
     });
 
     it('should return an error if there is a server issue', async () => {
-      const mockFind = sinon.stub(Area, 'find').rejects(new Error('Database error'));
-
+      
       const response = await supertest(app).get('/areas');
 
       expect(response.status).to.equal(500);
