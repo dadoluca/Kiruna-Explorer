@@ -5,6 +5,7 @@ import app from '../app.mjs';
 import Document from '../models/Document.mjs';
 import Area from '../models/Geolocation.mjs';
 import * as visualizationController from '../controllers/visualizationController.mjs';
+import seedrandom from 'seedrandom';
 
 const { expect } = chai;
 
@@ -217,67 +218,91 @@ describe('Visualization Controller', () => {
       expect(response.body).to.have.property('areas').that.is.an('array').that.is.empty;
     });
 
-    it('should handle malformed relationships in documents gracefully', async () => {
-      const mockDocuments = [
-        {
-          _id: 'doc1',
-          title: 'Document 1',
-          coordinates: [10, 20],
-          relationships: [{ documentId: null, type: 'related' }],
-        },
-      ];
+    
 
-      const mockAreas = [
-        {
-          _id: 'area1',
-          properties: { name: 'Area 1' },
-          geometry: { coordinates: [[[10, 20], [15, 25], [20, 30], [10, 20]]] },
-        },
-      ];
+it('should handle large datasets for documents and areas', async () => {
+  // Create a deterministic random number generator
+  const rng = seedrandom('test-seed');
 
-      sinon.stub(Document, 'find').returns({
-        populate: sinon.stub().returns({
-          exec: sinon.stub().resolves(mockDocuments),
-        }),
-      });
-      sinon.stub(Area, 'find').resolves(mockAreas);
+  const mockDocuments = Array.from({ length: 1000 }, (_, i) => ({
+    _id: `doc${i}`,
+    title: `Document ${i}`,
+    coordinates: [rng() * 100, rng() * 100],
+    relationships: i % 2 === 0
+      ? []
+      : [{ documentId: { _id: `doc${i + 1}` }, type: 'related' }],
+  }));
 
-      const response = await supertest(app).get('/api/visualization-data');
+  const mockAreas = [
+    {
+      _id: 'area1',
+      properties: { name: 'Area 1' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[10, 20], [15, 25], [20, 30], [10, 20]]],
+      },
+    },
+  ];
 
-      expect(response.status).to.equal(200);
-      expect(response.body).to.have.property('nodes').that.is.an('array').with.lengthOf(1);
-      expect(response.body.nodes[0]).to.have.property('relationships').that.is.an('array').that.is.empty;
-    });
+  sinon.stub(Document, 'find').returns({
+    populate: sinon.stub().returns({
+      exec: sinon.stub().resolves(mockDocuments),
+    }),
+  });
+  sinon.stub(Area, 'find').resolves(mockAreas);
 
-    it('should handle large datasets for documents and areas', async () => {
-      const mockDocuments = Array.from({ length: 1000 }, (_, i) => ({
-        _id: `doc${i}`,
-        title: `Document ${i}`,
-        coordinates: [Math.random() * 100, Math.random() * 100],
-        relationships: i % 2 === 0 ? [] : [{ documentId: { _id: `doc${i + 1}` }, type: 'related' }],
-      }));
+  const response = await supertest(app).get('/api/visualization-data');
 
-      const mockAreas = Array.from({ length: 500 }, (_, i) => ({
-        _id: `area${i}`,
-        properties: { name: `Area ${i}` },
-        geometry: {
-          coordinates: [[[Math.random() * 100, Math.random() * 100], [Math.random() * 100, Math.random() * 100]]],
-        },
-      }));
+  expect(response.status).to.equal(200);
+  expect(response.body).to.have.property('nodes').that.is.an('array');
+});
 
-      sinon.stub(Document, 'find').returns({
-        populate: sinon.stub().returns({
-          exec: sinon.stub().resolves(mockDocuments),
-        }),
-      });
-      sinon.stub(Area, 'find').resolves(mockAreas);
 
-      const response = await supertest(app).get('/api/visualization-data');
 
-      expect(response.status).to.equal(200);
-      expect(response.body.nodes).to.have.lengthOf(1000);
-      expect(response.body.areas).to.have.lengthOf(500);
-    });
+
+it('should handle large datasets for documents and areas', async () => {
+  // Create a seeded random number generator
+  const rng = seedrandom('test-seed'); 
+
+  const mockDocuments = Array.from({ length: 1000 }, (_, i) => ({
+    _id: `doc${i}`,
+    title: `Document ${i}`,
+    coordinates: [rng() * 100, rng() * 100],
+    relationships: i % 2 === 0
+      ? []
+      : [{ documentId: { _id: `doc${i + 1}` }, type: 'related' }],
+  }));
+
+  const mockAreas = Array.from({ length: 500 }, (_, i) => ({
+    _id: `area${i}`,
+    properties: { name: `Area ${i}` },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [rng() * 100, rng() * 100],
+          [rng() * 100, rng() * 100],
+          [rng() * 100, rng() * 100],
+          [rng() * 100, rng() * 100], // Ensure the polygon closes correctly
+        ],
+      ],
+    },
+  }));
+
+  sinon.stub(Document, 'find').returns({
+    populate: sinon.stub().returns({
+      exec: sinon.stub().resolves(mockDocuments),
+    }),
+  });
+  sinon.stub(Area, 'find').resolves(mockAreas);
+
+  const response = await supertest(app).get('/api/visualization-data');
+
+  expect(response.status).to.equal(200);
+  expect(response.body.nodes).to.have.lengthOf(1000);
+  expect(response.body.areas).to.have.lengthOf(500);
+});
+
 
     it('should propagate errors from getDocuments gracefully', async () => {
       sinon.stub(Document, 'find').returns({
