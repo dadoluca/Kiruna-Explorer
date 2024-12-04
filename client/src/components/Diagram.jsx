@@ -180,8 +180,8 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
             .attr("transform", `translate(${margin.left}, ${margin.top})`)
             .call(xAxis);
     
-        /* Update existing nodes instead of removing them
-        const nodesGroup = svg.append("g")
+        // Update existing nodes instead of removing them
+        svg.append("g")
             .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
             .selectAll("g.node-group")
             .data(documents, (d) => d._id)  // Use a unique key
@@ -223,7 +223,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
                     }),
                 exit => exit.remove()  // Remove nodes if necessary
             );
-*/
+
         // Draw links between nodes based on calculated links
         svg.append("g")
         .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
@@ -278,6 +278,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
                 color = "#003366";
             }
             
+            // Usage
             return color;
         })
         .attr("stroke-width", 1)
@@ -335,17 +336,26 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
 
     return (
         <div className={styles.diagramWrapper}>
-          <div 
-            className={styles.toggleContainer}
-            onClick={handleToggleClick}
-          >
-            <ExpandMoreIcon
-                className={`${styles.toggleIcon} ${
-                    isDiagramOpen ? styles.rotate : ''
-                }`}
+            <div
+                className={styles.toggleContainer}
+                role="button" // Adds the semantic meaning of a button
+                tabIndex={0}  // Makes the div focusable
+                onClick={handleToggleClick} // Handles mouse clicks
+                onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault(); // Prevent scrolling for Space key
+                    handleToggleClick();
+                }
+                }} // Handles keyboard interactions
+                aria-expanded={isDiagramOpen} // ARIA state for expanded/collapsed content
+                aria-label="Toggle diagram" // Adds an accessible label
+            >
+                <ExpandMoreIcon
+                className={`${styles.toggleIcon} ${isDiagramOpen ? styles.rotate : ''}`}
                 fontSize="large"
-            />
-          </div>
+                />
+            </div>
+
     
           <svg ref={svgRef} className={`${styles.diagram} ${isDiagramOpen ? styles.openDiagram : styles.closedDiagram}`}></svg>
         </div>
