@@ -47,7 +47,7 @@ export const getAllDocuments = async (req, res) => {
     // Define a validation schema using Joi
     const schema = Joi.object({
       page: Joi.number().integer().min(1).default(1),
-      limit: Joi.number().integer().min(1).max(100).default(10),
+      limit: Joi.number().integer().min(1).max(100).default(1000),
       title: Joi.string().max(255).allow(null, ''),
       type: Joi.string().valid('type1', 'type2', 'type3').allow(null, ''), // Replace 'type1', etc., with actual types
       tag: Joi.string().max(255).allow(null, ''),
