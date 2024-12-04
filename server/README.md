@@ -386,3 +386,34 @@ To manage areas effectively, we’ve implemented a set of RESTful API endpoints:
     }
     ```
 - **GET /areas**: Retrieves all already existing areas.
+## Visualization Management API Endpoints
+
+### **GET /api/visualization-data**: Fetches data for visualization, combining documents and geolocation areas.
+
+- **Description**: Retrieves all documents and geolocation areas from the database, formats them for D3.js visualization, and combines the results into a unified response structure.
+- **Response Example**:
+  ```json
+  {
+    "nodes": [
+      {
+        "id": "document1",
+        "title": "Document 1",
+        "coordinates": [10, 20],
+        "relationships": ["document2"]
+      }
+    ],
+    "edges": [
+      {
+        "source": "document1",
+        "target": "document2",
+        "type": "related"
+      }
+    ],
+    "areas": [
+      {
+        "id": "area1",
+        "name": "Area 1",
+        "geometry": [[[10, 20], [15, 25], [20, 30], [10, 20]]]
+      }
+    ]
+  }
