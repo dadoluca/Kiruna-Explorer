@@ -36,13 +36,12 @@
   margin: auto;
   justify-content: center;
   align-items: center;
-  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Quando il diagramma è aperto */
+/* Quando il diagramma è aperto, l'altezza sarà dinamica */
 .openDiagram {
-  height: 25vh;
-  padding-top: 20px;
+  margin-top: 20px;
 }
 
 /* Quando il diagramma è chiuso */
