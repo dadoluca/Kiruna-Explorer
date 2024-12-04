@@ -5,6 +5,7 @@ export const DocumentContext = createContext();
 
 export const useDocumentContext = () => useContext(DocumentContext);
 
+
 export const DocumentProvider = ({ children }) => {
 
   const [documents, setDocuments] = useState([]); //all documents retrived
@@ -155,7 +156,7 @@ export const DocumentProvider = ({ children }) => {
       updateDocument,
       updateDocCoords,
       setListContent,
-      isArea
+      isArea,
     }),
     [documents, areas, markers, docList, displayedAreas, municipalArea]
   );

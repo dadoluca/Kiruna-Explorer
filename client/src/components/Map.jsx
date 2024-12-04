@@ -15,6 +15,7 @@ import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for
 import AddDocumentButton from './AddDocumentButton';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+import { SelectionState } from './SelectionState'; 
 
 
 
@@ -106,6 +107,44 @@ const MemoizedMarker = React.memo(
         JSON.stringify(nextProps.area.geometry.coordinates)
   );
 
+
+const MemoizedSelectPointMarker = React.memo(
+    ({ marker, onClick }) => {
+        const markerRef = React.useRef(null);
+
+        const handleMouseOver = () => {
+            if (markerRef.current) {
+                markerRef.current._icon.style.filter = 'brightness(0.5)'; //  hover 
+            }
+        };
+
+        const handleMouseOut = () => {
+            if (markerRef.current) {
+                markerRef.current._icon.style.filter = 'brightness(1)'; // remove hover
+            }
+        };
+
+        return (
+            <Marker
+                ref={markerRef}
+                position={[marker.latitude, marker.longitude]}
+                eventHandlers={{
+                    click: onClick,
+                    mouseover: handleMouseOver,
+                    mouseout: handleMouseOut,
+                }}
+            >
+                <Tooltip>{marker.latitude}, {marker.longitude}</Tooltip>
+            </Marker>
+        );
+    },
+    (prevProps, nextProps) => {
+        // Check if the important properties have changed (e.g., coordinates)
+        return prevProps.marker.latitude === nextProps.marker.latitude &&
+            prevProps.marker.longitude === nextProps.marker.longitude;
+    }
+);
+
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
@@ -113,9 +152,9 @@ const MapComponent = () => {
     const position = [68.1, 20.4]; // Kiruna coordinates
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const [isSelecting, setIsSelecting] = useState(false); // Selection state
+    const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
+    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea, isAddingToPoint } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -165,7 +204,7 @@ const MapComponent = () => {
 
     const handleChangeCoordinates = (doc) => {
         setChangingDocument(doc);
-        setIsSelecting(true); // Start selecting mode
+        setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE); // Start selecting mode
     };
 
     return (
@@ -178,7 +217,7 @@ const MapComponent = () => {
                 className={` ${isListing ? styles.listing : styles.mapContainer}`} 
                 zoomControl={false}
             >
-                    {<AddDocumentButton isSelecting={isSelecting} setIsSelecting={setIsSelecting} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
+                    {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
 
@@ -207,58 +246,82 @@ const MapComponent = () => {
                         />
                     ))}
 
-                    <MarkerClusterGroup
-                        showCoverageOnHover={false}
-                        iconCreateFunction={createClusterIcon}
-                    >
-                        {markers
-                            .filter((marker) => marker.areaId === undefined)
-                            .map((marker) => (
-                            <MemoizedMarker
-                                key={marker._id}
-                                marker={marker}
-                                onClick={() =>
-                                setSelectedMarker({
-                                    doc: marker,
-                                    position: [marker.latitude, marker.longitude],
-                                })
-                                }
-                            />
-                            ))}
-
-                        {displayedAreas.length > 0 &&
-                            displayedAreas.map((area) => (
-                            <React.Fragment key={area._id}>
-                                <MemoizedAreaMarker
-                                area={area}
-                                onClick={() => {
-                                    setListContent((doc) => doc.areaId === area._id);
-                                    if (loggedIn) setAddButton(area);
-                                    setIsListing(true);
-                                }}
+                    {
+                    
+                    isAddingDocument === SelectionState.EXISTING_POINT
+                    ?
+                        <>
+                        {
+                             markers
+                                .filter(marker => marker.areaId === undefined)
+                                .map((marker) => (
+                                <MemoizedSelectPointMarker
+                                    key={marker._id}
+                                    marker={marker}
+                                    onClick={() => {navigate('/document-creation', { state: { coordinates: { lat: marker.latitude, lng: marker.longitude } } });}}
                                 />
-                                <MemoizedPolygon area={area} />
-                            </React.Fragment>
-                            ))}
-                    </MarkerClusterGroup>
+                         
+                         ))
+                        }
+                        </>
+                    :
 
-                    {selectedMarker && (
-                        <Popup
-                            position={selectedMarker.position}
-                            onClose={() => setSelectedMarker(null)}
-                            maxWidth={800}
-                            minWidth={500}
-                            maxHeight={500}
-                            className={styles.popup}
+                    <>
+                        <MarkerClusterGroup
+                            showCoverageOnHover={false}
+                            iconCreateFunction={createClusterIcon}
                         >
-                            <DetailPlanCard
-                                doc={selectedMarker.doc}
+                            {
+                                markers
+                                    .filter(marker => marker.areaId === undefined)
+                                    .map((marker) => (
+                                    <MemoizedMarker
+                                        key={marker._id}
+                                        marker={marker}
+                                        onClick={() => setSelectedMarker({
+                                            doc: marker,
+                                            position: [marker.latitude, marker.longitude]
+                                        })}
+                                    />
+                                
+                                ))
+                            }
+
+                            {displayedAreas.length > 0 &&
+                                displayedAreas.map((area) => (
+                                <React.Fragment key={area._id}>
+                                    <MemoizedAreaMarker
+                                    area={area}
+                                    onClick={() => {
+                                        setListContent((doc) => doc.areaId === area._id);
+                                        if (loggedIn) setAddButton(area);
+                                        setIsListing(true);
+                                    }}
+                                    />
+                                    <MemoizedPolygon area={area} />
+                                </React.Fragment>
+                                ))
+                            }
+
+                        </MarkerClusterGroup>
+
+                        {selectedMarker && (
+                            <Popup
+                                position={selectedMarker.position}
                                 onClose={() => setSelectedMarker(null)}
-                                onChangeCoordinates={handleChangeCoordinates}
-                                onToggleSelecting={setIsSelecting}
-                            />
-                        </Popup>
-                    )}
+                                maxWidth={800}
+                                minWidth={500}
+                                maxHeight={500}
+                                className={styles.popup}
+                            >
+                                <DetailPlanCard
+                                    doc={selectedMarker.doc}
+                                    onClose={() => setSelectedMarker(null)}
+                                    onChangeCoordinates={handleChangeCoordinates}
+                                    onToggleSelecting={setIsAddingDocument}
+                                />
+                            </Popup>
+                        )}
 
                     {municipalArea &&
                         <Marker
@@ -266,11 +329,11 @@ const MapComponent = () => {
                             icon={multipleDocumentsIcon}
                             eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true) } }}
                         >
-
-                            <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
-                        </Marker>
+                                <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
+                            </Marker>
+                        }
+                    </>
                     }
-
                 </MapContainer>
 
                 <Legend />

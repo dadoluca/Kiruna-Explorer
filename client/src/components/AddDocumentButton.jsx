@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useMapEvents} from 'react-leaflet';
 import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
-import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
+import { SelectionState } from './SelectionState'; 
+import  CloseModeSelectionButton  from './CloseModeSelectionButton';
 
-function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinates }) {
+function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
     const { loggedIn } = useContext(AuthContext);
@@ -31,11 +32,24 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
         navigate('/document-creation', { state: { isMunicipal: true } });
     };
 
+    const handleChangeCoordinates = (doc) => {
+        setChangingDocument(doc);
+        setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE); // Start selecting mode
+    };
+
+    const handleChooseNewPoint = () => {
+        setIsAddingDocument(SelectionState.NEW_POINT);
+    }
+
+    const handleSelectExistingPoint = () => {
+        setIsAddingDocument(SelectionState.EXISTING_POINT);
+    };
+
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isSelecting && loggedIn && changingDocument == null ) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null ) {
                     const newCoords = { 
                     lat: e.latlng.lat.toFixed(5), 
                     lng: e.latlng.lng.toFixed(5) 
@@ -44,15 +58,17 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
                 }
             },
             click: (e) => {
+
                 // Naviga alla creazione documento se in modalità selezione
-                if (isSelecting && loggedIn && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon => 
                       isPointInPolygon(mouseCoords, polygon)
                     );
                   
                     if (isInAnyPolygon) {
+                        console.log(e.latlng);
                       navigate('/document-creation', { state: { coordinates: e.latlng } });
-                      setIsSelecting(false);
+                      setIsAddingDocument(SelectionState.NOT_IN_PROGRESS);
                       return;
                     }
                 }
@@ -84,7 +100,7 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
     
                     // Reset della modalità
                     setChangingDocument(null);
-                    setIsSelecting(false);
+                    setIsAddingDocument(SelectionState.NOT_IN_PROGRESS);
                 }
             }
         });
@@ -94,39 +110,60 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
 
     return (
         <>
-        <MapMouseEvents />
+        {isAddingDocument == SelectionState.NEW_POINT && 
+            <MapMouseEvents />
+        }
+
+        {/* ---------------- add document button ---------------- */}
         {loggedIn && (
             <div
-                className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-                onClick={() => setIsSelecting(prev => !prev)}
-                role="button"
+                className={`
+                    ${styles.addButton} 
+                    ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
+                        isAddingDocument == SelectionState.NEW_POINT
+                        ? styles.expanded : ''}`}
                 tabIndex={0}
             >
-                {isSelecting ? (
+                {isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE && (
                     <>
-                        <div className={styles.coordinatesBar}>
-                            {mouseCoords.lat && mouseCoords.lng ? (
-                                <>
-                                    Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) or choose the{" "}
-                                    <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
-                                        Entire Municipality
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    Move the mouse inside the area or chooose the{" "}
-                                    <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
-                                        Entire Municipality
-                                    </button>
-                                </>
-                            )}
+                       <div>
+                            <button className={styles.buttonLink} onClick={handleChooseNewPoint}>
+                                Choose a New Point
+                            </button>
+                            {" "}or{" "}
+                            <button className={styles.buttonLink} onClick={handleSelectExistingPoint}>
+                                Select an Existing Point
+                            </button>
+                            {" "}or{" "}
+                            <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
+                                Choose the Entire Municipality
+                            </button>
+                            <div className={styles.spazio}></div>
                         </div>
-                        <div className={styles.spazio}></div>
-                        <FontAwesomeIcon icon={faTimes} />
                     </>
-                ) : (
-                    <FontAwesomeIcon icon={faPlus} />
                 )}
+
+                {isAddingDocument == SelectionState.NEW_POINT && mouseCoords.lat && mouseCoords.lng && (
+                    <>              
+                        Insert the point in ({mouseCoords.lat}, {mouseCoords.lng})
+                        <div className={styles.spazio}></div>
+                    </>
+                )}
+
+                {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
+                        <CloseModeSelectionButton onClick={() => {setIsAddingDocument(SelectionState.NOT_IN_PROGRESS)}}/>
+                    )
+                    :
+                    (   
+                        <button
+                            style={{backgroundColor: 'transparent', color: 'white', border: 'none'}}
+                            onClick={() => setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE)}
+                        >
+                            <FontAwesomeIcon icon={faPlus}/>
+                        </button>
+                    )
+                }
+
             </div>
         )}
         </>
