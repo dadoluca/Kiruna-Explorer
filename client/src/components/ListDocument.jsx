@@ -15,9 +15,15 @@ const ScrollableDocumentsList = (props) => {
   const { loggedIn } = useContext(AuthContext);
   const { docList } = useContext(DocumentContext); // Fetch documents from context
   const navigate = useNavigate();
+
   const handleFilter = (title) => {
     console.log(title);
     props.handleFilterByTitleInList(title);
+  };
+
+  const handleCardClick = (doc) => {
+    props.handleVisualize(doc); // Call the visualize function
+    props.closeList(); // Close the list
   };
 
   return (
@@ -42,18 +48,18 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.scrollableCardList}>
         {docList.map((doc) => (
           <div
-          key={doc._id}
-          className={styles.cardWrapper}
-          role="button" // Add semantic role
-          tabIndex={0} // Make the div focusable
-          onClick={() => props.handleVisualize(doc)} // Handle mouse clicks
-          onKeyDown={(e) => { // Handle keyboard interaction
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              props.handleVisualize(doc);
-            }
-          }}
-        >        
+            key={doc._id}
+            className={styles.cardWrapper}
+            role="button" // Add semantic role
+            tabIndex={0} // Make the div focusable
+            onClick={() => handleCardClick(doc)} // Use the new function
+            onKeyDown={(e) => { // Handle keyboard interaction
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleCardClick(doc); // Use the new function
+              }
+            }}
+          >
             <div className={styles.cardContent}>
               <div className={styles.cardBody}>
                 <div className={styles.cardTitle}>{doc.title}</div>
@@ -90,14 +96,15 @@ const ScrollableDocumentsList = (props) => {
       {props.addButton !== null && (
         <button
           className={styles.addButton}
-          onClick={() =>
+          onClick={() => {
             navigate('/document-creation', {
-              state: { customArea: props.addButton },
-            })
-          }
+              state: { customArea: props.addButton }
+            });
+            props.closeList(); // Close the list when navigating
+          }}
         >
-            <i className="bi bi-plus"></i>
-          </button>
+          <i className="bi bi-plus"></i>
+        </button>
       )}
     </div>
   );
@@ -107,6 +114,8 @@ ScrollableDocumentsList.propTypes = {
   markers: PropTypes.array,
   handleVisualize: PropTypes.func,
   closeList: PropTypes.func,
+  handleFilterByTitleInList: PropTypes.func, // Ensure this prop is defined
+  addButton: PropTypes.any, // Specify the expected type for addButton
 };
 
 export default ScrollableDocumentsList;

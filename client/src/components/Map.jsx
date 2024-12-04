@@ -234,8 +234,6 @@ const MapComponent = () => {
                         />
                     )}
 
-
-
                     {kirunaPolygonCoordinates.map((polygonCoordinates) => (
                         <Polygon
                             key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
@@ -278,10 +276,12 @@ const MapComponent = () => {
                                     <MemoizedMarker
                                         key={marker._id}
                                         marker={marker}
-                                        onClick={() => setSelectedMarker({
-                                            doc: marker,
-                                            position: [marker.latitude, marker.longitude]
-                                        })}
+                                        onClick={() => {
+                                            setSelectedMarker({
+                                                doc: marker,
+                                                position: [marker.latitude, marker.longitude]
+                                            })}
+                                        }
                                     />
                                 
                                 ))
@@ -306,22 +306,25 @@ const MapComponent = () => {
                         </MarkerClusterGroup>
 
                         {selectedMarker && (
-                            <Popup
-                                position={selectedMarker.position}
-                                onClose={() => setSelectedMarker(null)}
-                                maxWidth={800}
-                                minWidth={500}
-                                maxHeight={500}
-                                className={styles.popup}
-                            >
-                                <DetailPlanCard
-                                    doc={selectedMarker.doc}
-                                    onClose={() => setSelectedMarker(null)}
-                                    onChangeCoordinates={handleChangeCoordinates}
-                                    onToggleSelecting={setIsAddingDocument}
-                                />
-                            </Popup>
-                        )}
+    <div className={styles.popupContainer}>
+        <div className={styles.popupHeader}>
+            <button
+                className={styles.closeButton}
+                onClick={() => setSelectedMarker(null)}
+            >
+                &times; {/* Close icon */}
+            </button>
+        </div>
+        <div className={styles.popupContent}>
+            <DetailPlanCard
+                doc={selectedMarker.doc}
+                onClose={() => setSelectedMarker(null)}
+                onChangeCoordinates={handleChangeCoordinates}
+                onToggleSelecting={setIsAddingDocument}
+            />
+        </div>
+    </div>
+)}
 
                     {municipalArea &&
                         <Marker
