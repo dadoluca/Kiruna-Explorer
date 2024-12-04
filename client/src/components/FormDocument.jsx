@@ -462,7 +462,7 @@ function DocumentInsert() {
                 </FloatingLabel>
 
                 {/* Custom Stakeholder */}
-                <FloatingLabel label="Custom Stakeholder *" className="mb-3">
+                <FloatingLabel label="Custom Stakeholder" className="mb-3">
                     <Form.Control
                         type="text"
                         value={customStakeholder}
@@ -479,28 +479,11 @@ function DocumentInsert() {
                     Add Custom Stakeholder to the List
                 </Button>
 
-                {/* Connections - Non-editable field with value set to 1 */}
+
                 <Row>
+                    {/* Scale */}
                     <Col md={6}>
-                        <FloatingLabel label="Connections *" className="mb-3">
-                            <Form.Control type="number" value={0} disabled required />
-                        </FloatingLabel>
-                    </Col>
-                    <Col md={6}>
-                        <FloatingLabel label="Pages" className="mb-3">
-                            <Form.Control
-                                type="text"
-                                value={pages}
-                                onChange={(ev) => setPages(ev.target.value)}
-                            />
-                        </FloatingLabel>
-                    </Col>
-                </Row>
-                
-                {/* Scale */}
-                <Row className="mb-3">
-                    <Col md={6}>
-                        <FloatingLabel label="Scale *" className="mb-3">
+                        <FloatingLabel label="Scale *" className="mb-4">
                             <Form.Select
                                 value={scale}
                                 onChange={(ev) => {
@@ -527,20 +510,28 @@ function DocumentInsert() {
                             {errors.scale}
                         </Form.Control.Feedback>
                     </Col>
-
-                    {/* Custom Scale Input */}
+                    {/* Pages */}
                     <Col md={6}>
-                        {scale === "Add Custom..." && (
-                            <FloatingLabel label="Custom Scale *" className="mb-3">
-                                <Form.Control
-                                    type="text"
-                                    value={customScale}
-                                    onChange={(ev) => setCustomScale(ev.target.value)}
-                                />
-                            </FloatingLabel>
-                        )}
+                        <FloatingLabel label="Pages" className="mb-4">
+                            <Form.Control
+                                type="text"
+                                value={pages}
+                                onChange={(ev) => setPages(ev.target.value)}
+                            />
+                        </FloatingLabel>
                     </Col>
                 </Row>
+
+                {/* Custom Scale Input */}
+                {scale === "Add Custom..." && (
+                    <FloatingLabel label="Custom Scale *" className="mb-4">
+                        <Form.Control
+                            type="text"
+                            value={customScale}
+                            onChange={(ev) => setCustomScale(ev.target.value)}
+                        />
+                    </FloatingLabel>
+                )}
                 
                 {/* Coordinates */}
                 {isArea === null &&(
@@ -573,7 +564,7 @@ function DocumentInsert() {
                         </ButtonGroup>
                     </div>
                 )}
-                {!municipal && (
+                {!municipal && isArea === null &&(
                     <Row className="mb-4">
                         <Col md={6}>
                             <FloatingLabel label="Longitude *">
