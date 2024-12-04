@@ -98,7 +98,7 @@ const MemoizedMarker = React.memo(
         positions={area.geometry.coordinates.map((ring) =>
           ring.map(([longitude, latitude]) => [latitude, longitude])
         )}
-        color="blue"
+        color={area.properties.color}
       />
     ),
     (prevProps, nextProps) => 

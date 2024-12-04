@@ -29,6 +29,10 @@ const areaSchema = new mongoose.Schema({
         }
       }
     },
+    color: { // Explicitly define color field
+      type: String,
+      required: false
+    }
   },
   geometry: {
     type: {

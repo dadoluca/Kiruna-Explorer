@@ -1,28 +1,63 @@
 import Area from '../models/Geolocation.mjs';
 import { centroid } from '@turf/turf';
+import crypto from 'crypto';
 
+const generateSecureRandomColor = () => {
+  const randomBytes = crypto.randomBytes(3); // Generate 3 random bytes
+  return `#${randomBytes.toString('hex')}`; // Convert to hexadecimal
+};
 // Create a new area
 export const createArea = async (req, res) => {
   try {
     const { geojson, name } = req.body;
 
-    // Assign a name if provided
+    // Validate geojson data structure
+    if (!geojson || geojson.type !== 'Feature' || !geojson.geometry || !geojson.properties) {
+      throw new Error('Invalid GeoJSON data. Ensure it conforms to the Feature schema.');
+    }
+
+    // Assign a name to the geojson properties if provided
     if (name) {
       geojson.properties.name = name;
     }
 
-    // Calculate and assign the centroid
+    // Calculate and assign the centroid to the geojson properties
     const center = centroid(geojson);
-    geojson.properties.centroid = center.geometry;
+    geojson.properties.centroid = {
+      type: 'Point',
+      coordinates: center.geometry.coordinates, // Ensure it follows the [longitude, latitude] format
+    };
 
-    // Generate a random color
-    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
-    geojson.properties.color = randomColor;
+    // Validate centroid coordinates
+    if (geojson.properties.centroid.coordinates.length !== 2) {
+      throw new Error('Centroid coordinates must be an array of two numbers [longitude, latitude].');
+    }
+
+    // Generate a secure random color and assign it to the geojson properties
+    geojson.properties.color = generateSecureRandomColor();
+
+    // Validate geometry structure for Polygon
+    if (
+      geojson.geometry.type !== 'Polygon' ||
+      !geojson.geometry.coordinates.every((ring) =>
+        ring.length > 3 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+      )
+    ) {
+      throw new Error(
+        'Invalid Polygon geometry. Each polygon must have at least 4 vertices, with the first and last coordinates matching.'
+      );
+    }
 
     // Save the area to the database
-    const area = new Area(geojson);
+    const area = new Area({
+      type: geojson.type,
+      properties: geojson.properties,
+      geometry: geojson.geometry,
+    });
+
     await area.save();
 
+    // Send a success response with the newly created area
     res.status(201).json(area);
   } catch (error) {
     console.error('Error creating area:', error);
