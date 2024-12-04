@@ -4,38 +4,17 @@ import { centroid } from '@turf/turf';
 // Create a new area
 export const createArea = async (req, res) => {
   try {
-    const { points, name } = req.body;
+    const { geojson, name } = req.body;
 
-    // Invert the points (lat, long) -> (long, lat)
-    const invertedPoints = points.map(ring => 
-      ring.map(point => [point[1], point[0]]) // [lat, long] -> [long, lat]
-    );
+    if (name) {
+      geojson.properties.name = name;
+    }
 
-    // Ensure the polygon is closed by adding the first point at the end
-    invertedPoints.forEach(ring => {
-      if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) {
-        ring.push(ring[0]); // Add the first point to the end of the ring
-      }
-    });
+    const center = centroid(geojson);
 
-    // Prepare the GeoJSON feature
-    const areaData = {
-      type: 'Feature',
-      properties: name ? { name } : {}, // Add name only if provided
-      geometry: {
-        type: 'Polygon',
-        coordinates: invertedPoints, // Using the inverted points with closure
-      },
-    };
+    geojson.properties.centroid = center.geometry;
 
-    // Calculate the centroid using Turf.js
-    const center = centroid(areaData);
-
-    // Add the centroid to the properties
-    areaData.properties.centroid = center;
-
-    // Save the area in the database
-    const area = new Area(areaData);
+    const area = new Area(geojson);
     await area.save();
 
     res.status(201).json(area);
