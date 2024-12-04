@@ -9,7 +9,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
 
-    const [xDomain, setXDomain] = useState(range(2004, 2024, 1)); // Initial range for the X-axis (years)
+    const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
 
@@ -107,8 +107,7 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
             // Update the X-axis domain based on the min/max year from documents
             const newXDomain = range(
                 Math.min(...documents.map((doc) => extractYear(doc.issuance_date.toString()))), 
-                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString()))), 
-                1
+                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString())))
             );
 
             // Update scale nodes based on scale format
