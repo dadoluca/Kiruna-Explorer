@@ -30,6 +30,7 @@ export const createArea = async (req, res) => {
   }
 };
 
+
 // Get all areas
 export const getAllAreas = async (req, res) => {
   try {
@@ -44,36 +45,44 @@ export const saveArea = async (req, res) => {
   try {
     const { points, name } = req.body;
 
-    // Invert the points (lat, long) -> (long, lat)
-    const invertedPoints = points.map(ring => 
-      ring.map(point => [point[1], point[0]]) // [lat, long] -> [long, lat]
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      throw new Error('Points data is required.');
+    }
+
+    // Check if the polygon is closed
+    const isPolygonClosed = points.every(
+      ring => 
+        ring.length > 3 &&
+        ring[0][0] === ring[ring.length - 1][0] &&
+        ring[0][1] === ring[ring.length - 1][1]
     );
 
-    // Ensure the polygon is closed by adding the first point at the end
-    invertedPoints.forEach(ring => {
-      if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) {
-        ring.push(ring[0]); // Add the first point to the end of the ring to close the polygon
-      }
-    });
+    if (!isPolygonClosed) {
+      throw new Error('Polygon is not closed.');
+    }
+
+    // Invert the points (lat, long) -> (long, lat)
+    const invertedPoints = points.map(ring =>
+      ring.map(point => [point[1], point[0]])
+    );
 
     // Prepare the GeoJSON feature
     const areaData = {
       type: 'Feature',
-      properties: name ? { name } : {}, // Add name only if provided
+      properties: name ? { name } : {},
       geometry: {
         type: 'Polygon',
-        coordinates: invertedPoints, // Using the inverted points with closure
+        coordinates: invertedPoints,
       },
     };
 
     // Calculate the centroid using Turf.js
     const center = centroid(areaData);
-
-    // Add the centroid to the properties
     areaData.properties.centroid = {
-      type:'Point',
-      coordinates: center.geometry.coordinates
-    }
+      type: 'Point',
+      coordinates: center.geometry.coordinates,
+    };
+
     // Save the area in the database
     const area = new Area(areaData);
     await area.save();
@@ -84,3 +93,4 @@ export const saveArea = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
