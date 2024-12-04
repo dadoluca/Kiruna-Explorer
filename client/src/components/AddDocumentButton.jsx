@@ -1,19 +1,18 @@
 import React, { useState, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMapEvents} from 'react-leaflet';
-import { DocumentContext } from '../contexts/DocumentContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
+import { SelectionState } from './SelectionState'; 
+import  CloseModeSelectionButton  from './CloseModeSelectionButton';
 
-function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinates }) {
+function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const { setIsAddingToPoint } = useContext(DocumentContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
-    const [isChoosingNewPoint, setIsChoosingNewPoint] = useState(false);
 
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
     const isPointInPolygon = (point, vs) => {
@@ -35,24 +34,22 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
 
     const handleChangeCoordinates = (doc) => {
         setChangingDocument(doc);
-        setIsSelecting(true); // Start selecting mode
+        setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE); // Start selecting mode
     };
 
     const handleChooseNewPoint = () => {
-        setIsChoosingNewPoint(true);
-        setIsSelecting(true);
+        setIsAddingDocument(SelectionState.NEW_POINT);
     }
 
     const handleSelectExistingPoint = () => {
-        setProva(true);
-        setIsAddingToPoint(true);
+        setIsAddingDocument(SelectionState.EXISTING_POINT);
     };
 
     const MapMouseEvents = () => {
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isSelecting && loggedIn && changingDocument == null ) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null ) {
                     const newCoords = { 
                     lat: e.latlng.lat.toFixed(5), 
                     lng: e.latlng.lng.toFixed(5) 
@@ -63,14 +60,15 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
             click: (e) => {
 
                 // Naviga alla creazione documento se in modalità selezione
-                if (isSelecting && loggedIn && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon => 
                       isPointInPolygon(mouseCoords, polygon)
                     );
                   
                     if (isInAnyPolygon) {
+                        console.log(e.latlng);
                       navigate('/document-creation', { state: { coordinates: e.latlng } });
-                      setIsSelecting(false);
+                      setIsAddingDocument(SelectionState.NOT_IN_PROGRESS);
                       return;
                     }
                 }
@@ -102,7 +100,7 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
     
                     // Reset della modalità
                     setChangingDocument(null);
-                    setIsSelecting(false);
+                    setIsAddingDocument(SelectionState.NOT_IN_PROGRESS);
                 }
             }
         });
@@ -112,46 +110,60 @@ function AddDocumentButton({ isSelecting, setIsSelecting, kirunaPolygonCoordinat
 
     return (
         <>
-        {
-            isChoosingNewPoint && <MapMouseEvents />
-        
+        {isAddingDocument == SelectionState.NEW_POINT && 
+            <MapMouseEvents />
         }
+
+        {/* ---------------- add document button ---------------- */}
         {loggedIn && (
             <div
-                className={`${styles.addButton} ${isSelecting ? styles.expanded : ''}`}
-                onClick={() => setIsSelecting(prev => !prev)}
-                role="button"
+                className={`
+                    ${styles.addButton} 
+                    ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
+                        isAddingDocument == SelectionState.NEW_POINT
+                        ? styles.expanded : ''}`}
                 tabIndex={0}
             >
-                {isSelecting ? (
+                {isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE && (
                     <>
-                        <div className={styles.coordinatesBar}>
-                            {isChoosingNewPoint && mouseCoords.lat && mouseCoords.lng ? (
-                                <>  
-                                     Insert the point in ({mouseCoords.lat}, {mouseCoords.lng}) 
-                                </>
-                            ) : (
-                                <>
-                                   <button className={styles.buttonLink} onClick={handleChooseNewPoint}>
-                                        Choose a New Point
-                                    </button>
-                                    {" "}or{" "}
-                                    <button className={styles.buttonLink} onClick={handleSelectExistingPoint}>
-                                        Select an Existing Point
-                                    </button>
-                                    {" "}or{" "}
-                                    <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
-                                        Choose the Entire Municipality
-                                    </button>
-                                </>
-                            )}
+                       <div>
+                            <button className={styles.buttonLink} onClick={handleChooseNewPoint}>
+                                Choose a New Point
+                            </button>
+                            {" "}or{" "}
+                            <button className={styles.buttonLink} onClick={handleSelectExistingPoint}>
+                                Select an Existing Point
+                            </button>
+                            {" "}or{" "}
+                            <button className={styles.buttonLink} onClick={handleAssignToMunicipalArea}>
+                                Choose the Entire Municipality
+                            </button>
+                            <div className={styles.spazio}></div>
                         </div>
-                        <div className={styles.spazio}></div>
-                        <FontAwesomeIcon icon={faTimes} />
                     </>
-                ) : (
-                    <FontAwesomeIcon icon={faPlus} />
                 )}
+
+                {isAddingDocument == SelectionState.NEW_POINT && mouseCoords.lat && mouseCoords.lng && (
+                    <>              
+                        Insert the point in ({mouseCoords.lat}, {mouseCoords.lng})
+                        <div className={styles.spazio}></div>
+                    </>
+                )}
+
+                {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
+                        <CloseModeSelectionButton onClick={() => {setIsAddingDocument(SelectionState.NOT_IN_PROGRESS)}}/>
+                    )
+                    :
+                    (   
+                        <button
+                            style={{backgroundColor: 'transparent', color: 'white', border: 'none'}}
+                            onClick={() => setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE)}
+                        >
+                            <FontAwesomeIcon icon={faPlus}/>
+                        </button>
+                    )
+                }
+
             </div>
         )}
         </>

@@ -15,6 +15,7 @@ import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for
 import AddDocumentButton from './AddDocumentButton';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+import { SelectionState } from './SelectionState'; 
 
 
 
@@ -72,6 +73,44 @@ const MemoizedMarker = React.memo(
     }
 );
 
+
+const MemoizedSelectPointMarker = React.memo(
+    ({ marker, onClick }) => {
+        const markerRef = React.useRef(null);
+
+        const handleMouseOver = () => {
+            if (markerRef.current) {
+                markerRef.current._icon.style.filter = 'brightness(0.5)'; //  hover 
+            }
+        };
+
+        const handleMouseOut = () => {
+            if (markerRef.current) {
+                markerRef.current._icon.style.filter = 'brightness(1)'; // remove hover
+            }
+        };
+
+        return (
+            <Marker
+                ref={markerRef}
+                position={[marker.latitude, marker.longitude]}
+                eventHandlers={{
+                    click: onClick,
+                    mouseover: handleMouseOver,
+                    mouseout: handleMouseOut,
+                }}
+            >
+                <Tooltip>{marker.latitude}, {marker.longitude}</Tooltip>
+            </Marker>
+        );
+    },
+    (prevProps, nextProps) => {
+        // Check if the important properties have changed (e.g., coordinates)
+        return prevProps.marker.latitude === nextProps.marker.latitude &&
+            prevProps.marker.longitude === nextProps.marker.longitude;
+    }
+);
+
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
@@ -79,7 +118,7 @@ const MapComponent = () => {
     const position = [68.1, 20.4]; // Kiruna coordinates
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const [isSelecting, setIsSelecting] = useState(false); // Selection state
+    const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, isAddingToPoint } = useContext(DocumentContext);
     const [customArea, setCustomArea] = useState(null);
@@ -125,7 +164,7 @@ const MapComponent = () => {
 
     const handleChangeCoordinates = (doc) => {
         setChangingDocument(doc);
-        setIsSelecting(true); // Start selecting mode
+        setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE); // Start selecting mode
     };
 
     return (
@@ -138,7 +177,7 @@ const MapComponent = () => {
                 className={` ${isListing ? styles.listing : styles.mapContainer}`} 
                 zoomControl={false}
             >
-                    {<AddDocumentButton isSelecting={isSelecting} setIsSelecting={setIsSelecting} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
+                    {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates}/>
 
@@ -169,9 +208,22 @@ const MapComponent = () => {
 
                     {
                     
-                    isAddingToPoint 
+                    isAddingDocument === SelectionState.EXISTING_POINT
                     ?
-                        <></>
+                        <>
+                        {
+                             markers
+                                .filter(marker => marker.areaId === undefined)
+                                .map((marker) => (
+                                <MemoizedSelectPointMarker
+                                    key={marker._id}
+                                    marker={marker}
+                                    onClick={() => {navigate('/document-creation', { state: { coordinates: { lat: marker.latitude, lng: marker.longitude } } });}}
+                                />
+                         
+                         ))
+                        }
+                        </>
                     :
 
                     <>
@@ -223,7 +275,7 @@ const MapComponent = () => {
                                     doc={selectedMarker.doc}
                                     onClose={() => setSelectedMarker(null)}
                                     onChangeCoordinates={handleChangeCoordinates}
-                                    onToggleSelecting={setIsSelecting}
+                                    onToggleSelecting={setIsAddingDocument}
                                 />
                             </Popup>
                         )}
