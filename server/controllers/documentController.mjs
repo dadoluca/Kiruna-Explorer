@@ -663,7 +663,7 @@ export const getSelectionFields = async (req, res) => {
   try {
     // Fetch stakeholders and document types from the database
     const stakeholders = await Document.distinct('stakeholders'); // Example: Retrieve stakeholders
-    const documentTypes = await Document.distinct('tyoe'); // Example: Retrieve document types
+    const documentTypes = await Document.distinct('type'); // Example: Retrieve document types
 
     // Return the data
     res.json({
