@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.mjs';
 import documentRoutes from './routes/documentRoutes.mjs';
 import { errorHandler } from './middleware/errorMiddleware.mjs';  
+import areaRoutes from './routes/geolocationRoutes.mjs';
 import { loginUser, updateUserProfile } from './controllers/userController.mjs';
 
 dotenv.config();
@@ -16,6 +17,7 @@ export const createApp = () => {
   // Register your routes
   app.use('/users', userRoutes);
   app.use('/documents', documentRoutes);
+  app.use('/areas', areaRoutes);
   app.use(errorHandler);
 
   return app;
