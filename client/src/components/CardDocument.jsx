@@ -42,7 +42,7 @@ const DetailPlanCard = (props) => {
             <FaUser className={styles.icon} />
             <strong> Stakeholders:</strong> {document.stakeholders?.length > 0 ? (
               document.stakeholders.map((item) => (
-                <div key={item.id} className={styles.stakeholderItem}>{item.name}</div>
+                <div key={item.id} className={styles.stakeholderItem}>{item}</div>
               ))
             ) : "N/A"}
           </ListGroup.Item>
@@ -72,7 +72,7 @@ const DetailPlanCard = (props) => {
               <Dropdown.Menu>
                 {document.relationships?.length > 0 ? (
                   document.relationships.map((rel, index) => (
-                    <Dropdown.Item key={index}>
+                    <Dropdown.Item key={document._id}>
                       {rel.documentTitle} - {rel.type}
                     </Dropdown.Item>
                   ))

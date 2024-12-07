@@ -5,13 +5,10 @@ import ResourceForm from './FormResource';
 import API from '../services/api';
 
 const NewResourceModal = ({ show, onClose, documentId, documentTitle }) => {
-    const [resources, setResources] = useState([]);
     
     useEffect(() => {
         if (show && documentId) {
-        API.getResources(documentId).then((data) => {
-            setResources(data);
-        });
+        API.getResources(documentId);
         }
     }, [documentId, show]);
     

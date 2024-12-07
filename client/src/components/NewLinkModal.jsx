@@ -99,7 +99,7 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
       </Modal.Header>
       <Modal.Body>
         {connections.map((connection, index) => (
-          <div key={index} className="mb-3">
+          <div key={connection._id} className="mb-3">
             <Form.Group controlId={`formDocumentSelect-${index}`} className="mb-3">
               <Form.Label>Select Document</Form.Label>
               <Select

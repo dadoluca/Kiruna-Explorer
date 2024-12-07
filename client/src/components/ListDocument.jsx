@@ -28,7 +28,7 @@ const ScrollableDocumentsList = (props) => {
             {docList.map((doc, index) => (
                 <Card 
                   bg={'light'}
-                  key={index}
+                  key={doc._id}
                   text={'dark'}
                   className={`${styles.card} mb-2`}
                 >

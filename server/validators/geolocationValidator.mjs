@@ -1,25 +1,6 @@
 import { body, validationResult } from 'express-validator';
 import * as turf from '@turf/turf';
-
-const kirunaPolygon = {
-  type: "Polygon",
-  coordinates: [
-    [
-      [20.18, 67.88195091],
-      [20.21, 67.85],
-      [20.2, 67.841],
-      [20.23, 67.84037],
-      [20.288, 67.826],
-      [20.304, 67.8365],
-      [20.303, 67.842],
-      [20.315, 67.844],
-      [20.35, 67.835],
-      [20.37, 67.85],
-      [20.3, 67.86],
-      [20.18, 67.88195091]
-    ]
-  ]
-};
+import kirunaGeoJSON from '../data/KirunaMunicipality.json' assert { type: 'json' };
 
 export const validateArea = [
   body('points')
@@ -64,9 +45,11 @@ export const validateArea = [
         throw new Error(`Latitude of point ${index + 1} must be between -90 and 90.`);
       }
 
-      const pointGeoJSON = turf.point([longitude, latitude]);
-      const kirunaGeoJSON = turf.polygon(kirunaPolygon.coordinates);
-      if (!turf.booleanPointInPolygon(pointGeoJSON, kirunaGeoJSON)) {
+      const kirunaPolygon = kirunaGeoJSON.features[0].geometry;
+
+      const vertex = turf.point([longitude, latitude]);
+      const kiruna = turf.multiPolygon(kirunaPolygon.coordinates);
+      if (!turf.booleanPointInPolygon(vertex, kiruna)) {
         throw new Error(`Point ${index + 1} must be within the municipality of Kiruna.`);
       }
     });
