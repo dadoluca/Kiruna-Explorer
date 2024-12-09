@@ -164,8 +164,9 @@ const MapComponent = () => {
     // Handler to update filtered documents on map
     const handleFilterByTitle = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if(!title || title === "All"){
             setMapMarkers();
+        }
         else
             setMapMarkers((doc) => doc.title === title);//passing the filter
     };
@@ -173,8 +174,9 @@ const MapComponent = () => {
     // Handler to update filtered documents on list
     const handleFilterByTitleInList = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if(!title || title === "All"){
             setListContent();
+        }
         else
             setListContent((doc) => doc.title === title);//passing the filter
     };
@@ -305,26 +307,7 @@ const MapComponent = () => {
 
                         </MarkerClusterGroup>
 
-                        {selectedMarker && (
-    <div className={styles.popupContainer}>
-        <div className={styles.popupHeader}>
-            <button
-                className={styles.closeButton}
-                onClick={() => setSelectedMarker(null)}
-            >
-                &times; {/* Close icon */}
-            </button>
-        </div>
-        <div className={styles.popupContent}>
-            <DetailPlanCard
-                doc={selectedMarker.doc}
-                onClose={() => setSelectedMarker(null)}
-                onChangeCoordinates={handleChangeCoordinates}
-                onToggleSelecting={setIsAddingDocument}
-            />
-        </div>
-    </div>
-)}
+                        
 
                     {municipalArea &&
                         <Marker
@@ -341,6 +324,16 @@ const MapComponent = () => {
 
                 <Legend />
 
+                {selectedMarker && (
+                    <DetailPlanCard
+                        doc={selectedMarker.doc}
+                        onClose={() => setSelectedMarker(null)}
+                        onChangeCoordinates={handleChangeCoordinates}
+                        onToggleSelecting={setIsAddingDocument}
+                        isListing={isListing}
+                    />
+
+                )}
 
                 {isListing  
                 && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}

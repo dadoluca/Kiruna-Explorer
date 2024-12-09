@@ -23,7 +23,6 @@ const ScrollableDocumentsList = (props) => {
 
   const handleCardClick = (doc) => {
     props.handleVisualize(doc); // Call the visualize function
-    props.closeList(); // Close the list
   };
 
   return (
@@ -35,12 +34,13 @@ const ScrollableDocumentsList = (props) => {
             {loggedIn && <SearchBar onFilter={handleFilter} />}
           </Col>
           <Col md={2} className={styles.closeButtonContainer}>
-            <Button
-              className={styles.closeButton}
-              onClick={() => props.closeList()}
+          <button
+            className={styles.closeButton}
+            onClick={() => props.closeList()}
+            aria-label="Close"
             >
-              <i className="bi bi-x-lg"></i>
-            </Button>
+              &times;
+          </button>
           </Col>
         </Row>
       </div>
