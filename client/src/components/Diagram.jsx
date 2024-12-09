@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import styles from './Diagram.module.css';
 
-const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
+const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
@@ -12,10 +10,6 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
-
-    const handleToggleClick = () => {
-        setIsDiagramOpen(!isDiagramOpen);
-    };
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -143,8 +137,6 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const svgRef = useRef();
 
     useEffect(() => {
-        if(!isDiagramOpen) return;
-
         const width = 1200;
         const height = 300;
         const margin = { top: 20, right: 20, bottom: 40, left: 300 };
@@ -361,33 +353,10 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links, isDiagramOpen]);
+    }, [documents, xDomain, yDomain, links]);
 
     return (
-        <div className={styles.diagramWrapper}>
-            <div
-                className={styles.toggleContainer}
-                role="button" // Adds the semantic meaning of a button
-                tabIndex={0}  // Makes the div focusable
-                onClick={handleToggleClick} // Handles mouse clicks
-                onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault(); // Prevent scrolling for Space key
-                    handleToggleClick();
-                }
-                }} // Handles keyboard interactions
-                aria-expanded={isDiagramOpen} // ARIA state for expanded/collapsed content
-                aria-label="Toggle diagram" // Adds an accessible label
-            >
-                <ExpandMoreIcon
-                className={`${styles.toggleIcon} ${isDiagramOpen ? styles.rotate : ''}`}
-                fontSize="large"
-                />
-            </div>
-
-    
-          <svg ref={svgRef} className={`${styles.diagram} ${isDiagramOpen ? styles.openDiagram : styles.closedDiagram}`}></svg>
-        </div>
+        <svg ref={svgRef}></svg>
     );
 };
 
