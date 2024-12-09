@@ -179,6 +179,35 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
         svg.append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`)
             .call(xAxis);
+
+        // Grids creation
+        const xGrid = d3.axisBottom(xScale)
+            .tickSize(-(height - margin.top - margin.bottom)) // Grid lines extend the height of the chart
+            .tickFormat("");
+
+        // Append X grid
+        svg.append("g")
+            .attr("class", "x-grid")
+            .attr("transform", `translate(${margin.left}, ${margin.top + height - margin.top - margin.bottom})`)
+            .call(xGrid)
+            .selectAll("line")
+            .style("stroke", "#888");
+
+        // Manual Y Grid (for alignment with band scale)
+        const yGridGroup = svg.append("g")
+        .attr("class", "y-grid")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        yDomain.forEach((d) => {
+        const y = yScale(d) + yScale.bandwidth() / 2 + 10; // Center of the band
+        yGridGroup.append("line")
+            .attr("x1", 0)
+            .attr("x2", width - margin.left - margin.right)
+            .attr("y1", y)
+            .attr("y2", y)
+            .style("stroke", "#888");
+        });
+  
     
         // Update existing nodes instead of removing them
         svg.append("g")
