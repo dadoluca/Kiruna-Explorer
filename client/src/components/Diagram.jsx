@@ -41,8 +41,6 @@ const Diagram = () => {
     
         let popupX = x - rectWidth / 2; 
         let popupY = y - rectHeight - 10; 
-
-        console.log(popupX, rectWidth, svgWidth);
     
         if (popupX < 0) popupX = 0; 
         if (popupX + rectWidth > svgWidth) popupX = svgWidth - rectWidth; 
@@ -325,8 +323,9 @@ const Diagram = () => {
         });
 
         // Draw links between nodes based on calculated links
-        svg.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
+        const linksGroup = svg.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
+
+        const allLinks  = linksGroup
             .selectAll("path")
             .data(links)
             .join("path")
@@ -384,6 +383,72 @@ const Diagram = () => {
             })
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
+
+        // Append hidden popup container for links
+        const linkPopup = linksGroup.append("g")
+            .attr("class", "link-popup")
+            .style("visibility", "hidden");
+
+        linkPopup.append("rect")
+            .attr("width", 180)
+            .attr("height", 30)
+            .attr("rx", 5)
+            .attr("fill", "rgba(0, 0, 0, 0.8)")
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 1);
+
+        linkPopup.append("text")
+            .attr("x", 10)
+            .attr("y", 20)
+            .attr("font-size", 12)
+            .attr("fill", "#ffffff");
+
+        // Add hover interaction for links
+        allLinks.on("mouseover", function (event, d) {
+            // Calculate positions based on link's source and target
+            const sourceNode = documents.find((doc) => doc._id === d.source);
+            const targetNode = documents.find((doc) => doc._id === d.target);
+            
+            const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
+            const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
+        
+            const sourceGroup = groupedNodes.get(sourceKey);
+            const targetGroup = groupedNodes.get(targetKey);
+        
+            const sourceIndex = sourceGroup.indexOf(sourceNode);
+            const targetIndex = targetGroup.indexOf(targetNode);
+        
+            const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
+            const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
+        
+            const sourcePos = calculateRadialPosition(
+                sourceIndex,
+                sourceGroup.length,
+                xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
+                yScale(validSourceScale)
+            );
+        
+            const targetPos = calculateRadialPosition(
+                targetIndex,
+                targetGroup.length,
+                xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
+                yScale(validTargetScale)
+            );
+        
+            // Calculate the midpoint of the link for popup positioning
+            const midX = (sourcePos.x + targetPos.x) / 2;
+            const midY = (sourcePos.y + targetPos.y) / 2;
+        
+            // Set popup position
+            linkPopup.attr("transform", `translate(${midX}, ${midY})`)
+                .style("visibility", "visible");
+        
+            // Update popup text
+            linkPopup.select("text").text(`Type: ${d.type}`);
+        })
+        .on("mouseout", function () {
+            linkPopup.style("visibility", "hidden");
+        });
 
         //Legend
         const legendGroup = svg.append("g")
