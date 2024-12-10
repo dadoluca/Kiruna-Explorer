@@ -28,7 +28,7 @@ function MapPage() {
             const maxHeight = window.innerHeight - containerRef.current.offsetTop; // Limit the height to the maximum window height
 
             // Set the new height if it falls within valid bounds
-            if (newHeight > 100 && newHeight < maxHeight) { // No more arbitrary limits, only window height constraint
+            if (newHeight > 0 && newHeight < maxHeight) { // No more arbitrary limits, only window height constraint
                 setDiagramHeight(newHeight);
             }
         }
