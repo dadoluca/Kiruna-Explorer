@@ -6,6 +6,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Row, Col } from 'react-bootstrap';
 import API from '../services/api';
 import { FaFilePdf, FaFileImage, FaFileWord, FaFileExcel, FaFileAlt, FaFileArchive } from "react-icons/fa";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ResourcesModal = ({ show, onClose, documentId, documentTitle }) => {
     const [resources, setResources] = useState([]);
@@ -24,9 +26,13 @@ const ResourcesModal = ({ show, onClose, documentId, documentTitle }) => {
     
     useEffect(() => {
         if (show && documentId) {
-        API.getResources(documentId).then((data) => {
-            setResources(data.resources);
-        });
+            API.getResources(documentId).then((data) => {
+                setResources(data.resources);
+            })
+            .catch((error) => {
+                console.error("Error loading resources:", error);
+                toast.error("Failed to load resources!");
+            });
         }
     }, [documentId, show]);
 

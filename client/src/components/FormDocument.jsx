@@ -14,6 +14,8 @@ import { useDocumentContext } from '../contexts/DocumentContext';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import * as turf from "@turf/turf";
 import { ButtonGroup, ToggleButton } from 'react-bootstrap';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function DocumentInsert() {
     const navigate = useNavigate();
@@ -223,10 +225,11 @@ function DocumentInsert() {
 
             // Reset form fields after submission
             resetForm();
-            alert("Document added successfully!");
+            toast.success("Document added successfully!");
             navigate('/map');
         } catch (error) {
             console.error("Failed to create a new document:", error);
+            toast.error("Failed to create a new document!");
         }
     };
 
@@ -274,8 +277,14 @@ function DocumentInsert() {
         if (!stakeholders || stakeholders.length === 0) {
             newErrors.stakeholders = 'Stakeholders are required';
         }
-        if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
+        if (!type) newErrors.type = 'Type is required';
+        if (type === 'Add Custom...' && !customType) {
+            newErrors.customType = 'Type is required';
+        }
         if (!scale) newErrors.scale = 'Scale is required';
+        if (scale === 'Add Custom...' && !customScale) {
+            newErrors.customScale = 'Scale is required';
+        }
         if (!description) newErrors.description = 'Description is required';
         if (!date) newErrors.date = 'Date is required';
 
@@ -284,7 +293,7 @@ function DocumentInsert() {
             if (!latitude) newErrors.latitude = 'Latitude is required';
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
-
+        
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -359,7 +368,7 @@ function DocumentInsert() {
 
     return (
         <Card className={styles.formCard}>
-            <Card.Title className={styles.title}><i class="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
+            <Card.Title className={styles.title}><i className="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
             <Card.Body>
                 <FloatingLabel label="Title of the document *" className={styles.formField}>
                     <Form.Control
@@ -427,7 +436,11 @@ function DocumentInsert() {
                             type="text"
                             value={customType}
                             onChange={(ev) => setCustomType(ev.target.value)}
+                            isInvalid={!!errors.customType}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.customType}
+                        </Form.Control.Feedback>
                     </FloatingLabel>
                 )}
 
@@ -499,6 +512,8 @@ function DocumentInsert() {
                                         setCustomScale('');
                                     }
                                 }}
+                                isInvalid={!!errors.scale}
+                                required
                             >   
                                 <option value="">Select a scale</option>
                                 <option value="1:1">1:1</option>
@@ -512,10 +527,10 @@ function DocumentInsert() {
                                 <option value="1:1000">1:1000</option>
                                 <option>Add Custom...</option>
                             </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.scale}
+                            </Form.Control.Feedback>
                         </FloatingLabel>
-                        <Form.Control.Feedback type="invalid">
-                            {errors.scale}
-                        </Form.Control.Feedback>
                     </Col>
                     {/* Pages */}
                     <Col md={6}>
@@ -536,7 +551,11 @@ function DocumentInsert() {
                             type="text"
                             value={customScale}
                             onChange={(ev) => setCustomScale(ev.target.value)}
+                            isInvalid={!!errors.customScale}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.customScale}
+                        </Form.Control.Feedback>
                     </FloatingLabel>
                 )}
                 
@@ -638,7 +657,13 @@ function DocumentInsert() {
                             dateFormat={dateFormat}
                             showPopperArrow={false}
                             placeholderText="Choose a date *"
+                            className={`form-control ${errors.date ? 'is-invalid' : ''}`}
                         />
+                        {errors.date && (
+                            <div className="invalid-feedback" style={{ display: 'block' }}>
+                                {errors.date}
+                            </div>
+                        )}
                     </Col>
                 </Row>
 

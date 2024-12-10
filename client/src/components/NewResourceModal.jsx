@@ -3,15 +3,20 @@ import Modal from 'react-bootstrap/Modal';
 import PropTypes from 'prop-types';
 import ResourceForm from './FormResource';
 import API from '../services/api';
+import { toast } from 'react-toastify';
 
 const NewResourceModal = ({ show, onClose, documentId, documentTitle }) => {
     const [resources, setResources] = useState([]);
     
     useEffect(() => {
         if (show && documentId) {
-        API.getResources(documentId).then((data) => {
-            setResources(data);
-        });
+            API.getResources(documentId).then((data) => {
+                setResources(data);
+            })
+            .catch((error) => {
+                console.error("Error loading resources:", error);
+                toast.error("Failed to load resources!");
+            });
         }
     }, [documentId, show]);
     

@@ -1,6 +1,7 @@
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import { useContext } from 'react';
 import { AuthContext } from './contexts/AuthContext';
 import { DocumentProvider } from './contexts/DocumentContext';
@@ -60,6 +61,16 @@ function App() {
   return (
     <DocumentProvider>
       <RouterProvider router={router} />
+      <ToastContainer 
+        position="top-center" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+      />
     </DocumentProvider>
   );
 }

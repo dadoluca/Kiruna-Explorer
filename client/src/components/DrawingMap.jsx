@@ -4,6 +4,8 @@ import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import * as turf from '@turf/turf';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DrawingMap = ({ onPolygonDrawn, limitArea, EnableDrawing, confirmSelectedArea }) => {
   const map = useMap();
@@ -77,7 +79,7 @@ const DrawingMap = ({ onPolygonDrawn, limitArea, EnableDrawing, confirmSelectedA
         drawnItems.addLayer(prevLayer);
         setDrawnPolygon(prevLayer);
       }
-      alert('The drawn area is outside the municipality area.');
+      toast.error('The drawn area is outside the municipality area.');
       console.log('Polygon outside the limit area.');
     }
   };
