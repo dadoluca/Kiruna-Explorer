@@ -24,6 +24,38 @@ const Diagram = () => {
         return parseFloat(str.replace(/[.,]/g, ''));
     }
 
+    function showPopup(x, y, textContent, svgWidth) {
+        const popup = d3.select(".node-popup");
+    
+        const textElement = popup.select("text").text(textContent);
+    
+        const textBBox = textElement.node().getBBox();
+    
+        const padding = 10;
+        const rectWidth = textBBox.width + padding * 2;
+        const rectHeight = textBBox.height + padding * 2;
+    
+        popup.select("rect")
+            .attr("width", rectWidth)
+            .attr("height", rectHeight);
+    
+        let popupX = x - rectWidth / 2; 
+        let popupY = y - rectHeight - 10; 
+    
+        if (popupX < 0) popupX = 0; 
+        if (popupX + rectWidth > svgWidth) popupX = svgWidth - rectWidth; 
+        if (popupY < 0) popupY = y + 10; 
+    
+        popup.attr("transform", `translate(${popupX}, ${popupY})`);
+    
+        popup.style("visibility", "visible");
+    }
+    
+    function hidePopup() {
+        d3.select(".node-popup").style("visibility", "hidden");
+    }
+    
+
     // Function to extract the year from a document's date
     const extractYear = (dataString) => {
         const match = dataString.match(/^(\d{4})-(\d{2})-(\d{2})$|^(\d{4})-(\d{2})$|^(\d{4})$/); // Regex for validating and extracting the year
@@ -202,12 +234,14 @@ const Diagram = () => {
   
     
         // Update existing nodes instead of removing them
-        svg.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
+        const nodesGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
+
+        const nodes = nodesGroup
             .selectAll("g.node-group")
             .data(documents, (d) => d._id)  // Use a unique key
             .join(
-                enter => enter.append("g") // Create a new node if it doesn't exist
+                enter => { const group = enter.append("g") // Create a new node if it doesn't exist
                     .attr("class", "node-group")
                     .attr("transform", (d) => {
                         const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
@@ -227,8 +261,11 @@ const Diagram = () => {
                     .attr("x", -10) // Center the image relative to the node
                     .attr("y", -10)
                     .attr("width", 20)
-                    .attr("height", 20),
-                update => update // Update the position of existing nodes
+                    .attr("height", 20);
+
+                    return group;
+                },
+                update => {const group = update // Update the position of existing nodes
                     .attr("transform", (d) => {
                         const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
                         const group = groupedNodes.get(groupKey); // Get nodes in the same group
@@ -241,13 +278,54 @@ const Diagram = () => {
                             yScale(validScale)
                         );
                         return `translate(${x}, ${y})`;
-                    }),
+                    });
+                    return group;
+                },
                 exit => exit.remove()  // Remove nodes if necessary
             );
 
+         // Append hidden popup container
+        const popup = nodesGroup.append("g")
+        .attr("class", "node-popup")
+        .style("visibility", "hidden");
+
+        popup.append("rect")
+            .attr("width", 150)
+            .attr("height", 50)
+            .attr("rx", 5) // Rounded corners
+            .attr("fill", "rgba(255, 255, 255, 0.9)")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+        popup.append("text")
+            .attr("x", 10)
+            .attr("y", 25)
+            .attr("font-size", 12)
+            .attr("fill", "black");
+
+        // Show and hide popup on mouseover and mouseout
+        nodes.on("mouseover", function (event, d) {
+            const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
+            const group = groupedNodes.get(groupKey); // Get nodes in the same group
+            const index = group.indexOf(d); // Index of the node in the group
+            const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
+            const { x, y } = calculateRadialPosition(
+                index,
+                group.length,
+                xScale(parseInt(extractYear(d.issuance_date.toString()))),
+                yScale(validScale)
+            );
+            const content = d.title || "Node without title"; 
+            showPopup(x, y, content, width-margin.left-margin.right);
+        })
+        .on("mouseout", function () {
+            hidePopup();
+        });
+
         // Draw links between nodes based on calculated links
-        svg.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
+        const linksGroup = svg.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
+
+        const allLinks  = linksGroup
             .selectAll("path")
             .data(links)
             .join("path")
@@ -305,6 +383,72 @@ const Diagram = () => {
             })
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
+
+        // Append hidden popup container for links
+        const linkPopup = linksGroup.append("g")
+            .attr("class", "link-popup")
+            .style("visibility", "hidden");
+
+        linkPopup.append("rect")
+            .attr("width", 180)
+            .attr("height", 30)
+            .attr("rx", 5)
+            .attr("fill", "rgba(0, 0, 0, 0.8)")
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 1);
+
+        linkPopup.append("text")
+            .attr("x", 10)
+            .attr("y", 20)
+            .attr("font-size", 12)
+            .attr("fill", "#ffffff");
+
+        // Add hover interaction for links
+        allLinks.on("mouseover", function (event, d) {
+            // Calculate positions based on link's source and target
+            const sourceNode = documents.find((doc) => doc._id === d.source);
+            const targetNode = documents.find((doc) => doc._id === d.target);
+            
+            const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
+            const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
+        
+            const sourceGroup = groupedNodes.get(sourceKey);
+            const targetGroup = groupedNodes.get(targetKey);
+        
+            const sourceIndex = sourceGroup.indexOf(sourceNode);
+            const targetIndex = targetGroup.indexOf(targetNode);
+        
+            const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
+            const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
+        
+            const sourcePos = calculateRadialPosition(
+                sourceIndex,
+                sourceGroup.length,
+                xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
+                yScale(validSourceScale)
+            );
+        
+            const targetPos = calculateRadialPosition(
+                targetIndex,
+                targetGroup.length,
+                xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
+                yScale(validTargetScale)
+            );
+        
+            // Calculate the midpoint of the link for popup positioning
+            const midX = (sourcePos.x + targetPos.x) / 2;
+            const midY = (sourcePos.y + targetPos.y) / 2;
+        
+            // Set popup position
+            linkPopup.attr("transform", `translate(${midX}, ${midY})`)
+                .style("visibility", "visible");
+        
+            // Update popup text
+            linkPopup.select("text").text(`Type: ${d.type}`);
+        })
+        .on("mouseout", function () {
+            linkPopup.style("visibility", "hidden");
+        });
 
         //Legend
         const legendGroup = svg.append("g")
