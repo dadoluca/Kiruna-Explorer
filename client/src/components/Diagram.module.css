@@ -1,0 +1,28 @@
+.node-popup {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  padding: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  color: #333333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.node-popup rect {
+  fill: #f9f9f9;
+  stroke: #cccccc;
+  stroke-width: 1;
+  rx: 5;
+  ry: 5;
+}
+
+.node-popup text {
+  fill: #333333;
+  alignment-baseline: middle;
+  text-anchor: middle;
+}
