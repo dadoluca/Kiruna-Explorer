@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import styles from './Diagram.module.css';
 
-const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
+const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
@@ -12,10 +10,6 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
-
-    const handleToggleClick = () => {
-        setIsDiagramOpen(!isDiagramOpen);
-    };
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -143,8 +137,6 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
     const svgRef = useRef();
 
     useEffect(() => {
-        if(!isDiagramOpen) return;
-
         const width = 1200;
         const height = 300;
         const margin = { top: 20, right: 20, bottom: 40, left: 300 };
@@ -255,63 +247,64 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
 
         // Draw links between nodes based on calculated links
         svg.append("g")
-        .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
-        .selectAll("path")
-        .data(links)
-        .join("path")
-        .attr("d", (link) => {
-            const sourceNode = documents.find((doc) => doc._id === link.source);
-            const targetNode = documents.find((doc) => doc._id === link.target);
-            const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
-            const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
+            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
+            .selectAll("path")
+            .data(links)
+            .join("path")
+            .attr("d", (link) => {
+                // Calculate positions based on link's source and target
+                const sourceNode = documents.find((doc) => doc._id === link.source);
+                const targetNode = documents.find((doc) => doc._id === link.target);
+                const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
+                const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
 
-            const sourceGroup = groupedNodes.get(sourceKey);
-            const targetGroup = groupedNodes.get(targetKey);
+                const sourceGroup = groupedNodes.get(sourceKey);
+                const targetGroup = groupedNodes.get(targetKey);
 
-            const sourceIndex = sourceGroup.indexOf(sourceNode);
-            const targetIndex = targetGroup.indexOf(targetNode);
+                const sourceIndex = sourceGroup.indexOf(sourceNode);
+                const targetIndex = targetGroup.indexOf(targetNode);
 
-            const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
-            const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
+                const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
+                const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
 
-            const sourcePos = calculateRadialPosition(
-                sourceIndex,
-                sourceGroup.length,
-                xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
-                yScale(validSourceScale)
-            );
+                // Apply an offset based on the link's index in the overall dataset for visual separation
+                const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
 
-            const targetPos = calculateRadialPosition(
-                targetIndex,
-                targetGroup.length,
-                xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
-                yScale(validTargetScale)
-            );
+                const sourcePos = calculateRadialPosition(
+                    sourceIndex,
+                    sourceGroup.length,
+                    xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
+                    yScale(validSourceScale)
+                );
 
-            // Use a cubic Bezier curve for a smooth connection
-            const midX = (sourcePos.x + targetPos.x) / 2;  // Midpoint for the curve
-            //const midY = (sourcePos.y + targetPos.y) / 2;  // Midpoint for the curve
+                const targetPos = calculateRadialPosition(
+                    targetIndex,
+                    targetGroup.length,
+                    xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
+                    yScale(validTargetScale)
+                );
 
-            return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
-        })
-        .attr("fill", "none")
-        .attr("stroke", (d) => {
-            let color;
-            if (d.type === "direct consequence") {
-                color = "#FF8C00";
-            } else if (d.type === "collateral consequence") {
-                color = "#32CD32";
-            } else if (d.type === "projection") {
-                color = "#D32F2F";
-            } else {
-                color = "#003366";
-            }
-            
-            // Usage
-            return color;
-        })
-        .attr("stroke-width", 1)
-        .attr("stroke-dasharray", (d) => getLinkStyle(d.type));
+                // Use a cubic Bezier curve for a smooth connection
+                const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
+
+                return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
+            })
+            .attr("fill", "none")
+            .attr("stroke", (d) => {
+                let color;
+                if (d.type === "direct consequence") {
+                    color = "#FF8C00";
+                } else if (d.type === "collateral consequence") {
+                    color = "#32CD32";
+                } else if (d.type === "projection") {
+                    color = "#D32F2F";
+                } else {
+                    color = "#003366";
+                }
+                return color;
+            })
+            .attr("stroke-width", 1)
+            .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
 
         //Legend
         const legendGroup = svg.append("g")
@@ -361,33 +354,10 @@ const Diagram = ({ isDiagramOpen, setIsDiagramOpen }) => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links, isDiagramOpen]);
+    }, [documents, xDomain, yDomain, links]);
 
     return (
-        <div className={styles.diagramWrapper}>
-            <div
-                className={styles.toggleContainer}
-                role="button" // Adds the semantic meaning of a button
-                tabIndex={0}  // Makes the div focusable
-                onClick={handleToggleClick} // Handles mouse clicks
-                onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault(); // Prevent scrolling for Space key
-                    handleToggleClick();
-                }
-                }} // Handles keyboard interactions
-                aria-expanded={isDiagramOpen} // ARIA state for expanded/collapsed content
-                aria-label="Toggle diagram" // Adds an accessible label
-            >
-                <ExpandMoreIcon
-                className={`${styles.toggleIcon} ${isDiagramOpen ? styles.rotate : ''}`}
-                fontSize="large"
-                />
-            </div>
-
-    
-          <svg ref={svgRef} className={`${styles.diagram} ${isDiagramOpen ? styles.openDiagram : styles.closedDiagram}`}></svg>
-        </div>
+        <svg ref={svgRef}></svg>
     );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState,  useContext } from 'react';
+import React, { useState,  useContext, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup,  Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
@@ -148,6 +148,8 @@ const MemoizedSelectPointMarker = React.memo(
 const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
+    const mapRef = useRef(null);
+    const containerRef = useRef(null);
     const navigate = useNavigate();
     const position = [68.1, 20.4]; // Kiruna coordinates
     const [selectedMarker, setSelectedMarker] = useState(null);
@@ -160,6 +162,29 @@ const MapComponent = () => {
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
     const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+    useEffect(() => {
+        // Function to update the map's size
+        const handleResize = () => {
+            if (mapRef.current) {
+                mapRef.current.invalidateSize(); // Force the map to re-render
+            }
+        };
+
+        // Set up the ResizeObserver
+        const resizeObserver = new ResizeObserver(() => {
+            handleResize(); // Call the function whenever the container's size changes
+        });
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        // Cleanup: disconnect the ResizeObserver when the component unmounts
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
 
     // Handler to update filtered documents on map
     const handleFilterByTitle = (title) => {
@@ -208,7 +233,7 @@ const MapComponent = () => {
     };
 
     return (
-        <div className={styles.mapPage}>
+        <div ref={containerRef} className={styles.mapPage}>
             <div className={styles.mapContainer} >
             {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
             <MapContainer 
@@ -216,6 +241,7 @@ const MapComponent = () => {
                 zoom={8} 
                 className={` ${isListing ? styles.listing : styles.mapContainer}`} 
                 zoomControl={false}
+                ref={mapRef}
             >
                     {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
