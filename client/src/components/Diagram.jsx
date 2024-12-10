@@ -246,17 +246,15 @@ const Diagram = () => {
             );
 
         // Draw links between nodes based on calculated links
-        const linkGroups = d3.groups(links, link => `${link.source}-${link.target}`);
-
         svg.append("g")
             .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`)
             .selectAll("path")
-            .data(linkGroups)  // Use the grouped links
+            .data(links)
             .join("path")
-            .attr("d", ([linkGroupKey, linkGroup]) => {
-                // linkGroup contains all the links between the same pair of nodes
-                const sourceNode = documents.find((doc) => doc._id === linkGroup[0].source);
-                const targetNode = documents.find((doc) => doc._id === linkGroup[0].target);
+            .attr("d", (link) => {
+                // Calculate positions based on link's source and target
+                const sourceNode = documents.find((doc) => doc._id === link.source);
+                const targetNode = documents.find((doc) => doc._id === link.target);
                 const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
                 const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
 
@@ -269,8 +267,8 @@ const Diagram = () => {
                 const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
                 const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
 
-                // Calculate the offset based on the index of the link in the list
-                const offset = linkGroup.findIndex(link => link === linkGroup[0]) * 5; // For example, 5px of offset for each link
+                // Apply an offset based on the link's index in the overall dataset for visual separation
+                const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
 
                 const sourcePos = calculateRadialPosition(
                     sourceIndex,
@@ -286,35 +284,27 @@ const Diagram = () => {
                     yScale(validTargetScale)
                 );
 
-                // Apply the offset to the y position to avoid overlapping curves
-                sourcePos.y += offset;
-                targetPos.y += offset;
-
                 // Use a cubic Bezier curve for a smooth connection
-                const midX = (sourcePos.x + targetPos.x) / 2;  // Midpoint for the curve
+                const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
 
                 return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
             })
             .attr("fill", "none")
             .attr("stroke", (d) => {
-                // Get the type from the first link in the group
-                const linkType = d[1][0].type; // d[1] is the group of links
-
                 let color;
-                if (linkType === "direct consequence") {
+                if (d.type === "direct consequence") {
                     color = "#FF8C00";
-                } else if (linkType === "collateral consequence") {
+                } else if (d.type === "collateral consequence") {
                     color = "#32CD32";
-                } else if (linkType === "projection") {
+                } else if (d.type === "projection") {
                     color = "#D32F2F";
                 } else {
                     color = "#003366";
                 }
-
                 return color;
             })
             .attr("stroke-width", 1)
-            .attr("stroke-dasharray", (d) => getLinkStyle(d[1][0].type));
+            .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
 
         //Legend
         const legendGroup = svg.append("g")
