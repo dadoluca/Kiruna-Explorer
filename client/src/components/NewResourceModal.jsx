@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import ResourceForm from './FormResource';
 import API from '../services/api';
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const NewResourceModal = ({ show, onClose, documentId, documentTitle }) => {
     const [resources, setResources] = useState([]);
