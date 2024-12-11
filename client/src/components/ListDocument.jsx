@@ -13,7 +13,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const ScrollableDocumentsList = (props) => {
   const { loggedIn } = useContext(AuthContext);
-  const { docList } = useContext(DocumentContext); // Fetch documents from context
+  const { docList, setHighlightedNode } = useContext(DocumentContext); // Fetch documents from context
   const navigate = useNavigate();
 
   const handleFilter = (title) => {
@@ -52,7 +52,7 @@ const ScrollableDocumentsList = (props) => {
             className={styles.cardWrapper}
             role="button" // Add semantic role
             tabIndex={0} // Make the div focusable
-            onClick={() => handleCardClick(doc)} // Use the new function
+            onClick={() => {setHighlightedNode(doc._id); handleCardClick(doc);}} // Use the new function
             onKeyDown={(e) => { // Handle keyboard interaction
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();

@@ -6,9 +6,7 @@ export const DocumentContext = createContext();
 
 export const useDocumentContext = () => useContext(DocumentContext);
 
-
 export const DocumentProvider = ({ children }) => {
-
   const [documents, setDocuments] = useState([]); //all documents retrived
   const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
   const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
@@ -16,6 +14,7 @@ export const DocumentProvider = ({ children }) => {
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
+  const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
   
   useEffect(() => {
     
@@ -156,6 +155,7 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
+      highlightedNode,
       setMapMarkers,
       addDocument,
       addArea,
@@ -165,8 +165,9 @@ export const DocumentProvider = ({ children }) => {
       isArea,
       handleVisualization,
       setSelectedMarker,
+      setHighlightedNode,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, highlightedNode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
