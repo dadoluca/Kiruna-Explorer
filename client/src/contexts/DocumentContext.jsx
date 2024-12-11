@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import API from '../services/api';
+import { use } from 'react';
 
 export const DocumentContext = createContext();
 
@@ -14,6 +15,7 @@ export const DocumentProvider = ({ children }) => {
   const [areas, setAreas] = useState([]); // all the areas retrived
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
+  const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
   
   useEffect(() => {
     
@@ -43,8 +45,6 @@ export const DocumentProvider = ({ children }) => {
   useEffect(() => {
     setMapMarkers(); // Default: include all documents
   }, [documents]);
-
-
 
   const isArea = (doc) => doc.areaId != null;
   
@@ -139,6 +139,13 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
+  const handleVisualization = (doc) => {
+    setSelectedMarker({
+        doc: doc,
+        position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
+    })
+  };
+
    // Memoize the value object
    const value = useMemo(
     () => ({
@@ -148,6 +155,7 @@ export const DocumentProvider = ({ children }) => {
       docList,
       displayedAreas,
       municipalArea,
+      selectedMarker,
       setMapMarkers,
       addDocument,
       addArea,
@@ -155,8 +163,10 @@ export const DocumentProvider = ({ children }) => {
       updateDocCoords,
       setListContent,
       isArea,
+      handleVisualization,
+      setSelectedMarker,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
