@@ -262,6 +262,8 @@ const Diagram = () => {
                     .attr("y", -15)
                     .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
                     .attr("height", 30)
+                    .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
+                    .attr("ry", 5)
                     .attr("fill", "none")
                     .attr("stroke", "red")
                     .attr("stroke-width", 2)
