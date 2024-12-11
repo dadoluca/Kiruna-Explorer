@@ -193,6 +193,20 @@ const Diagram = () => {
             .scaleExtent([0.5, 5]) // Min and max zoom levels
             .on("zoom", (event) => {
                 contentGroup.attr("transform", event.transform);
+
+                nodes.selectAll("image")
+                    .attr("width", 20 / event.transform.k)
+                    .attr("height", 20 / event.transform.k)
+                    .attr("x", (d) => -(20 / event.transform.k) / 2)
+                    .attr("y", (d) => -(20 / event.transform.k) / 2);
+
+                allLinks.attr("stroke-width", 1 / event.transform.k);
+
+                contentGroup.selectAll(".x-grid line")
+                    .style("stroke-width", 0.5 / event.transform.k);
+
+                contentGroup.selectAll(".y-grid line")
+                    .style("stroke-width", 0.5 / event.transform.k);
             });
 
         svg.call(zoom);
@@ -450,18 +464,20 @@ const Diagram = () => {
             const sourcePos = d.sourcePos;
             const targetPos = d.targetPos;
 
+            const offset = 10;
+
             // Add an hitbox
             d3.select(this).append("rect")
-                .attr("x", Math.min(sourcePos.x, targetPos.x))
-                .attr("y", Math.min(sourcePos.y, targetPos.y))
-                .attr("width", Math.abs(sourcePos.x - targetPos.x))
-                .attr("height", Math.abs(sourcePos.y - targetPos.y))
-                .attr("fill", "transparent")  // Invisible hitbox
+                .attr("x", Math.min(sourcePos.x, targetPos.x) - offset)
+                .attr("y", Math.min(sourcePos.y, targetPos.y) - offset)
+                .attr("width", Math.abs(sourcePos.x - targetPos.x) + 2 * offset)
+                .attr("height", Math.abs(sourcePos.y - targetPos.y) + 2 * offset)
+                .attr("fill", "transparent")
                 .attr("pointer-events", "all");
         });
 
         //Legend
-        const legendGroup = contentGroup.append("g")
+        const legendGroup = svg.append("g")
         .attr("class", "legend-group")
         .attr("transform", `translate(${0}, ${margin.top})`);
 
