@@ -154,7 +154,7 @@ const MapComponent = () => {
     const position = [68.1, 20.4]; // Kiruna coordinates
     //const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const {handleVisualization, selectedMarker, setSelectedMarker} = useContext(DocumentContext);
+    const {handleVisualization, selectedMarker, setSelectedMarker, setVisualizeDiagram} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -381,6 +381,13 @@ const MapComponent = () => {
                         onClick={() => { setSatelliteView(prev => !prev); }}
                         >
                             <MdSatelliteAlt />
+                    </button>
+
+                    <button
+                        className={`${styles.diagramButton}`}         
+                        onClick={() => { setVisualizeDiagram(prev => !prev); }}
+                        >
+                            <i class="bi bi-graph-up"></i>
                     </button>
 
                     {loggedIn && (

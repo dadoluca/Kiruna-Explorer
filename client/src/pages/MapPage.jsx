@@ -1,11 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { FaArrowsAltV } from 'react-icons/fa';
 import MapComponent from '../components/Map';
 import Diagram from "../components/Diagram";
 import styles from './MapPage.module.css';
+import { DocumentContext } from '../contexts/DocumentContext';
 
 function MapPage() {
     const [diagramHeight, setDiagramHeight] = useState(300); // Initial height of the diagram
+    const { visualizeDiagram } = useContext(DocumentContext);
     const [dragging, setDragging] = useState(false); // State to track the dragging motion
     const containerRef = useRef(null); // Reference for the main container
     const maxHeight = window.innerHeight * 0.91;
@@ -58,19 +60,22 @@ function MapPage() {
                 <MapComponent />
             </div>
 
-            {/* Resize bar to adjust diagram size */}
-            <div
-                className={styles.resizeBar}
-                onMouseDown={startDrag} // Start dragging when the resize bar is clicked
-                onClick={handleClick} // Close the diagram
-                onDoubleClick={handleDoubleClick} // Open the diagram
-            >
-                <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
-            </div>
+            { visualizeDiagram &&
+            <div className="diagramComponents">
+                {/* Resize bar to adjust diagram size */}
+                <div
+                    className={styles.resizeBar}
+                    onMouseDown={startDrag} // Start dragging when the resize bar is clicked
+                    onClick={handleClick} // Close the diagram
+                    onDoubleClick={handleDoubleClick} // Open the diagram
+                >
+                    <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
+                </div>
 
-            <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
-                <Diagram />
-            </div>
+                <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
+                    <Diagram />
+                </div>
+            </div>}
         </div>
     );
 }
