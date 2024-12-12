@@ -3,9 +3,11 @@ import { FaArrowsAltV } from 'react-icons/fa';
 import MapComponent from '../components/Map';
 import Diagram from "../components/Diagram";
 import styles from './MapPage.module.css';
+import { useDocumentContext } from '../contexts/DocumentContext';
 
 function MapPage() {
     const [diagramHeight, setDiagramHeight] = useState(300); // Initial height of the diagram
+    const { visualizeDiagram } = useDocumentContext();
     const [dragging, setDragging] = useState(false); // State to track the dragging motion
     const containerRef = useRef(null); // Reference for the main container
 
@@ -46,17 +48,21 @@ function MapPage() {
                 <MapComponent />
             </div>
 
-            {/* Resize bar to adjust diagram size */}
-            <div
-                className={styles.resizeBar}
-                onMouseDown={startDrag} // Start dragging when the resize bar is clicked
-            >
-                <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
-            </div>
+            
+            { visualizeDiagram &&
+            <div>
+                <div
+                    className={styles.resizeBar}
+                    onMouseDown={startDrag} // Start dragging when the resize bar is clicked
+                >
+                    <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
+                </div>
 
-            <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
-                <Diagram />
+                <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
+                    <Diagram />
+                </div>
             </div>
+            }
         </div>
     );
 }

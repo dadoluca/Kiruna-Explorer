@@ -152,7 +152,7 @@ const MapComponent = () => {
     const position = [68.1, 20.4]; // Kiruna coordinates
     //const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const {handleVisualization, selectedMarker, setSelectedMarker, highlightedNode, setHighlightedNode} = useContext(DocumentContext);
+    const {handleVisualization, selectedMarker, setSelectedMarker} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -303,7 +303,6 @@ const MapComponent = () => {
                                         key={marker._id}
                                         marker={marker}
                                         onClick={() => {
-                                            setHighlightedNode(marker._id);
                                             setSelectedMarker({
                                                 doc: marker,
                                                 position: [marker.latitude, marker.longitude]
@@ -337,7 +336,7 @@ const MapComponent = () => {
         <div className={styles.popupHeader}>
             <button
                 className={styles.closeButton}
-                onClick={() => {setSelectedMarker(null); setHighlightedNode(null);}}
+                onClick={() => setSelectedMarker(null)}
             >
                 &times; {/* Close icon */}
             </button>

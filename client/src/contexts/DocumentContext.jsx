@@ -14,7 +14,9 @@ export const DocumentProvider = ({ children }) => {
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
+  const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
   const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
+  
   
   useEffect(() => {
     
@@ -155,6 +157,7 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
+      visualizeDiagram,
       highlightedNode,
       setMapMarkers,
       addDocument,
@@ -165,9 +168,10 @@ export const DocumentProvider = ({ children }) => {
       isArea,
       handleVisualization,
       setSelectedMarker,
+      setVisualizeDiagram,
       setHighlightedNode,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, highlightedNode]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, visualizeDiagram, highlightedNode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
