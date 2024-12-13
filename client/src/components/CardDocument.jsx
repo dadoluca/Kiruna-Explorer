@@ -82,7 +82,7 @@ const DetailPlanCard = (props) => {
               <Dropdown.Menu>
                 {document.relationships?.length > 0 ? (
                   document.relationships.map((rel, index) => (
-                    <Dropdown.Item key={index} onClick={() => getMarker(rel.documentId).then((marker) => {setSelectedMarker(marker); setHighlightedNode(marker._id);})}>
+                    <Dropdown.Item key={index} onClick={() => getMarker(rel.documentId).then((marker) => {setSelectedMarker(marker); setHighlightedNode(rel.documentId);})}>
                       {rel.documentTitle} - {rel.type}
                     </Dropdown.Item>
                   ))
