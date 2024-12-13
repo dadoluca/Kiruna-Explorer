@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { FaArrowsAltV } from 'react-icons/fa';
 import MapComponent from '../components/Map';
@@ -23,10 +24,12 @@ function MapPage() {
     // Function to handle the dragging motion and resize the diagram
     const handleDrag = (e) => {
         if (dragging) {
+            // Calculate the new height based on the mouse position
             const newHeight = containerRef.current.offsetTop + containerRef.current.clientHeight - e.clientY;
-            const maxHeight = window.innerHeight - containerRef.current.offsetTop; 
+            const maxHeight = window.innerHeight - containerRef.current.offsetTop; // Limit the height to the maximum window height
 
-            if (newHeight > 0 && newHeight < maxHeight) {
+            // Set the new height if it falls within valid bounds
+            if (newHeight > 0 && newHeight < maxHeight) { // No more arbitrary limits, only window height constraint
                 setDiagramHeight(newHeight);
             }
         }
@@ -36,29 +39,20 @@ function MapPage() {
         <div
             className={styles.mainContainer}
             ref={containerRef}
-            onMouseMove={handleDrag}
-            onMouseUp={stopDrag}
-            onMouseLeave={stopDrag}
-            role="application"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === "Escape") stopDrag();
-            }}
+            onMouseMove={handleDrag} // Handle mouse movement for resizing
+            onMouseUp={stopDrag} // Stop dragging when the mouse button is released
+            onMouseLeave={stopDrag} // Stop dragging when the mouse leaves the container
         >
             <div className={styles.mapContainer}>
                 <MapComponent />
             </div>
 
+            {/* Resize bar to adjust diagram size */}
             <div
                 className={styles.resizeBar}
-                onMouseDown={startDrag}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") startDrag(e);
-                }}
+                onMouseDown={startDrag} // Start dragging when the resize bar is clicked
             >
-                <FaArrowsAltV className={styles.resizeIcon} />
+                <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
             </div>
 
             <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
