@@ -55,6 +55,8 @@ function MapPage() {
             onMouseMove={handleDrag} // Handle mouse movement for resizing
             onMouseUp={stopDrag} // Stop dragging when the mouse button is released
             onMouseLeave={stopDrag} // Stop dragging when the mouse leaves the container
+            tabIndex="0"
+            role="button"
         >
             <div className={styles.mapContainer}>
                 <MapComponent />
@@ -68,6 +70,8 @@ function MapPage() {
                     onMouseDown={startDrag} // Start dragging when the resize bar is clicked
                     onClick={handleClick} // Close the diagram
                     onDoubleClick={handleDoubleClick} // Open the diagram
+                    tabIndex="0"
+                    role="button"
                 >
                     <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
                 </div>
