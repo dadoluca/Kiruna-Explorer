@@ -22,7 +22,7 @@ const ScrollableDocumentsList = (props) => {
   };
 
   const handleCardClick = (doc) => {
-    props.handleVisualize(doc); // Call the visualize function
+    props.visualizeCard(doc); // Call the visualize function
   };
 
   return (
@@ -31,7 +31,7 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.header}>
         <Row className={styles.headerRow}>
           <Col md={10}>
-            {loggedIn && <SearchBar onFilter={handleFilter} />}
+            {loggedIn && <SearchBar onFilter={handleFilter} visualizeCard={props.visualizeCard}/>}
           </Col>
           <Col md={2} className={styles.closeButtonContainer}>
           <button
@@ -112,7 +112,7 @@ const ScrollableDocumentsList = (props) => {
 
 ScrollableDocumentsList.propTypes = {
   markers: PropTypes.array,
-  handleVisualize: PropTypes.func,
+  visualizeCard: PropTypes.func,
   closeList: PropTypes.func,
   handleFilterByTitleInList: PropTypes.func, // Ensure this prop is defined
   addButton: PropTypes.any, // Specify the expected type for addButton

@@ -89,7 +89,7 @@ export const DocumentProvider = ({ children }) => {
   };
 
   const setListContent = (filterFn = () => true) => {
-    const displayedDocument = [];
+    const displayedDocuments = [];
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
@@ -97,14 +97,14 @@ export const DocumentProvider = ({ children }) => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         
-        displayedDocument.push({
+        displayedDocuments.push({
           ...doc,
           longitude: parseFloat(longitude),
           latitude: parseFloat(latitude)
         });
     });
     
-    setDocList(displayedDocument);
+    setDocList(displayedDocuments);
   };
 
   const addDocument = (newDocument) => {

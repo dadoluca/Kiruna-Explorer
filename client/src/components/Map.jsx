@@ -182,6 +182,8 @@ const MapComponent = () => {
     };
 
     const handleVisualization = (doc) => {
+        doc == null ?
+        setSelectedMarker(null) :
         setSelectedMarker({
             doc: doc,
             position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
@@ -212,7 +214,7 @@ const MapComponent = () => {
     return (
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
-            {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
+            {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} visualizeCard={handleVisualization} /> }
             <MapContainer 
                 center={position} 
                 zoom={8} 
@@ -336,7 +338,7 @@ const MapComponent = () => {
                 )}
 
                 {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
+                && <ScrollableDocumentsList visualizeCard={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
 
                 
 

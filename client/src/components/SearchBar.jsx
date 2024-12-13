@@ -3,7 +3,7 @@ import styles from './SearchBar.module.css';
 import { DocumentContext } from '../contexts/DocumentContext'; 
 import { FaSearch } from "react-icons/fa"; // Import the search icon
   
-const SearchBar = ({ onFilter }) => {
+const SearchBar = ({ onFilter, visualizeCard }) => {
   const { documents } = useContext(DocumentContext); // Fetch documents from context
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -14,6 +14,7 @@ const SearchBar = ({ onFilter }) => {
 
     if (query === "") {
       onFilter("All");
+      visualizeCard(null);
     }
 
     // Filter suggestions based on the query
@@ -32,6 +33,10 @@ const SearchBar = ({ onFilter }) => {
     setSuggestions([]);
     //const filteredDocs = documents.filter(doc => doc.title === title);
     onFilter(title); // Call parent handler with filtered documents
+    
+    const doc = documents.find(doc => doc.title === title);
+    console.log("trovato: ", doc);
+    visualizeCard(doc); // Call the visualize function
   };
 
   const handleSearchSubmit = (e) => {
