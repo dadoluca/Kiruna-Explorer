@@ -20,22 +20,6 @@
     right: 0;
 }
 
-/*.popupContainer {
-    position: absolute;
-    top: 1px;
-    left: 0px;
-    width: 45vw;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 1);
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
-    border-radius: 0px;
-    padding: 0; 
-    z-index: 1000;
-    display: flex;
-    flex-direction: column; 
-
-}*/
-
 .popupHeader {
     display: flex;
     justify-content: flex-end; /* Allinea il pulsante di chiusura a destra */

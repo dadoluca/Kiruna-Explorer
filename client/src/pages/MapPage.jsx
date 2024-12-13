@@ -38,10 +38,16 @@ function MapPage() {
         <div
             className={styles.mainContainer}
             ref={containerRef}
-            onMouseMove={handleDrag} // Handle mouse movement for resizing
-            onMouseUp={stopDrag} // Stop dragging when the mouse button is released
-            onMouseLeave={stopDrag} // Stop dragging when the mouse leaves the container
-        >
+            role="application"         // Add ARIA role for accessibility
+            tabIndex={0}               // Make the div focusable
+            onMouseMove={handleDrag} 
+            onMouseUp={stopDrag} 
+            onMouseLeave={stopDrag} 
+            onKeyDown={(e) => {        // Support keyboard interaction
+                if (e.key === "Escape") stopDrag(e);
+            }}
+            >
+
             <div className={styles.mapContainer}>
                 <MapComponent />
             </div>
@@ -49,8 +55,13 @@ function MapPage() {
             {/* Resize bar to adjust diagram size */}
             <div
                 className={styles.resizeBar}
-                onMouseDown={startDrag} // Start dragging when the resize bar is clicked
-            >
+                role="separator"             // Appropriate ARIA role for a resize bar
+                tabIndex={0}                 // Make the element focusable
+                onMouseDown={startDrag} 
+                onKeyDown={(e) => {          // Support keyboard interaction
+                    if (e.key === "Enter" || e.key === " ") startDrag(e);
+                }}
+                >
                 <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
             </div>
 

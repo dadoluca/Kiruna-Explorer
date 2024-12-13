@@ -34,9 +34,7 @@ function RecenterMap({ newPosition, isListing, selectedMarker }) {
     }
 
     map.setView(pos, map.getZoom());
-  
-    return null;
-  }
+    }
 
 const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
     polygon[0].map(
@@ -172,7 +170,7 @@ const MapComponent = () => {
     const navigate = useNavigate();
     const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
     const { loggedIn } = useContext(AuthContext);
-    const {handleVisualization, selectedMarker, setSelectedMarker} = useContext(DocumentContext);
+    const {selectedMarker, setSelectedMarker} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -212,10 +210,11 @@ const MapComponent = () => {
             setMapMarkers();
             handleDocCardVisualization(null);
         }
-        else
+        else{
             setMapMarkers((doc) => doc.title === title);//passing the filter
             const doc = documents.find(doc => doc.title === title);
             handleDocCardVisualization(doc);
+        }
     };
 
     // Handler to update filtered documents on list
