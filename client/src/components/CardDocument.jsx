@@ -15,7 +15,7 @@ import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
   const { loggedIn } = useContext(AuthContext);
-  const { documents, setVisualizeDiagram, setHighlightedNode, setSelectedMarker, getMarker } = useDocumentContext();
+  const { documents, visualizeDiagram, setVisualizeDiagram, setHighlightedNode, setSelectedMarker, getMarker } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
@@ -31,7 +31,8 @@ const DetailPlanCard = (props) => {
       <Card.Body>
         <Card.Title className={`text-center ${styles.cardTitle}`}>
           {document.title || "N/A"}
-          <Button
+          { !visualizeDiagram &&
+            <Button
               variant="light"
               onClick={() => {setVisualizeDiagram(true); setHighlightedNode(document._id);}}
               size="sm"
@@ -39,6 +40,7 @@ const DetailPlanCard = (props) => {
             >
               <i class="bi bi-graph-up"></i> Show on diagram
             </Button>
+    }
         </Card.Title>
 
         <Card.Text className={styles.description}>

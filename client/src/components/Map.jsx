@@ -152,7 +152,7 @@ const MapComponent = () => {
     const position = [68.1, 20.4]; // Kiruna coordinates
     //const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const {handleVisualization, selectedMarker, setSelectedMarker} = useContext(DocumentContext);
+    const {handleVisualization, selectedMarker, setSelectedMarker, setHighlightedNode} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -306,8 +306,12 @@ const MapComponent = () => {
                                             setSelectedMarker({
                                                 doc: marker,
                                                 position: [marker.latitude, marker.longitude]
-                                            })}
+                                            });
+                                        
+                                            setHighlightedNode(marker._id);
                                         }
+                                        }
+
                                     />
                                 
                                 ))
@@ -336,7 +340,7 @@ const MapComponent = () => {
         <div className={styles.popupHeader}>
             <button
                 className={styles.closeButton}
-                onClick={() => {setSelectedMarker(null); setHighlightedNode(null);}}
+                onClick={() => { console.log("lo chiudi?");setSelectedMarker(null); setHighlightedNode(null);}}
             >
                 &times; {/* Close icon */}
             </button>
@@ -344,7 +348,7 @@ const MapComponent = () => {
         <div className={styles.popupContent}>
             <DetailPlanCard
                 doc={selectedMarker.doc}
-                onClose={() => setSelectedMarker(null)}
+                onClose={() => {console.log("lo chiudi?"); setSelectedMarker(null); setHighlightedNode(null);}}
                 onChangeCoordinates={handleChangeCoordinates}
                 onToggleSelecting={setIsAddingDocument}
             />
