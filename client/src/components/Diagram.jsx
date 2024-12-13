@@ -216,6 +216,33 @@ const Diagram = () => {
 
                 allLinks.attr("stroke-width", 1 / event.transform.k);
 
+                popup.selectAll("rect")
+                .attr("width", Math.max(150 / event.transform.k, 60)) 
+                .attr("height", Math.max(50 / event.transform.k, 30)); 
+    
+                popup.selectAll("text")
+                    .attr("x", 10) 
+                    .attr("y", Math.max(20 / event.transform.k, 15)) 
+                    .attr("font-size", Math.max(12 / event.transform.k, 8)); 
+    
+                linkPopup.selectAll("rect")
+                    .attr("width", Math.max(120 / event.transform.k, 80)) 
+                    .attr("height", Math.max(40 / event.transform.k, 20)); 
+
+                linkPopup.selectAll("text")
+                    .attr("x", function () {
+   
+                        const rectWidth = Math.max(120 / event.transform.k, 80);
+                        return rectWidth / 2;
+                    })
+                    .attr("y", function () {
+               
+                        const rectHeight = Math.max(40 / event.transform.k, 20);
+                        return rectHeight / 2 + (Math.max(8 / event.transform.k, 8) / 3);
+                    })
+                    .attr("font-size", Math.max(8 / event.transform.k, 6)) 
+                    .attr("text-anchor", "middle"); 
+
                 contentGroup.selectAll(".x-grid line")
                     .style("stroke-width", 0.5 / event.transform.k);
 
