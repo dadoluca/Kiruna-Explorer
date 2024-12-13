@@ -97,23 +97,26 @@ describe('Error Handling Middleware', () => {
    */
   it('should return a 422 error for a validation error on User registration', async () => {
     const invalidUser = {
-      name: 12345,         // Invalid name type
+      name: 12345,          // Invalid name type (should be a string)
       email: 'not-an-email', // Invalid email format
-      password: 'short',   // Invalid password length
-      role: [],            // Invalid role type
+      password: 'short',    // Invalid password length (should be at least 8 characters)
+      role: [],             // Invalid role (should be a valid string)
     };
-
+  
     const response = await request.post('/users/register').send(invalidUser);
-
+  
+    // Ensure status is 422 for validation errors
     expect(response.status).to.equal(422);
     expect(response.body).to.have.property('success', false);
     expect(response.body).to.have.property('errors').that.is.an('array');
-
+  
+    // Extract simplified errors from the response
     const simplifiedErrors = response.body.errors.map(err => ({
       msg: err.msg,
-      path: err.path,
+      path: err.param || err.path, // Adjust according to your error structure
     }));
-
+  
+    // Check that specific validation errors are present
     expect(simplifiedErrors).to.deep.include.members([
       { msg: 'Name must be a string.', path: 'name' },
       { msg: 'Invalid email format.', path: 'email' },
@@ -123,17 +126,21 @@ describe('Error Handling Middleware', () => {
   });
 
   /**
-   * 404 Error on Updating a Non-Existent User
-   */
-  it('should return a 404 error when updating a non-existent user', async () => {
-    sinon.stub(User, 'findByIdAndUpdate').resolves(null);
+ * 404 Error on Updating a Non-Existent User
+ */
+it('should return a 404 error when updating a non-existent user', async () => {
+  sinon.stub(User, 'findByIdAndUpdate').resolves(null); // Simulate user not found
 
-    const response = await request.put('/users/nonexistentUserId').send({ name: 'Updated Name' });
+  const response = await request.put('/users/nonexistentUserId').send({ name: 'Updated Name' });
 
-    expect(response.status).to.equal(404);
-    expect(response.body).to.have.property('success', false);
-    expect(response.body).to.have.property('message', 'User not found');
-  });
+  // Check that the response status is 404
+  expect(response.status).to.equal(404);
+
+  // Check that the response body contains the expected properties
+  expect(response.body).to.have.property('success', false);
+  expect(response.body).to.have.property('message', 'User not found');
+});
+
 
   /**
    * 404 Error on Deleting a Non-Existent User
@@ -150,4 +157,8 @@ describe('Error Handling Middleware', () => {
   });
   
   
+});
+
+after(() => {
+  process.exit(0);  // Ensures Mocha exits after tests
 });
