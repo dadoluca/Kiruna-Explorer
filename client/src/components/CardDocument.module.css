@@ -15,7 +15,7 @@
   display: flex; 
   overflow-y: auto;  /*Abilita lo scorrimento verticale */
   scrollbar-width: thin;
-  scrollbar-color: #e8d9ee rgba(255, 255, 255, 0.5);
+  scrollbar-color: #e8d9ee rgba(255, 255, 255, 0);
 }
 
 

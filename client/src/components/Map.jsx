@@ -1,5 +1,5 @@
 import React, { useState,  useContext } from 'react';
-import { MapContainer, TileLayer, Marker, Popup,  Polygon, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap,  Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
@@ -17,7 +17,11 @@ import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
 
-
+function RecenterMap({ newPosition }) {
+    const map = useMap();
+    map.setView(newPosition, map.getZoom());
+    return null;
+  }
 
 const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
     polygon[0].map(
@@ -149,7 +153,7 @@ const markerPosition = [67.8636, 20.280];
 
 const MapComponent = () => {
     const navigate = useNavigate();
-    const position = [68.1, 20.4]; // Kiruna coordinates
+    const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
     const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
@@ -181,13 +185,18 @@ const MapComponent = () => {
             setListContent((doc) => doc.title === title);//passing the filter
     };
 
-    const handleVisualization = (doc) => {
-        doc == null ?
-        setSelectedMarker(null) :
-        setSelectedMarker({
-            doc: doc,
-            position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
-        })
+    const handleDocCardVisualization = (doc) => {
+        if(doc == null){
+            setSelectedMarker(null);
+        }
+        else{
+            const newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+            setPosition(newPosition);
+            setSelectedMarker({
+                doc: doc,
+                position: newPosition
+            })
+        }
     };
 
     const handleCloseList = () => {
@@ -214,13 +223,15 @@ const MapComponent = () => {
     return (
         <div className={styles.mapPage}>
             <div className={styles.mapContainer} >
-            {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} visualizeCard={handleVisualization} /> }
+            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle} visualizeCard={handleDocCardVisualization} /> }
             <MapContainer 
                 center={position} 
                 zoom={8} 
                 className={` ${isListing ? styles.listing : styles.mapContainer}`} 
                 zoomControl={false}
             >
+                    <RecenterMap newPosition={position} />
+
                     {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
@@ -284,7 +295,9 @@ const MapComponent = () => {
                                             setSelectedMarker({
                                                 doc: marker,
                                                 position: [marker.latitude, marker.longitude]
-                                            })}
+                                            });
+                                            setPosition([marker.latitude, marker.longitude]);
+                                        }
                                         }
                                     />
                                 
@@ -300,6 +313,7 @@ const MapComponent = () => {
                                         setListContent((doc) => doc.areaId === area._id);
                                         if (loggedIn) setAddButton(area);
                                         setIsListing(true);
+                                        handleDocCardVisualization(null);  
                                     }}
                                     />
                                     <MemoizedPolygon area={area} />
@@ -315,7 +329,8 @@ const MapComponent = () => {
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true) } }}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true); handleDocCardVisualization(null);  
+                            } }}
                         >
                                 <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
                             </Marker>
@@ -338,7 +353,7 @@ const MapComponent = () => {
                 )}
 
                 {isListing  
-                && <ScrollableDocumentsList visualizeCard={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
+                && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
 
                 
 
