@@ -17,9 +17,23 @@ import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
 
-function RecenterMap({ newPosition }) {
+function RecenterMap({ newPosition, isListing, selectedMarker }) {
     const map = useMap();
-    map.setView(newPosition, map.getZoom());
+
+    if(selectedMarker == null) return null;
+
+    let pos = newPosition;
+  
+    if (isListing) {
+        const mapSize = map.getSize();
+        const offsetX = mapSize.x * 0.28; // 35vw is the list width
+        const point = map.latLngToContainerPoint(pos);
+        point.x -= offsetX;
+        pos = map.containerPointToLatLng(point);
+    }
+
+    map.setView(pos, map.getZoom());
+  
     return null;
   }
 
@@ -158,7 +172,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
+    const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -170,9 +184,12 @@ const MapComponent = () => {
         console.log("title ", title);
         if(!title || title === "All"){
             setMapMarkers();
+            handleDocCardVisualization(null);
         }
         else
             setMapMarkers((doc) => doc.title === title);//passing the filter
+            const doc = documents.find(doc => doc.title === title);
+            handleDocCardVisualization(doc);
     };
 
     // Handler to update filtered documents on list
@@ -181,16 +198,26 @@ const MapComponent = () => {
         if(!title || title === "All"){
             setListContent();
         }
-        else
+        else{
             setListContent((doc) => doc.title === title);//passing the filter
+        }
     };
 
     const handleDocCardVisualization = (doc) => {
         if(doc == null){
             setSelectedMarker(null);
+            setMapMarkers();
         }
         else{
-            const newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+            let newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+
+            /*if (isListing) {
+                const map = useMap();
+                const mapSize = map.getSize(); 
+                console.log(mapSize);
+                const offsetX = mapSize.x * 0.35; // 35vw (width of the list)
+                newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0] + offsetX];
+            }*/
             setPosition(newPosition);
             setSelectedMarker({
                 doc: doc,
@@ -230,7 +257,7 @@ const MapComponent = () => {
                 className={` ${isListing ? styles.listing : styles.mapContainer}`} 
                 zoomControl={false}
             >
-                    <RecenterMap newPosition={position} />
+                    <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker}/>
 
                     {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
@@ -344,7 +371,7 @@ const MapComponent = () => {
                 {selectedMarker && (
                     <DetailPlanCard
                         doc={selectedMarker.doc}
-                        onClose={() => setSelectedMarker(null)}
+                        onClose={() => handleDocCardVisualization(null)}
                         onChangeCoordinates={handleChangeCoordinates}
                         onToggleSelecting={setIsAddingDocument}
                         isListing={isListing}
@@ -353,7 +380,7 @@ const MapComponent = () => {
                 )}
 
                 {isListing  
-                && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
+                && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} handleFilterByTitle={handleFilterByTitle} addButton={addButton}/>}
 
                 
 

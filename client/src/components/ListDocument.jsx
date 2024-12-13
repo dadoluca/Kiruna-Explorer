@@ -22,6 +22,7 @@ const ScrollableDocumentsList = (props) => {
   };
 
   const handleCardClick = (doc) => {
+    console.log("AAAAA");
     props.visualizeCard(doc); // Call the visualize function
   };
 
@@ -31,7 +32,7 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.header}>
         <Row className={styles.headerRow}>
           <Col md={10}>
-            {/*loggedIn &&*/ <SearchBar onFilter={handleFilter} visualizeCard={props.visualizeCard}/>}
+            {loggedIn && <SearchBar onFilter={handleFilter} />}
           </Col>
           <Col md={2} className={styles.closeButtonContainer}>
           <button
