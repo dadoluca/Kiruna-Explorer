@@ -336,7 +336,7 @@ const MapComponent = () => {
         <div className={styles.popupHeader}>
             <button
                 className={styles.closeButton}
-                onClick={() => setSelectedMarker(null)}
+                onClick={() => {setSelectedMarker(null); setHighlightedNode(null);}}
             >
                 &times; {/* Close icon */}
             </button>

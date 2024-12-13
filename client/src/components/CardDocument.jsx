@@ -15,7 +15,7 @@ import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
   const { loggedIn } = useContext(AuthContext);
-  const { documents, setVisualizeDiagram, setHighlightedNode } = useDocumentContext();
+  const { documents, setVisualizeDiagram, setHighlightedNode, setSelectedMarker, getMarker } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
@@ -80,7 +80,7 @@ const DetailPlanCard = (props) => {
               <Dropdown.Menu>
                 {document.relationships?.length > 0 ? (
                   document.relationships.map((rel, index) => (
-                    <Dropdown.Item key={index}>
+                    <Dropdown.Item key={index} onClick={() => getMarker(rel.documentId).then((marker) => {setSelectedMarker(marker); setHighlightedNode(marker._id);})}>
                       {rel.documentTitle} - {rel.type}
                     </Dropdown.Item>
                   ))

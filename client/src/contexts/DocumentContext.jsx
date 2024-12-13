@@ -147,6 +147,14 @@ export const DocumentProvider = ({ children }) => {
     })
   };
 
+  const getMarker = async (id) => {
+    const singleDoc = await API.getDocumentById(id);
+
+    console.log(singleDoc);
+
+    return {doc: singleDoc, position: [singleDoc.coordinates.coordinates[1], singleDoc.coordinates.coordinates[0]]};
+  }
+
    // Memoize the value object
    const value = useMemo(
     () => ({
@@ -170,6 +178,7 @@ export const DocumentProvider = ({ children }) => {
       setSelectedMarker,
       setVisualizeDiagram,
       setHighlightedNode,
+      getMarker,
     }),
     [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, visualizeDiagram, highlightedNode]
   );
