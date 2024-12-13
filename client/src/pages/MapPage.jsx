@@ -39,6 +39,11 @@ function MapPage() {
             onMouseMove={handleDrag}
             onMouseUp={stopDrag}
             onMouseLeave={stopDrag}
+            role="application"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === "Escape") stopDrag();
+            }}
         >
             <div className={styles.mapContainer}>
                 <MapComponent />
