@@ -10,6 +10,14 @@ const Diagram = () => {
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
+    const initialTransform = d3.zoomIdentity;
+
+    // Function to reset zoom
+    function resetZoom() {
+        svg.transition()
+            .duration(750) // Durata della transizione
+            .call(zoom.transform, d3.zoomIdentity); // Ripristina lo zoom originale
+    }
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -79,15 +87,21 @@ const Diagram = () => {
         }
 
         const angle = (index / total) * 2 * Math.PI;
-        const radius = 15;
+        const baseRadius = 15;
+        const scale = 1 / Math.sqrt(total);
 
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
+        const radius = baseRadius * scale;
+
+        let x = centerX + radius * Math.cos(angle);
+        let y = centerY + radius * Math.sin(angle);
 
         if (isNaN(x) || isNaN(y)) {
             console.error("Invalid radial position:", { index, total, centerX, centerY, x, y });
             return { x: 0, y: 0 };
         }
+
+        x = x - 4;
+        y = y - 4;
 
         return { x, y };
     };
@@ -479,7 +493,7 @@ const Diagram = () => {
         //Legend
         const legendGroup = svg.append("g")
         .attr("class", "legend-group")
-        .attr("transform", `translate(${0}, ${margin.top})`);
+        .attr("transform", `translate(${10}, ${margin.top})`);
 
         const legendData = [
             { type: "direct consequence", style: "solid", label: "Direct Consequence", color: "#FF8C00" },
@@ -496,6 +510,26 @@ const Diagram = () => {
         };
         
         // Draw legend
+        const padding = 20;
+        const rowHeight = 25;
+        const fontSize = 12;
+
+        const legendWidth = d3.max(legendData, d => {
+            const textWidth = d.label.length * fontSize * 0.6;
+            return 20 + textWidth;
+        });
+        const legendHeight = legendData.length * rowHeight;
+
+        legendGroup.append("rect")
+            .attr("x", -padding / 2)
+            .attr("y", -padding / 2)
+            .attr("width", legendWidth + padding)
+            .attr("height", legendHeight + padding)
+            .attr("fill", "white")
+            .attr("opacity", 0.85)
+            .attr("rx", 5)
+            .attr("ry", 5);
+
         legendGroup.selectAll("g.legend-item")
             .data(legendData)
             .join(
@@ -503,7 +537,7 @@ const Diagram = () => {
                     const group = enter.append("g")
                         .attr("class", "legend-item")
                         .attr("transform", (d, i) => `translate(0, ${i * 25})`); // Vertical space between elements
-        
+
                     // Legend line
                     group.append("line")
                         .attr("x1", 0)
