@@ -16,6 +16,8 @@ export const DocumentProvider = ({ children }) => {
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
+  const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
+
   
   useEffect(() => {
     
@@ -139,11 +141,19 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
-  const handleVisualization = (doc) => {
-    setSelectedMarker({
-        doc: doc,
-        position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
-    })
+  const handleDocCardVisualization = (doc) => {
+      if(doc == null){
+          setSelectedMarker(null);
+          setMapMarkers();
+      }
+      else{
+          let newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+          setPosition(newPosition);
+          setSelectedMarker({
+              doc: doc,
+              position: newPosition
+          })
+      }
   };
 
    // Memoize the value object
@@ -156,6 +166,7 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
+      position,
       setMapMarkers,
       addDocument,
       addArea,
@@ -163,10 +174,11 @@ export const DocumentProvider = ({ children }) => {
       updateDocCoords,
       setListContent,
       isArea,
-      handleVisualization,
+      handleDocCardVisualization,
       setSelectedMarker,
+      setPosition
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

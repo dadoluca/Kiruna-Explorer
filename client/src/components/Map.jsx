@@ -168,9 +168,8 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const containerRef = useRef(null);
     const navigate = useNavigate();
-    const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
     const { loggedIn } = useContext(AuthContext);
-    const {selectedMarker, setSelectedMarker} = useContext(DocumentContext);
+    const {position, setPosition, selectedMarker, setSelectedMarker, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -225,22 +224,6 @@ const MapComponent = () => {
         }
         else{
             setListContent((doc) => doc.title === title);//passing the filter
-        }
-    };
-
-
-    const handleDocCardVisualization = (doc) => {
-        if(doc == null){
-            setSelectedMarker(null);
-            setMapMarkers();
-        }
-        else{
-            let newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
-            setPosition(newPosition);
-            setSelectedMarker({
-                doc: doc,
-                position: newPosition
-            })
         }
     };
 
