@@ -58,11 +58,11 @@ export const createArea = async (req, res) => {
     if (name) {
       geojson.properties.name = name;
     }
+// Check if geometry is defined
+if (!geojson.geometry?.coordinates) {
+  throw new Error('Invalid geometry: Coordinates are missing or malformed.');
+}
 
-    // Check if geometry is defined
-    if (!geojson.geometry || !geojson.geometry.coordinates) {
-      throw new Error('Invalid geometry: Coordinates are missing or malformed.');
-    }
 
     // Calculate and assign the centroid to the geojson properties
     const center = centroid(geojson);
