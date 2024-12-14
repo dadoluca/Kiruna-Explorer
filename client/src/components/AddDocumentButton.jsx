@@ -119,7 +119,6 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
             }
             role="button"              // Indicate button-like behavior
             tabIndex={0}               // Make focusable
-            onClick={handleClick}      // Handle click events
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") handleClick(e);
             }}

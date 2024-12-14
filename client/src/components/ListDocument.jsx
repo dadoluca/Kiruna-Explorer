@@ -22,7 +22,6 @@ const ScrollableDocumentsList = (props) => {
   };
 
   const handleCardClick = (doc) => {
-    console.log("AAAAA");
     props.visualizeCard(doc); // Call the visualize function
   };
 
