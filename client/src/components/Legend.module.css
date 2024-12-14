@@ -27,9 +27,9 @@
 .legendItem {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
     border-radius: 8px; /* Slight rounding for hover effect */
     transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+    padding: 0.5rem 0.5rem;
 }
 
 .legendItem.clickable {
@@ -37,8 +37,8 @@
 }
 
 .legendItem.clickable:hover {
-    transform: scale(1.05); /* Slightly enlarge the element on hover */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    background-color: #f6deff94; 
+    transform: scale(1.05);
 }
 
 .legendIcon {
@@ -52,3 +52,28 @@
     color: #333;
 }
 
+
+.separator {
+    width: 100%;
+    height: 1px;
+    background: #ccc;
+    margin: 0.5rem 0;
+    opacity: 0.7;
+  }
+
+
+.visualizeAll {
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  
+  .visualizeAllIcon {
+    width: 20px;
+    height: 20px;
+  }
