@@ -144,6 +144,7 @@ export const DocumentProvider = ({ children }) => {
   const handleDocCardVisualization = (doc) => {
       if(doc == null){
           setSelectedMarker(null);
+          setHighlightedNode(null);
           setMapMarkers();
       }
       else{
@@ -152,16 +153,15 @@ export const DocumentProvider = ({ children }) => {
           setSelectedMarker({
               doc: doc,
               position: newPosition
-          })
+          });
+          setHighlightedNode(doc._id);
       }
   };
 
   const getMarker = async (id) => {
     const singleDoc = await API.getDocumentById(id);
 
-    console.log(singleDoc);
-
-    return {doc: singleDoc, position: [singleDoc.coordinates.coordinates[1], singleDoc.coordinates.coordinates[0]]};
+    return singleDoc;
   }
 
    // Memoize the value object
