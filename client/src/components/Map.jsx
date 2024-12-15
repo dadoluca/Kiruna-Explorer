@@ -19,6 +19,7 @@ import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
 
+
 function RecenterMap({ newPosition, isListing, selectedMarker }) {
     const map = useMap();
 
@@ -170,7 +171,7 @@ const MapComponent = () => {
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const { loggedIn } = useContext(AuthContext);
-    const { position, setPosition, handleVisualization, selectedMarker, setSelectedMarker, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
+    const {position, setPosition, handleVisualization, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -326,9 +327,13 @@ const MapComponent = () => {
                                                 doc: marker,
                                                 position: [marker.latitude, marker.longitude]
                                             });
+                                        
+                                            setHighlightedNode(marker._id);
                                             setPosition([marker.latitude, marker.longitude]);
+
                                         }
                                         }
+
                                     />
                                 
                                 ))
@@ -352,8 +357,6 @@ const MapComponent = () => {
                             }
 
                         </MarkerClusterGroup>
-
-                        
 
                     {municipalArea &&
                         <Marker

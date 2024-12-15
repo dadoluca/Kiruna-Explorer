@@ -60,6 +60,7 @@ function MapPage() {
                 <MapComponent />
             </div>
 
+
             { visualizeDiagram &&
             <div className="diagramComponents">
                 {/* Resize bar to adjust diagram size */}
@@ -73,8 +74,6 @@ function MapPage() {
                 >
                     <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
                 </div>
-
-
 
                 <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
                     <Diagram />

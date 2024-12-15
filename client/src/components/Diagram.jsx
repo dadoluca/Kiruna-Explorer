@@ -6,7 +6,7 @@ const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
-    const { handleDocCardVisualization } = useDocumentContext(); // Accessing handleDocCardVisualization from context
+    const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
@@ -328,12 +328,26 @@ const Diagram = () => {
                         return `translate(${x}, ${y})`;
                     })
 
+                    group.append("rect")
+                    .attr("x", -15) // Posizionamento relativo all'immagine
+                    .attr("y", -15)
+                    .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
+                    .attr("height", 30)
+                    .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
+                    .attr("ry", 5)
+                    .attr("fill", "none")
+                    .attr("stroke", "red")
+                    .attr("stroke-width", 2)
+                    .attr("class", "highlight-rect")
+                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
                     group.append("image")
-                        .attr("xlink:href", (d) => d.icon) // Node image source
-                        .attr("x", -10) // Center the image relative to the node
-                        .attr("y", -10)
-                        .attr("width", 20)
-                        .attr("height", 20);
+                    .attr("xlink:href", (d) => d.icon) // Node image source
+                    .attr("x", -10) // Center the image relative to the node
+                    .attr("y", -10)
+                    .attr("width", 20)
+                    .attr("height", 20)
+                    ;
 
                     return group;
                 },
@@ -351,16 +365,22 @@ const Diagram = () => {
                         );
                         return `translate(${x}, ${y})`;
                     });
+
+                    group.select("rect.highlight-rect")
+                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
                     return group;
                 },
                 exit => exit.remove()  // Remove nodes if necessary
             );
 
         nodes.on("click", (event, d) => {
+            setHighlightedNode(d._id);
+            handleVisualization(d);
             handleDocCardVisualization(d);
         });
 
-         // Append hidden popup container
+        // Append hidden popup container
         const popup = nodesGroup.append("g")
         .attr("class", "node-popup")
         .style("visibility", "hidden");
@@ -639,7 +659,7 @@ const Diagram = () => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links]);
+    }, [documents, xDomain, yDomain, links, highlightedNode]);
 
     return (
         <svg ref={svgRef}></svg>

@@ -6,9 +6,7 @@ export const DocumentContext = createContext();
 
 export const useDocumentContext = () => useContext(DocumentContext);
 
-
 export const DocumentProvider = ({ children }) => {
-
   const [documents, setDocuments] = useState([]); //all documents retrived
   const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
   const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
@@ -17,6 +15,7 @@ export const DocumentProvider = ({ children }) => {
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
   const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
+  const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
   const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
 
   
@@ -157,6 +156,14 @@ export const DocumentProvider = ({ children }) => {
       }
   };
 
+  const getMarker = async (id) => {
+    const singleDoc = await API.getDocumentById(id);
+
+    console.log(singleDoc);
+
+    return {doc: singleDoc, position: [singleDoc.coordinates.coordinates[1], singleDoc.coordinates.coordinates[0]]};
+  }
+
    // Memoize the value object
    const value = useMemo(
     () => ({
@@ -167,6 +174,7 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
+      highlightedNode,
       position,
       visualizeDiagram,
       setMapMarkers,
@@ -180,8 +188,10 @@ export const DocumentProvider = ({ children }) => {
       setSelectedMarker,
       setPosition,
       setVisualizeDiagram,
+      setHighlightedNode,
+      getMarker,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
