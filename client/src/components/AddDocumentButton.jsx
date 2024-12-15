@@ -1,7 +1,6 @@
 import React, { useState, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMapEvents} from 'react-leaflet';
-import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
@@ -11,7 +10,6 @@ import  CloseModeSelectionButton  from './CloseModeSelectionButton';
 function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
-    const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
 
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
@@ -44,7 +42,7 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null ) {
+                if (isAddingDocument == SelectionState.NEW_POINT  && changingDocument == null ) {
                     const newCoords = { 
                     lat: e.latlng.lat.toFixed(5), 
                     lng: e.latlng.lng.toFixed(5) 
@@ -55,7 +53,7 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
             click: (e) => {
 
                 // Naviga alla creazione documento se in modalità selezione
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT  && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon => 
                       isPointInPolygon(mouseCoords, polygon)
                     );
@@ -110,8 +108,8 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
         }
 
         {/* ---------------- add document button ---------------- */}
-        {loggedIn && (
-            <div
+       
+        <div
             className={`
               ${styles.addButton} 
               ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
@@ -164,7 +162,7 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
                 }
 
             </div>
-        )}
+
         </>
     );
 }

@@ -3,6 +3,7 @@ import React, { useState,  useContext, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap,  Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
+import { useMapLayoutContext } from '../contexts/MapLayoutContext';
 import DetailPlanCard from './CardDocument';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
@@ -178,6 +179,8 @@ const MapComponent = () => {
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
     const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    const { isMapHigh } = useMapLayoutContext();
+
 
     useEffect(() => {
         // Function to update the map's size
@@ -251,7 +254,7 @@ const MapComponent = () => {
     return (
         <div ref={containerRef} className={styles.mapPage}>
             <div className={styles.mapContainer} >
-            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle}  inMap={true} /> }
+            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle} inMap={true} /> }
             <MapContainer 
                 center={position} 
                 zoom={8} 
@@ -260,8 +263,6 @@ const MapComponent = () => {
                 ref={mapRef}
             >
                     <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker}/>
-
-                    {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
 
@@ -368,7 +369,7 @@ const MapComponent = () => {
                     }
                 </MapContainer>
 
-                <Legend isListing={isListing}/>
+                <Legend isListing={isListing} a card is/>
 
                 {selectedMarker && (
                     <DetailPlanCard
@@ -384,43 +385,8 @@ const MapComponent = () => {
                 {isListing  
                 && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} handleFilterByTitle={handleFilterByTitle} addButton={addButton}/>}
 
-                
-
-                <div className={styles.buttonGroupUI}>
-                    <button
-                        className={`${styles.satelliteButton}`}
-                        onClick={() => { setSatelliteView(prev => !prev); }}
-                        >
-                            <MdSatelliteAlt />
-                    </button>
-
-                    <button
-                        className={`${styles.diagramButton}`}         
-                        onClick={() => { setVisualizeDiagram(prev => !prev); }}
-                        >
-                            <i class="bi bi-graph-up"></i>
-                    </button>
-
-                    {loggedIn && (
-                        <button
-                        className={`${styles.listButton}`}
-                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
-                        >
-                            <i className="bi bi-list-task"></i>
-                        </button>        
-                    )}
-                    {/* DRAW BUTTON */}
-                    {loggedIn && (              
-                        <button                        
-                            className={`${styles.areaButton}`}
-                            onClick={() => {
-                                setToggleDrawing(prev => !prev); 
-                                setConfirmSelectedArea(false);
-                            }}
-                        >
-                        <i className="bi bi-square"></i>
-                        </button>
-                    )}
+                {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
+                <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
                     {/* CONFIRM BUTTON */}
                     {loggedIn && toggleDrawing && (
                         <button
@@ -434,6 +400,51 @@ const MapComponent = () => {
                         <i className="bi bi-check"></i>
                         </button>
                     )}
+
+                    {/* DRAW BUTTON */}
+                    {loggedIn && (              
+                        <button                        
+                            className={`${styles.areaButton}`}
+                            onClick={() => {
+                                setToggleDrawing(prev => !prev); 
+                                setConfirmSelectedArea(false);
+                            }}
+                        >
+                        <i className="bi bi-square"></i>
+                        </button>
+                    )}
+
+                    {/* ADD DOCUMENT BUTTON */}
+                    {loggedIn && (  
+                        <AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> 
+                    )}
+
+                    {/* DOCUMENT LIST BUTTON */}
+                    {loggedIn && (
+                        <button
+                        className={`${styles.listButton}`}
+                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
+                        >
+                            <i className="bi bi-list-task"></i>
+                        </button>        
+                    )}
+
+                    {/* CHANGE MAP VIEW BUTTON */}
+                    <button
+                        className={`${styles.satelliteButton}`}
+                        onClick={() => { setSatelliteView(prev => !prev); }}
+                        >
+                            <MdSatelliteAlt />
+                    </button>
+                    
+                    
+                    {/* VIEW DIAGRAM BUTTON */}
+                    <button
+                        className={`${styles.diagramButton}`}         
+                        onClick={() => { setVisualizeDiagram(prev => !prev); }}
+                        >
+                            <i class="bi bi-graph-up"></i>
+                    </button>
                 </div>
             </div>
         </div>
