@@ -112,13 +112,17 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
         {/* ---------------- add document button ---------------- */}
         {loggedIn && (
             <div
-                className={`
-                    ${styles.addButton} 
-                    ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
-                        isAddingDocument == SelectionState.NEW_POINT
-                        ? styles.expanded : ''}`}
-                tabIndex={0}
-            >
+            className={`
+              ${styles.addButton} 
+              ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
+              isAddingDocument == SelectionState.NEW_POINT ? styles.expanded : ''}`
+            }
+            role="button"              // Indicate button-like behavior
+            tabIndex={0}               // Make focusable
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") handleClick(e);
+            }}
+          >
                 {isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE && (
                     <>
                        <div>

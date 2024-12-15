@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useContext } from 'react';
 import { FaArrowsAltV } from 'react-icons/fa';
 import MapComponent from '../components/Map';
@@ -75,6 +76,7 @@ function MapPage() {
                 >
                     <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
                 </div>
+
 
                 <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
                     <Diagram />

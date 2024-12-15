@@ -226,3 +226,7 @@ describe('Area Controller', () => {
     });
   });
 });
+
+after(() => {
+  process.exit(0);  // Ensures Mocha exits after tests
+});

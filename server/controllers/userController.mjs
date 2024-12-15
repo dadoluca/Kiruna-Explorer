@@ -93,15 +93,16 @@ export const updateUserProfile = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(req.params.id, { name, email }, { new: true });
     if (!user) {
       const error = new Error('User not found');
-      error.statusCode = 404;
-      return next(error);
+      error.statusCode = 404;  // Explicitly set statusCode
+      return next(error);  // Pass the error to the error handler
     }
     res.json(user);
   } catch (error) {
     error.statusCode = 500;
-    next(error);
+    next(error);  // Pass the error to the error handler
   }
 };
+
 
 // Change Password
 export const changePassword = async (req, res, next) => {

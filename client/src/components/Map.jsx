@@ -1,5 +1,6 @@
+
 import React, { useState,  useContext, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup,  Polygon, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap,  Polygon, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { DocumentContext } from '../contexts/DocumentContext';
 import DetailPlanCard from './CardDocument';
@@ -17,7 +18,23 @@ import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
 
+function RecenterMap({ newPosition, isListing, selectedMarker }) {
+    const map = useMap();
 
+    if(selectedMarker == null) return null;
+
+    let pos = newPosition;
+  
+    if (isListing) {
+        const mapSize = map.getSize();
+        const offsetX = mapSize.x * 0.28; // 35vw is the list width
+        const point = map.latLngToContainerPoint(pos);
+        point.x -= offsetX;
+        pos = map.containerPointToLatLng(point);
+    }
+
+    map.setView(pos, map.getZoom());
+    }
 
 const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
     polygon[0].map(
@@ -151,13 +168,11 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const containerRef = useRef(null);
     const navigate = useNavigate();
-    const position = [68.1, 20.4]; // Kiruna coordinates
-    //const [selectedMarker, setSelectedMarker] = useState(null);
     const { loggedIn } = useContext(AuthContext);
-    const {handleVisualization, selectedMarker, setSelectedMarker, setVisualizeDiagram} = useContext(DocumentContext);
+    const { position, setPosition, handleVisualization, selectedMarker, setSelectedMarker, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
-    const { markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
+    const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
     const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
@@ -190,28 +205,27 @@ const MapComponent = () => {
     // Handler to update filtered documents on map
     const handleFilterByTitle = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if(!title || title === "All"){
             setMapMarkers();
-        else
+            handleDocCardVisualization(null);
+        }
+        else{
             setMapMarkers((doc) => doc.title === title);//passing the filter
+            const doc = documents.find(doc => doc.title === title);
+            handleDocCardVisualization(doc);
+        }
     };
 
     // Handler to update filtered documents on list
     const handleFilterByTitleInList = (title) => {
         console.log("title ", title);
-        if(!title || title === "All")
+        if(!title || title === "All"){
             setListContent();
-        else
+        }
+        else{
             setListContent((doc) => doc.title === title);//passing the filter
+        }
     };
-
-    /*
-    const handleVisualization = (doc) => {
-        setSelectedMarker({
-            doc: doc,
-            position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
-        })
-    };*/
 
     const handleCloseList = () => {
         setIsListing(false);
@@ -237,7 +251,7 @@ const MapComponent = () => {
     return (
         <div ref={containerRef} className={styles.mapPage}>
             <div className={styles.mapContainer} >
-            {loggedIn && !isListing && <SearchBar onFilter={handleFilterByTitle} /> }
+            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle}  inMap={true} /> }
             <MapContainer 
                 center={position} 
                 zoom={8} 
@@ -245,6 +259,8 @@ const MapComponent = () => {
                 zoomControl={false}
                 ref={mapRef}
             >
+                    <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker}/>
+
                     {<AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> }
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
@@ -308,7 +324,9 @@ const MapComponent = () => {
                                             setSelectedMarker({
                                                 doc: marker,
                                                 position: [marker.latitude, marker.longitude]
-                                            })}
+                                            });
+                                            setPosition([marker.latitude, marker.longitude]);
+                                        }
                                         }
                                     />
                                 
@@ -324,6 +342,7 @@ const MapComponent = () => {
                                         setListContent((doc) => doc.areaId === area._id);
                                         if (loggedIn) setAddButton(area);
                                         setIsListing(true);
+                                        handleDocCardVisualization(null);  
                                     }}
                                     />
                                     <MemoizedPolygon area={area} />
@@ -333,32 +352,14 @@ const MapComponent = () => {
 
                         </MarkerClusterGroup>
 
-                        {selectedMarker && (
-    <div className={styles.popupContainer}>
-        <div className={styles.popupHeader}>
-            <button
-                className={styles.closeButton}
-                onClick={() => setSelectedMarker(null)}
-            >
-                &times; {/* Close icon */}
-            </button>
-        </div>
-        <div className={styles.popupContent}>
-            <DetailPlanCard
-                doc={selectedMarker.doc}
-                onClose={() => setSelectedMarker(null)}
-                onChangeCoordinates={handleChangeCoordinates}
-                onToggleSelecting={setIsAddingDocument}
-            />
-        </div>
-    </div>
-)}
+                        
 
                     {municipalArea &&
                         <Marker
                             position={markerPosition} // Use calculated position with offset
                             icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true) } }}
+                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true); handleDocCardVisualization(null);  
+                            } }}
                         >
                                 <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
                             </Marker>
@@ -367,11 +368,21 @@ const MapComponent = () => {
                     }
                 </MapContainer>
 
-                <Legend />
+                <Legend isListing={isListing}/>
 
+                {selectedMarker && (
+                    <DetailPlanCard
+                        doc={selectedMarker.doc}
+                        onClose={() => handleDocCardVisualization(null)}
+                        onChangeCoordinates={handleChangeCoordinates}
+                        onToggleSelecting={setIsAddingDocument}
+                        isListing={isListing}
+                    />
+
+                )}
 
                 {isListing  
-                && <ScrollableDocumentsList handleVisualize={handleVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} addButton={addButton}/>}
+                && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} handleFilterByTitle={handleFilterByTitle} addButton={addButton}/>}
 
                 
 

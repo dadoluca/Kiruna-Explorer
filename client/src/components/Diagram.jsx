@@ -6,7 +6,7 @@ const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
-    const { handleVisualization } = useDocumentContext(); // Accessing handleVisualization from context
+    const { handleDocCardVisualization } = useDocumentContext(); // Accessing handleDocCardVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
@@ -357,7 +357,7 @@ const Diagram = () => {
             );
 
         nodes.on("click", (event, d) => {
-            handleVisualization(d);
+            handleDocCardVisualization(d);
         });
 
          // Append hidden popup container
