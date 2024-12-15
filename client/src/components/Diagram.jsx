@@ -482,6 +482,60 @@ const Diagram = () => {
             .attr("font-size", 12)
             .attr("fill", "#ffffff");
 
+
+        allLinks.on("mouseover", function (event, d) {
+            const transform = d3.zoomTransform(svg.node());
+
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+        
+            const svgPoint = svg.node().createSVGPoint();
+            svgPoint.x = mouseX;
+            svgPoint.y = mouseY;
+        
+            const localPoint = svgPoint.matrixTransform(svg.node().getScreenCTM().inverse());
+
+            let popupX = ((localPoint.x - transform.x) / transform.k) - 10;  
+            let popupY = ((localPoint.y - transform.y) / transform.k) - 10; 
+        
+            popupX += -400;
+            popupY += -110;
+        
+            popupX = Math.min(Math.max(popupX, 0), width);
+            popupY = Math.min(Math.max(popupY, 0), height + margin.top);
+        
+            linkPopup
+                .attr("transform", `translate(${popupX}, ${popupY})`)
+                .style("visibility", "visible");
+        
+            linkPopup.select("text").text(`Type: ${d.type}`);
+        })
+        .on("mousemove", function (event) {
+            const transform = d3.zoomTransform(svg.node());
+        
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+        
+            const svgPoint = svg.node().createSVGPoint();
+            svgPoint.x = mouseX;
+            svgPoint.y = mouseY;
+        
+            const localPoint = svgPoint.matrixTransform(svg.node().getScreenCTM().inverse());
+        
+            let popupX = ((localPoint.x - transform.x) / transform.k) - 10;  
+            let popupY = ((localPoint.y - transform.y) / transform.k) - 10;  
+        
+            popupX += -400;
+            popupY += -110;
+        
+            linkPopup.attr("transform", `translate(${popupX}, ${popupY})`);
+        })
+        .on("mouseout", function () {
+            linkPopup.style("visibility", "hidden");
+        })
+        
+        
+        /*
         // Add hover interaction for links
         allLinks.on("mouseover", function (event, d) {
             const sourcePos = d.sourcePos;
@@ -500,7 +554,7 @@ const Diagram = () => {
         })
         .on("mouseout", function () {
             linkPopup.style("visibility", "hidden");
-        })
+        })*/
         .each(function(d) {
             const sourcePos = d.sourcePos;
             const targetPos = d.targetPos;
