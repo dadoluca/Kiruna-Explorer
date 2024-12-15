@@ -12,7 +12,7 @@ export const registerUser = async (req, res, next) => {
   const { name, email, password, role, registrationSecret } = req.body;
 
   try {
-    // Check if the email already exists
+    
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const error = new Error('Email already in use');
@@ -20,7 +20,7 @@ export const registerUser = async (req, res, next) => {
       return next(error);
     }
 
-    // Validate registration secret for Urban Planner role
+    
     if (role === 'Urban Planner') {
       if (registrationSecret !== URBAN_PLANNER_SECRET) {
         const error = new Error('Invalid registration secret for Urban Planner');
@@ -29,7 +29,14 @@ export const registerUser = async (req, res, next) => {
       }
     }
 
-    // Create a new user
+    
+    if (!['Urban Planner', 'Resident'].includes(role)) {
+      const error = new Error('Invalid role');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    
     const user = new User({ name, email, password, role });
     await user.save();
 
@@ -39,6 +46,7 @@ export const registerUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 // User login
