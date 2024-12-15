@@ -16,6 +16,7 @@ export const DocumentProvider = ({ children }) => {
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
+  const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
   const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
 
   
@@ -167,6 +168,7 @@ export const DocumentProvider = ({ children }) => {
       municipalArea,
       selectedMarker,
       position,
+      visualizeDiagram,
       setMapMarkers,
       addDocument,
       addArea,
@@ -176,9 +178,10 @@ export const DocumentProvider = ({ children }) => {
       isArea,
       handleDocCardVisualization,
       setSelectedMarker,
-      setPosition
+      setPosition,
+      setVisualizeDiagram,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

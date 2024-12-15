@@ -170,7 +170,7 @@ const MapComponent = () => {
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const { loggedIn } = useContext(AuthContext);
-    const {position, setPosition, selectedMarker, setSelectedMarker, handleDocCardVisualization} = useContext(DocumentContext);
+    const { position, setPosition, handleVisualization, selectedMarker, setSelectedMarker, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -385,7 +385,6 @@ const MapComponent = () => {
                 {isListing  
                 && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} handleFilterByTitle={handleFilterByTitle} addButton={addButton}/>}
 
-                
                 {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
                 <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
                     {/* CONFIRM BUTTON */}
@@ -436,6 +435,15 @@ const MapComponent = () => {
                         onClick={() => { setSatelliteView(prev => !prev); }}
                         >
                             <MdSatelliteAlt />
+                    </button>
+                    
+                    
+                    {/* VIEW DIAGRAM BUTTON */}
+                    <button
+                        className={`${styles.diagramButton}`}         
+                        onClick={() => { setVisualizeDiagram(prev => !prev); }}
+                        >
+                            <i class="bi bi-graph-up"></i>
                     </button>
                 </div>
             </div>
