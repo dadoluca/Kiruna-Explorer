@@ -28,7 +28,7 @@ const DetailPlanCard = (props) => {
 
   return (
     <Card className={styles.detailPlanCard}
-      style={!props.isListing ? { left: "1rem", marginTop: "70px", marginBottom: "1rem", height: "85%", borderRadius: "12px", zIndex: "999"  } : {}}
+      style={!props.isListing ? { left: "1rem",  marginBottom: "1rem", borderRadius: "12px", zIndex: "999"  } : {}}
     >
       <Card.Body>
 
