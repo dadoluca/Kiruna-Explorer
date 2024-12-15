@@ -3,7 +3,7 @@ import styles from './SearchBar.module.css';
 import { DocumentContext } from '../contexts/DocumentContext'; 
 import { FaSearch } from "react-icons/fa"; // Import the search icon
   
-const SearchBar = ({ onFilter }) => {
+const SearchBar = ({ onFilter, inMap }) => {
   const { documents } = useContext(DocumentContext); // Fetch documents from context
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -61,7 +61,10 @@ const SearchBar = ({ onFilter }) => {
 
   return (
     <div className={styles.searchBar}>
-      <form onSubmit={handleSearchSubmit} className={styles.form}>
+      <form 
+        onSubmit={handleSearchSubmit} 
+        className={`${styles.form} ${inMap ? styles.inMap : ''}`}
+      >
         <input
           type="text"
           placeholder="Search documents..."

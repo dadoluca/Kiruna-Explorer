@@ -251,7 +251,7 @@ const MapComponent = () => {
     return (
         <div ref={containerRef} className={styles.mapPage}>
             <div className={styles.mapContainer} >
-            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle} visualizeCard={handleDocCardVisualization} /> }
+            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle}  inMap={true} /> }
             <MapContainer 
                 center={position} 
                 zoom={8} 
@@ -368,7 +368,7 @@ const MapComponent = () => {
                     }
                 </MapContainer>
 
-                <Legend />
+                <Legend isListing={isListing}/>
 
                 {selectedMarker && (
                     <DetailPlanCard

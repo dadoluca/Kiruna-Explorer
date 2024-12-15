@@ -1,14 +1,35 @@
+.dropdownIcon{
+    width: 15px;
+    height: 15px;
+    margin-left: 10px;
+}
+ 
+.legendIcon{
+    width: 30px;
+    height: 30px;
+}
+
+.dropdownToggle {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: small;
+}
+
 .legendContainer {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 15px;
+    top: 15px;
+    left: 32vw;
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 30px;
+    padding: 10px;
     box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     max-width: 200px;
-    font-family: 'Source Code Pro', monospace;
+}
+
+.isListing{
+    left: 36vw;
 }
 
 .legendTitle {
@@ -30,6 +51,7 @@
     border-radius: 8px; /* Slight rounding for hover effect */
     transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
     padding: 0.5rem 0.5rem;
+    cursor: text;
 }
 
 .legendItem.clickable {
@@ -70,6 +92,7 @@
     gap: 0.5rem;
     transition: all 0.3s ease;
     border: none;
+    background-color: transparent;
   }
 
   

@@ -31,7 +31,7 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.header}>
         <Row className={styles.headerRow}>
           <Col md={10}>
-            {loggedIn && <SearchBar onFilter={handleFilter} />}
+            {loggedIn && <SearchBar onFilter={handleFilter} inMap={false}/>}
           </Col>
           <Col md={2} className={styles.closeButtonContainer}>
           <button
