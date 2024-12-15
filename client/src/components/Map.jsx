@@ -170,7 +170,7 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const containerRef = useRef(null);
     const navigate = useNavigate();
-    const { loggedIn } = useContext(AuthContext);
+    const { loggedIn, roleUser } = useContext(AuthContext);
     const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
@@ -390,6 +390,7 @@ const MapComponent = () => {
 
                 {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
                 <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
+
                     {/* CONFIRM BUTTON */}
                     {loggedIn && toggleDrawing && (
                         <button
@@ -431,6 +432,18 @@ const MapComponent = () => {
                             <i className="bi bi-list-task"></i>
                         </button>        
                     )}
+
+                    {/* SELECT MORE DOCUMENTS BUTTON */}
+                    {roleUser === 'Resident' &&
+                        <button
+                                className={`${styles.selectDocumentsButton}`}
+                                onClick={() => {
+                                    console.log("TO IMPLEMENT");
+                                }}
+                            >
+                            <i class="bi bi-files"></i>
+                        </button>
+                    }
 
                     {/* CHANGE MAP VIEW BUTTON */}
                     <button
