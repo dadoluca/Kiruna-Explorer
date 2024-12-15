@@ -214,6 +214,15 @@ const Diagram = () => {
                     .attr("x", (d) => -(20 / event.transform.k) / 2)
                     .attr("y", (d) => -(20 / event.transform.k) / 2);
 
+                nodes.selectAll("rect")
+                    .attr("width", 30 / event.transform.k)
+                    .attr("height", 30 / event.transform.k)
+                    .attr("x", (d) => -(30 / event.transform.k) / 2)
+                    .attr("y", (d) => -(30 / event.transform.k) / 2)
+                    .attr("rx", 5 / event.transform.k)
+                    .attr("ry", 5 / event.transform.k)
+                    .attr("stroke-width", 2 / event.transform.k);
+
                 allLinks.attr("stroke-width", 1 / event.transform.k);
 
                 popup.selectAll("rect")
@@ -303,7 +312,6 @@ const Diagram = () => {
             .style("stroke", "#888");
         });
   
-    
         // Update existing nodes instead of removing them
         const nodesGroup = contentGroup.append("g")
             .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
