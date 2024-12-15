@@ -27,8 +27,20 @@ const DetailPlanCard = (props) => {
   };
 
   return (
-    <Card className={styles.detailPlanCard}>
+    <Card className={styles.detailPlanCard}
+      style={!props.isListing ? { left: "1rem",  marginBottom: "1rem", borderRadius: "12px", zIndex: "999"  } : {}}
+    >
       <Card.Body>
+
+        {/* close button */}
+        <button
+          className={styles.closeButton}
+          onClick={props.onClose}
+          aria-label="Close"
+          >
+            &times;
+        </button>
+
         <Card.Title className={`text-center ${styles.cardTitle}`}>
           {document.title || "N/A"}
           { !visualizeDiagram &&
@@ -186,6 +198,7 @@ DetailPlanCard.propTypes = {
   onClose: PropTypes.func,
   onChangeCoordinates: PropTypes.func.isRequired,
   onToggleSelecting: PropTypes.func.isRequired,
+  isListing: PropTypes.bool,
 };
 
 

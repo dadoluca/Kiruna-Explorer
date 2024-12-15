@@ -1,86 +1,113 @@
 .detailPlanCard {
-    width: 500px;
-    margin: 20px auto;
-    padding: 20px;
-    border-radius: 8px;
-    color: #333;
-    border: none;
-  }
-  
-  .cardTitle {
-    font-weight: bold;
-    font-size: 20px;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  .listItem {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    padding: 8px 0;
-    border-bottom: 1px solid #ddd;
-    color: #555;
-    gap: 4px; /* Added gap for better separation */
-  }
-  
-  .icon {
-    color: #5A5A5A;
-    margin-right: 10px;
-    font-size: 18px;
-  }
+  position: absolute;
+  top: 54px;
+  left: 35.8vw;
+  width: 30vw;
+  height: 83%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  color: #333;
+  border: none;
+  z-index: 1000;
+  font-size: 0.8rem;
+  display: flex; 
+  overflow-y: auto;  /*Abilita lo scorrimento verticale */
+  scrollbar-width: thin;
+  scrollbar-color: #e8d9ee rgba(255, 255, 255, 0);
+}
 
-  
-  .dropdownButton {
-    margin-left: 20px;
-  }
-  
-  .dropdownToggle {
-    height: 33px;
-    width: 33px;
-    background-color: #000000;
-    color: rgb(255, 255, 255);
-    border-radius: 2px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .dropdownToggle:hover {
-    background-color: #ffffff;
-    color: #000000;
-  }
-  
-  .addConnectionIcon {
-    margin-left: 20px;
-    height: 33px;
-    width: 33px;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #000000;
-    color: rgb(255, 255, 255);
-  }
-  
-  .addConnectionIcon:hover {
-    background-color: #ffffff;
-    color: #000000;
-  }
-  
-  .stakeholderItem {
-    margin-left: 28px;
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .description {
-    margin-top: 20px;
-    font-size: 15px;
-    color: #555;
-    line-height: 1.5;
-    background-color: #fff7e6;
-    padding: 12px;
-    border-radius: 6px;
-    box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.05);
-  }
-  
+
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: #f75475; /* Accent color */
+}
+
+.cardTitle {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+  color: #555;
+  gap: 4px; /* Added gap for better separation */
+}
+
+.icon {
+  color: #5A5A5A;
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+
+.dropdownButton {
+  margin-left: 20px;
+}
+
+.dropdownToggle {
+  height: 33px;
+  width: 33px;
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+  border-radius: 2px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdownToggle:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.addConnectionIcon {
+  margin-left: 20px;
+  height: 33px;
+  width: 33px;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+}
+
+.addConnectionIcon:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.stakeholderItem {
+  margin-left: 28px;
+  font-size: 14px;
+  color: #666;
+}
+
+.description {
+  margin-top: 20px;
+  font-size: 0.7rem;
+  color: #555;
+  line-height: 1.5;
+  background-color: #fff7e6;
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.05);
+}

@@ -6,10 +6,18 @@ const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const { documents } = useDocumentContext(); // Accessing documents from context
-    const { handleVisualization, highlightedNode, setHighlightedNode } = useDocumentContext(); // Accessing handleVisualization from context
+    const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
+    const initialTransform = d3.zoomIdentity;
+
+    // Function to reset zoom
+    function resetZoom() {
+        svg.transition()
+            .duration(750) // Durata della transizione
+            .call(zoom.transform, d3.zoomIdentity); // Ripristina lo zoom originale
+    }
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -79,15 +87,21 @@ const Diagram = () => {
         }
 
         const angle = (index / total) * 2 * Math.PI;
-        const radius = 15;
+        const baseRadius = 15;
+        const scale = 1 / Math.sqrt(total);
 
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
+        const radius = baseRadius * scale;
+
+        let x = centerX + radius * Math.cos(angle);
+        let y = centerY + radius * Math.sin(angle);
 
         if (isNaN(x) || isNaN(y)) {
             console.error("Invalid radial position:", { index, total, centerX, centerY, x, y });
             return { x: 0, y: 0 };
         }
+
+        x = x - 4;
+        y = y - 4;
 
         return { x, y };
     };
@@ -154,7 +168,7 @@ const Diagram = () => {
 
     // Effect to update the Y-axis domain based on scale nodes
     useEffect(() => {
-        const newYDomainR = [...new Set(scaleNodes.sort((a, b) => {
+        const newYDomainR = [...new Set(scaleNodes.toSorted((a, b) => {
             const numA = parseNumber(a.split(":")[1].trim());
             const numB = parseNumber(b.split(":")[1].trim());
             return numA - numB;
@@ -178,8 +192,65 @@ const Diagram = () => {
         // Create SVG element
         const svg = d3
             .select(svgRef.current)
-            .attr("width", width)
-            .attr("height", height);
+            .attr("width", "97%")
+            .attr("height", "100%")
+            .attr("viewBox", `0 0 ${width} ${height + margin.top}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        // Append a group for all chart content
+        const contentGroup = svg.append("g")
+            .attr("class", "content-group")
+            .attr("transform", `translate(0, ${margin.top})`);
+
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 5]) // Min and max zoom levels
+            .on("zoom", (event) => {
+                contentGroup.attr("transform", event.transform);
+
+                nodes.selectAll("image")
+                    .attr("width", 20 / event.transform.k)
+                    .attr("height", 20 / event.transform.k)
+                    .attr("x", (d) => -(20 / event.transform.k) / 2)
+                    .attr("y", (d) => -(20 / event.transform.k) / 2);
+
+                allLinks.attr("stroke-width", 1 / event.transform.k);
+
+                popup.selectAll("rect")
+                .attr("width", Math.max(150 / event.transform.k, 60)) 
+                .attr("height", Math.max(50 / event.transform.k, 30)); 
+    
+                popup.selectAll("text")
+                    .attr("x", 10) 
+                    .attr("y", Math.max(20 / event.transform.k, 15)) 
+                    .attr("font-size", Math.max(12 / event.transform.k, 8)); 
+    
+                linkPopup.selectAll("rect")
+                    .attr("width", Math.max(120 / event.transform.k, 80)) 
+                    .attr("height", Math.max(40 / event.transform.k, 20)); 
+
+                linkPopup.selectAll("text")
+                    .attr("x", function () {
+   
+                        const rectWidth = Math.max(120 / event.transform.k, 80);
+                        return rectWidth / 2;
+                    })
+                    .attr("y", function () {
+               
+                        const rectHeight = Math.max(40 / event.transform.k, 20);
+                        return rectHeight / 2 + (Math.max(8 / event.transform.k, 8) / 3);
+                    })
+                    .attr("font-size", Math.max(8 / event.transform.k, 6)) 
+                    .attr("text-anchor", "middle"); 
+
+                contentGroup.selectAll(".x-grid line")
+                    .style("stroke-width", 0.5 / event.transform.k);
+
+                contentGroup.selectAll(".y-grid line")
+                    .style("stroke-width", 0.5 / event.transform.k);
+            });
+
+        svg.call(zoom);
     
         // Scales for X and Y axes
         const xScale = d3
@@ -196,11 +267,11 @@ const Diagram = () => {
         const xAxis = d3.axisTop(xScale).tickValues(xDomain).tickFormat(d3.format("d"));
         const yAxis = d3.axisLeft(yScale).tickValues(yDomain);
     
-        svg.append("g")
+        contentGroup.append("g")
             .attr("transform", `translate(${margin.left - 30}, ${margin.top + 10})`)
             .call(yAxis);
     
-        svg.append("g")
+        contentGroup.append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`)
             .call(xAxis);
 
@@ -210,7 +281,7 @@ const Diagram = () => {
             .tickFormat("");
 
         // Append X grid
-        svg.append("g")
+        contentGroup.append("g")
             .attr("class", "x-grid")
             .attr("transform", `translate(${margin.left}, ${margin.top + height - margin.top - margin.bottom})`)
             .call(xGrid)
@@ -218,7 +289,7 @@ const Diagram = () => {
             .style("stroke", "#888");
 
         // Manual Y Grid (for alignment with band scale)
-        const yGridGroup = svg.append("g")
+        const yGridGroup = contentGroup.append("g")
         .attr("class", "y-grid")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -234,8 +305,8 @@ const Diagram = () => {
   
     
         // Update existing nodes instead of removing them
-        const nodesGroup = svg.append("g")
-        .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
+        const nodesGroup = contentGroup.append("g")
+            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
 
         const nodes = nodesGroup
             .selectAll("g.node-group")
@@ -306,6 +377,7 @@ const Diagram = () => {
         nodes.on("click", (event, d) => {
             setHighlightedNode(d._id);
             handleVisualization(d);
+            handleDocCardVisualization(d);
         });
 
         // Append hidden popup container
@@ -347,7 +419,7 @@ const Diagram = () => {
         });
 
         // Draw links between nodes based on calculated links
-        const linksGroup = svg.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
+        const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
 
         const allLinks  = linksGroup
             .selectAll("path")
@@ -385,6 +457,9 @@ const Diagram = () => {
                     xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
                     yScale(validTargetScale)
                 );
+
+                link.sourcePos = sourcePos;
+                link.targetPos = targetPos;
 
                 // Use a cubic Bezier curve for a smooth connection
                 const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
@@ -427,37 +502,64 @@ const Diagram = () => {
             .attr("font-size", 12)
             .attr("fill", "#ffffff");
 
+
+        allLinks.on("mouseover", function (event, d) {
+            const transform = d3.zoomTransform(svg.node());
+
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+        
+            const svgPoint = svg.node().createSVGPoint();
+            svgPoint.x = mouseX;
+            svgPoint.y = mouseY;
+        
+            const localPoint = svgPoint.matrixTransform(svg.node().getScreenCTM().inverse());
+
+            let popupX = ((localPoint.x - transform.x) / transform.k) - 10;  
+            let popupY = ((localPoint.y - transform.y) / transform.k) - 10; 
+        
+            popupX += -400;
+            popupY += -110;
+        
+            popupX = Math.min(Math.max(popupX, 0), width);
+            popupY = Math.min(Math.max(popupY, 0), height + margin.top);
+        
+            linkPopup
+                .attr("transform", `translate(${popupX}, ${popupY})`)
+                .style("visibility", "visible");
+        
+            linkPopup.select("text").text(`Type: ${d.type}`);
+        })
+        .on("mousemove", function (event) {
+            const transform = d3.zoomTransform(svg.node());
+        
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+        
+            const svgPoint = svg.node().createSVGPoint();
+            svgPoint.x = mouseX;
+            svgPoint.y = mouseY;
+        
+            const localPoint = svgPoint.matrixTransform(svg.node().getScreenCTM().inverse());
+        
+            let popupX = ((localPoint.x - transform.x) / transform.k) - 10;  
+            let popupY = ((localPoint.y - transform.y) / transform.k) - 10;  
+        
+            popupX += -400;
+            popupY += -110;
+        
+            linkPopup.attr("transform", `translate(${popupX}, ${popupY})`);
+        })
+        .on("mouseout", function () {
+            linkPopup.style("visibility", "hidden");
+        })
+        
+        
+        /*
         // Add hover interaction for links
         allLinks.on("mouseover", function (event, d) {
-            // Calculate positions based on link's source and target
-            const sourceNode = documents.find((doc) => doc._id === d.source);
-            const targetNode = documents.find((doc) => doc._id === d.target);
-            
-            const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
-            const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
-        
-            const sourceGroup = groupedNodes.get(sourceKey);
-            const targetGroup = groupedNodes.get(targetKey);
-        
-            const sourceIndex = sourceGroup.indexOf(sourceNode);
-            const targetIndex = targetGroup.indexOf(targetNode);
-        
-            const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
-            const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
-        
-            const sourcePos = calculateRadialPosition(
-                sourceIndex,
-                sourceGroup.length,
-                xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
-                yScale(validSourceScale)
-            );
-        
-            const targetPos = calculateRadialPosition(
-                targetIndex,
-                targetGroup.length,
-                xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
-                yScale(validTargetScale)
-            );
+            const sourcePos = d.sourcePos;
+            const targetPos = d.targetPos;
         
             // Calculate the midpoint of the link for popup positioning
             const midX = (sourcePos.x + targetPos.x) / 2;
@@ -472,12 +574,27 @@ const Diagram = () => {
         })
         .on("mouseout", function () {
             linkPopup.style("visibility", "hidden");
+        })*/
+        .each(function(d) {
+            const sourcePos = d.sourcePos;
+            const targetPos = d.targetPos;
+
+            const offset = 10;
+
+            // Add an hitbox
+            d3.select(this).append("rect")
+                .attr("x", Math.min(sourcePos.x, targetPos.x) - offset)
+                .attr("y", Math.min(sourcePos.y, targetPos.y) - offset)
+                .attr("width", Math.abs(sourcePos.x - targetPos.x) + 2 * offset)
+                .attr("height", Math.abs(sourcePos.y - targetPos.y) + 2 * offset)
+                .attr("fill", "transparent")
+                .attr("pointer-events", "all");
         });
 
         //Legend
         const legendGroup = svg.append("g")
         .attr("class", "legend-group")
-        .attr("transform", `translate(${0}, ${margin.top})`);
+        .attr("transform", `translate(${10}, ${margin.top})`);
 
         const legendData = [
             { type: "direct consequence", style: "solid", label: "Direct Consequence", color: "#FF8C00" },
@@ -494,6 +611,26 @@ const Diagram = () => {
         };
         
         // Draw legend
+        const padding = 20;
+        const rowHeight = 25;
+        const fontSize = 12;
+
+        const legendWidth = d3.max(legendData, d => {
+            const textWidth = d.label.length * fontSize * 0.6;
+            return 20 + textWidth;
+        });
+        const legendHeight = legendData.length * rowHeight;
+
+        legendGroup.append("rect")
+            .attr("x", -padding / 2)
+            .attr("y", -padding / 2)
+            .attr("width", legendWidth + padding)
+            .attr("height", legendHeight + padding)
+            .attr("fill", "white")
+            .attr("opacity", 0.85)
+            .attr("rx", 5)
+            .attr("ry", 5);
+
         legendGroup.selectAll("g.legend-item")
             .data(legendData)
             .join(
@@ -501,7 +638,7 @@ const Diagram = () => {
                     const group = enter.append("g")
                         .attr("class", "legend-item")
                         .attr("transform", (d, i) => `translate(0, ${i * 25})`); // Vertical space between elements
-        
+
                     // Legend line
                     group.append("line")
                         .attr("x1", 0)

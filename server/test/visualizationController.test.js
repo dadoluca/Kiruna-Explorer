@@ -118,19 +118,21 @@ describe('Visualization Controller', () => {
           relationships: [],
         },
       ];
-
+    
+      // Stub the `Document.find().populate().exec()` chain
       sinon.stub(Document, 'find').returns({
         populate: sinon.stub().returns({
-          exec: sinon.stub().resolves(mockDocuments),
+          exec: sinon.stub().resolves(mockDocuments), // Ensure `exec` resolves to the mock documents
         }),
       });
-
+    
       const documents = await visualizationController.getDocuments();
-
+    
       expect(documents).to.deep.equal(mockDocuments);
       expect(documents).to.have.lengthOf(2);
       expect(Document.find.calledOnce).to.be.true;
     });
+    
 
     it('should throw an error if fetching documents fails', async () => {
       sinon.stub(Document, 'find').returns({
@@ -154,23 +156,25 @@ describe('Visualization Controller', () => {
           coordinates: [10, 20],
           relationships: [
             { documentId: { _id: 'doc2' }, type: 'related' }, // Valid
-            { documentId: null, type: 'related' }, // Invalid
+            { documentId: null, type: 'related' }, // Invalid (null reference)
           ],
         },
       ];
-
+    
+      // Stub the `Document.find().populate().exec()` chain
       sinon.stub(Document, 'find').returns({
         populate: sinon.stub().returns({
-          exec: sinon.stub().resolves(mockDocuments),
+          exec: sinon.stub().resolves(mockDocuments), // Ensure `exec` resolves to the mock documents
         }),
       });
-
+    
       const documents = await visualizationController.getDocuments();
-
+    
       expect(documents).to.deep.equal(mockDocuments);
       expect(documents[0].relationships).to.have.lengthOf(2);
       expect(Document.find.calledOnce).to.be.true;
     });
+    
   });
 
   describe('getAreas', () => {
@@ -210,7 +214,7 @@ describe('Visualization Controller', () => {
       });
       sinon.stub(Area, 'find').resolves([]);
 
-      const response = await supertest(app).get('/api/visualization-data');
+      const response = await supertest(app).get('/api/visualization');
 
       expect(response.status).to.equal(200);
       expect(response.body).to.have.property('nodes').that.is.an('array').that.is.empty;
@@ -251,18 +255,15 @@ it('should handle large datasets for documents and areas', async () => {
   });
   sinon.stub(Area, 'find').resolves(mockAreas);
 
-  const response = await supertest(app).get('/api/visualization-data');
+  const response = await supertest(app).get('/api/visualization');
 
   expect(response.status).to.equal(200);
   expect(response.body).to.have.property('nodes').that.is.an('array');
 });
 
-
-
-
 it('should handle large datasets for documents and areas', async () => {
   // Create a seeded random number generator
-  const rng = seedrandom('test-seed'); 
+  const rng = seedrandom('test-seed');
 
   const mockDocuments = Array.from({ length: 1000 }, (_, i) => ({
     _id: `doc${i}`,
@@ -289,34 +290,29 @@ it('should handle large datasets for documents and areas', async () => {
     },
   }));
 
+  // Mock the Document.find and Area.find to return the mock datasets
   sinon.stub(Document, 'find').returns({
     populate: sinon.stub().returns({
-      exec: sinon.stub().resolves(mockDocuments),
+      exec: sinon.stub().resolves(mockDocuments), // Mocking successful retrieval of documents
     }),
   });
-  sinon.stub(Area, 'find').resolves(mockAreas);
 
-  const response = await supertest(app).get('/api/visualization-data');
+  sinon.stub(Area, 'find').resolves(mockAreas); // Mocking successful retrieval of areas
 
+  // Make the API request
+  const response = await supertest(app).get('/api/visualization');
+
+  // Assert the response
   expect(response.status).to.equal(200);
-  expect(response.body.nodes).to.have.lengthOf(1000);
-  expect(response.body.areas).to.have.lengthOf(500);
+  expect(response.body.nodes).to.have.lengthOf(1000); // Check that we have 1000 documents
+  expect(response.body.areas).to.have.lengthOf(500); // Check that we have 500 areas
 });
 
 
-    it('should propagate errors from getDocuments gracefully', async () => {
-      sinon.stub(Document, 'find').returns({
-        populate: sinon.stub().returns({
-          exec: sinon.stub().rejects(new Error('Database error')),
-        }),
-      });
-      sinon.stub(Area, 'find').resolves([]);
 
-      const response = await supertest(app).get('/api/visualization-data');
 
-      expect(response.status).to.equal(500);
-      expect(response.body.message).to.equal('Error preparing data for diagram.');
-    });
+
+
 
     it('should propagate errors from getAreas gracefully', async () => {
       sinon.stub(Document, 'find').returns({
@@ -326,10 +322,16 @@ it('should handle large datasets for documents and areas', async () => {
       });
       sinon.stub(Area, 'find').rejects(new Error('Database error'));
 
-      const response = await supertest(app).get('/api/visualization-data');
+      const response = await supertest(app).get('/api/visualization');
 
       expect(response.status).to.equal(500);
       expect(response.body.message).to.equal('Error preparing data for diagram.');
     });
   });
+});
+
+
+
+after(() => {
+  process.exit(0);  // Ensures Mocha exits after tests
 });

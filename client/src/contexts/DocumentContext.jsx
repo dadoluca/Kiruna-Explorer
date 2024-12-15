@@ -16,7 +16,8 @@ export const DocumentProvider = ({ children }) => {
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
   const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
   const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
-  
+  const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
+
   
   useEffect(() => {
     
@@ -90,7 +91,7 @@ export const DocumentProvider = ({ children }) => {
   };
 
   const setListContent = (filterFn = () => true) => {
-    const displayedDocument = [];
+    const displayedDocuments = [];
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
@@ -98,14 +99,14 @@ export const DocumentProvider = ({ children }) => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         
-        displayedDocument.push({
+        displayedDocuments.push({
           ...doc,
           longitude: parseFloat(longitude),
           latitude: parseFloat(latitude)
         });
     });
     
-    setDocList(displayedDocument);
+    setDocList(displayedDocuments);
   };
 
   const addDocument = (newDocument) => {
@@ -140,11 +141,19 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
-  const handleVisualization = (doc) => {
-    setSelectedMarker({
-        doc: doc,
-        position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
-    })
+  const handleDocCardVisualization = (doc) => {
+      if(doc == null){
+          setSelectedMarker(null);
+          setMapMarkers();
+      }
+      else{
+          let newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+          setPosition(newPosition);
+          setSelectedMarker({
+              doc: doc,
+              position: newPosition
+          })
+      }
   };
 
   const getMarker = async (id) => {
@@ -165,8 +174,9 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
-      visualizeDiagram,
       highlightedNode,
+      position,
+      visualizeDiagram,
       setMapMarkers,
       addDocument,
       addArea,
@@ -174,13 +184,14 @@ export const DocumentProvider = ({ children }) => {
       updateDocCoords,
       setListContent,
       isArea,
-      handleVisualization,
+      handleDocCardVisualization,
       setSelectedMarker,
+      setPosition,
       setVisualizeDiagram,
       setHighlightedNode,
       getMarker,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, visualizeDiagram, highlightedNode]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
