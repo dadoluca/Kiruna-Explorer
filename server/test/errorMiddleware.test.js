@@ -96,11 +96,13 @@ describe('Error Handling Middleware', () => {
    * 422 Validation Error Test - User Registration
    */
   it('should return a 422 error for a validation error on User registration', async () => {
+    const password = 'short';  // Password could be defined as a variable to avoid hard-coding
+  
     const invalidUser = {
-      name: 12345,          // Invalid name type (should be a string)
+      name: 12345,           // Invalid name type (should be a string)
       email: 'not-an-email', // Invalid email format
-      password: 'short',    // Invalid password length (should be at least 8 characters)
-      role: [],             // Invalid role (should be a valid string)
+      password: password,    // Use the password variable here
+      role: [],              // Invalid role (should be a valid string)
     };
   
     const response = await request.post('/users/register').send(invalidUser);
@@ -124,6 +126,7 @@ describe('Error Handling Middleware', () => {
       { msg: 'Role must be a valid string.', path: 'role' },
     ]);
   });
+  
 
   /**
  * 404 Error on Updating a Non-Existent User
