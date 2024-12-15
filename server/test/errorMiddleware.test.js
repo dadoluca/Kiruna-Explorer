@@ -96,8 +96,8 @@ describe('Error Handling Middleware', () => {
    * 422 Validation Error Test - User Registration
    */
   it('should return a 422 error for a validation error on User registration', async () => {
-    const password = 'short';  // Password could be defined as a variable to avoid hard-coding
-  
+    const password = process.env.TEST_PASSWORD || 'defaultPassword';  // Use environment variable or fallback
+    
     const invalidUser = {
       name: 12345,           // Invalid name type (should be a string)
       email: 'not-an-email', // Invalid email format
@@ -126,6 +126,7 @@ describe('Error Handling Middleware', () => {
       { msg: 'Role must be a valid string.', path: 'role' },
     ]);
   });
+  
   
 
   /**
