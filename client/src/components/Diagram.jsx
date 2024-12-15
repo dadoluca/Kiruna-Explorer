@@ -375,8 +375,6 @@ const Diagram = () => {
             );
 
         nodes.on("click", (event, d) => {
-            setHighlightedNode(d._id);
-            handleVisualization(d);
             handleDocCardVisualization(d);
         });
 
