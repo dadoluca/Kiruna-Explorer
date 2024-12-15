@@ -31,7 +31,7 @@ function MapPage() {
             if (newHeight > 0 && newHeight < maxHeight) {
                 setDiagramHeight(newHeight);
 
-                setIsMapHigh(newHeight < 270); 
+                setIsMapHigh(newHeight < 250); 
             }
         }
     };

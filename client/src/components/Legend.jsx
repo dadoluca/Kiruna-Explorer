@@ -21,10 +21,12 @@
         // Filter documents by type
         const handleFilterByType = (docType) => {
             setMapMarkers((doc) => doc.type === docType); // Update markers based on filter
+            setIsOpen(false);
         };
 
         const handleClearFilters = () => {
             setMapMarkers(() => documents); // Reset to all documents
+            setIsOpen(false);
         };
 
         return (
