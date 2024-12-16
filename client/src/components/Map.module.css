@@ -62,7 +62,7 @@
 
 .areaButton {
     position: absolute;
-    bottom: 180px;
+    bottom: 70px;
     right: 10px;
     background-color: #333333; /* Grigio scuro */
     color: #ffffff; /* Testo bianco */
@@ -120,35 +120,9 @@
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
 }
 
-/* Pulsante per aggiunta in basso a destra */
-.addButton {
-    position: absolute;
-    bottom: 70px;
-    right: 10px;
-    background-color: #333333; /* Grigio scuro */
-    color: #ffffff; /* Testo bianco */
-    border: none;
-    padding: 0.5rem;
-    border-radius: 50%; /* Forma circolare quando chiuso */
-    width: 3rem; /* Larghezza e altezza per il cerchio */
-    height: 3rem;
-    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
-    cursor: pointer;
-    z-index: 1000;
-    transform-origin: right; /* Ancoraggio a destra */
-    outline: none; /* Rimuove il contorno focus */
-    user-select: none; /* Impedisce la selezione del testo al clic */
-    overflow: hidden; 
-}
-
 .listButton {
     position: absolute;
-    bottom: 125px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
+    bottom: 70px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
     right: 10px; /* Allineamento a destra come addButton */
     background-color: #333333; /* Colore grigio leggermente più chiaro */
     color: #ffffff; /* Testo bianco */
