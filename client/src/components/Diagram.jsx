@@ -74,6 +74,7 @@ const Diagram = () => {
         return match[1] || match[4] || match[6]; // Return the extracted year
     }
 
+    // Function to transform a date in a decimal
     const parseDate = (dateString) => {
         const parts = dateString.split('-').map(part => parseInt(part, 10));
 
@@ -155,6 +156,26 @@ const Diagram = () => {
         );
     
         setLinks(() => [...linksArray]); // Update the links state
+    };
+
+    // Function for drag's constraints
+    const getMovementConstraints = (dateString) => {
+        const parts = dateString.split('-').map(part => parseInt(part, 10));
+    
+        if (parts.length === 3) {
+            // yyyy-mm-dd: Can't move
+            return { type: 'fixed', min: null, max: null };
+        } else if (parts.length === 2) {
+            // yyyy-mm: Can move only in month
+            const monthStart = parseDate(`${parts[0]}-${parts[1]}-01`); // First day of the month
+            const monthEnd = parseDate(`${parts[0]}-${parts[1]}-28`); // Last day of the month
+            return { type: 'month', min: monthStart, max: monthEnd };
+        } else if (parts.length === 1) {
+            // yyyy: Can move only in year
+            const yearStart = parseDate(`${parts[0]}-01-01`); // First day of the year
+            const yearEnd = parseDate(`${parts[0]}-12-31`); // Last day of the year
+            return { type: 'year', min: yearStart, max: yearEnd };
+        }
     };
 
     // Group nodes based on their issuance date and scale
@@ -340,6 +361,46 @@ const Diagram = () => {
             .attr("y2", y)
             .style("stroke", "#888");
         });
+
+        const drag = d3.drag()
+            .on("start", function (event, d) {
+                d3.select(this).raise().classed("active", true);
+            })
+            .on("drag", function (event, d) {
+                const constraints = getMovementConstraints(d.issuance_date.toString());
+
+                if (constraints.type === 'fixed') {
+                    return;
+                }
+
+                let newX = event.x;
+                let newY = event.y;
+                
+                const bandWidth = yScale.bandwidth();
+                const originalY = yScale(d.scale);
+
+                newX = Math.max(Math.min(newX, xScale(constraints.max)), xScale(constraints.min));
+                newY = Math.max(Math.min(newY, originalY + bandWidth * 0.45), originalY - bandWidth * 0.45);
+
+                const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                const group = groupedNodes.get(groupKey);
+                const index = group ? group.indexOf(d) : 0;
+
+                const { x, y } = calculateRadialPosition(index, group.length, newX, newY);
+                console.log(x, y)
+
+                d3.select(this)
+                    .attr("transform", `translate(${x}, ${y})`);
+
+                // Update node's coordinates
+                d.x = x;
+                d.y = y;
+            })
+            .on("end", function (event, d) {
+                // TODO: Call API
+
+                d3.select(this).classed("active", false);
+            });
   
         // Update existing nodes instead of removing them
         const nodesGroup = contentGroup.append("g")
@@ -409,7 +470,8 @@ const Diagram = () => {
                     return group;
                 },
                 exit => exit.remove()  // Remove nodes if necessary
-            );
+            )
+            .call(drag);
 
         nodes.on("click", (event, d) => {
             handleDocCardVisualization(d);
