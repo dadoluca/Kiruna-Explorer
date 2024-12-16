@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMapEvents } from 'react-leaflet';
 import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBackspace, faCirclePlus, faHouseChimney, faMapLocation, faMapMarker, faPlus, faSquare, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
+import { faBackspace, faCheck, faCirclePlus, faHouseChimney, faMapLocation, faMapMarker, faPlus, faSquare, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
 import styl from './addDocumentButton.module.css';
 import { SelectionState } from './SelectionState';
@@ -124,14 +124,13 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
                 <MapMouseEvents />
             }
 
-            {/* ADD DOC BUTTON */}
-            {loggedIn && (
-
+            {loggedIn &&(
                 <div
                     className={`
                 ${styl.background} 
                 ${isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE ||
-                            isAddingDocument == SelectionState.NEW_POINT
+                            isAddingDocument == SelectionState.NEW_POINT  ||
+                            isAddingDocument == SelectionState.NEW_AREA
                             ? styl.expanded : ''}`}
                     tabIndex={0}
                 >
@@ -167,17 +166,59 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
                                 </p>
                             </div>
                             {/* Close button - always rendered */}
+                            <div>
+                                <p>
+                                    Back {" "}
                             <CloseModeSelectionButton
                                 isVisible={isAddingDocument != SelectionState.NOT_IN_PROGRESS}
                                 onClick={() => { setIsAddingDocument(SelectionState.NOT_IN_PROGRESS) }}
                             />
+                                </p>
+                            </div>
 
                         </div>
+                    )}
+                    {isAddingDocument == SelectionState.NEW_AREA && (
+                            <div className={styl.verticalAlignment}>
+                                <div style={{ height: '55px' }}>
+                                    <p>Confirm area {" "}
+                                        <button className={styl.buttonLink} onClick={handleConfirmNewArea}>
+                                            <FontAwesomeIcon icon={faCheck} />
+                                        </button>
+                                    </p>
+                                </div>
+                                <div>
+                                <p>
+                                    Back {" "}
+
+                                <CloseModeSelectionButton
+                                isVisible={isAddingDocument != SelectionState.NOT_IN_PROGRESS}
+                                onClick={() => { setIsAddingDocument(SelectionState.NOT_IN_PROGRESS) }}
+                            />
+                                                            </p>
+                            </div>
+
+
+                            </div>
+                    )}
+
+                    {/* Display current mouse coordinates when adding a new point */}
+                    {isAddingDocument == SelectionState.NEW_POINT && mouseCoords.lat && mouseCoords.lng && (
+                        <>
+                            Insert the point in ({mouseCoords.lat}, {mouseCoords.lng})
+                            <div className={styles.spazio}></div>
+                            <CloseModeSelectionButton
+                                isVisible={isAddingDocument != SelectionState.NOT_IN_PROGRESS}
+                                onClick={() => { setIsAddingDocument(SelectionState.NOT_IN_PROGRESS) }}
+                            />
+                        </>
                     )}
 
                     {/* Plus button - always rendered */}
                     {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
-                        isAddingDocument != SelectionState.IS_CHOOSING_THE_MODE ? (
+                        isAddingDocument != SelectionState.IS_CHOOSING_THE_MODE  && 
+                        isAddingDocument != SelectionState.NEW_POINT  &&
+                        isAddingDocument != SelectionState.NEW_AREA ? (
                             <button
                                 className={styl.buttonLink}
                                 onClick={() => {
@@ -199,14 +240,6 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
                         >
                             <FontAwesomeIcon icon={faPlus} />
                         </button>
-                    )}
-
-                    {/* Display current mouse coordinates when adding a new point */}
-                    {isAddingDocument == SelectionState.NEW_POINT && mouseCoords.lat && mouseCoords.lng && (
-                        <>
-                            Insert the point in ({mouseCoords.lat}, {mouseCoords.lng})
-                            <div className={styles.spazio}></div>
-                        </>
                     )}
                 </div>
             )}

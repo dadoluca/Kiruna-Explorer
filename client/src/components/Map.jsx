@@ -397,20 +397,7 @@ const MapComponent = () => {
                             <i className="bi bi-list-task"></i>
                         </button>        
                     )}
-                    {/* CONFIRM BUTTON */}
-                    {loggedIn && isAddingDocument==SelectionState.NEW_AREA && (
-                        <button
-                            className={`${styles.addAreaButton}`}
-                            onClick={() => {
-                                setConfirmSelectedArea(prev => !prev);
-                                setToggleDrawing(prev => !prev);
-                                setIsAddingDocument()
-                                console.log("confirm:" + confirmSelectedArea);
-                            }}
-                        >
-                        <i className="bi bi-check"></i>
-                        </button>
-                    )}
+
                 </div>
             </div>
         </div>

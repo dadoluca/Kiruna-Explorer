@@ -6,17 +6,12 @@ import styl from './addDocumentButton.module.css';
 
 const CloseModeSelectionButton = ({ onClick }) => {
     return (
-        <div>
-            <p>
-                Back {" "}
                 <button
                 className={styl.buttonLink}
                     onClick={onClick}
                 >
                     <FontAwesomeIcon icon={faTimes} />
                 </button>
-            </p>
-        </div>
     );
 };
 

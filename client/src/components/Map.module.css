@@ -93,7 +93,7 @@
 .addAreaButton {
     position: absolute;
     bottom: 180px;
-    right: 60px;
+    right: 10px;
     background-color: #333333; /* Grigio scuro */
     color: #ffffff; /* Testo bianco */
     border: none;
