@@ -2,17 +2,55 @@ import Area from '../models/Geolocation.mjs';
 import { centroid } from '@turf/turf';
 import crypto from 'crypto';
 
+// Manually validate GeoJSON
+const isValidGeoJSON = (geojson) => {
+  console.log("GeoJSON Data Received:", geojson);
+
+  // Check if geojson is present and of type 'Feature'
+  if (!geojson || geojson.type !== 'Feature') {
+    console.log('Invalid GeoJSON type:', geojson?.type);
+    return false;
+  }
+
+  // Ensure geometry exists and is of type 'Polygon'
+  if (!geojson.geometry || geojson.geometry.type !== 'Polygon') {
+    console.log('Invalid geometry type:', geojson?.geometry?.type);
+    return false;
+  }
+
+  // Ensure coordinates exist and are an array
+  if (!Array.isArray(geojson.geometry.coordinates)) {
+    console.log('Coordinates missing or invalid:', geojson?.geometry?.coordinates);
+    return false;
+  }
+
+  // Ensure each ring has at least 4 points and is closed (first and last points match)
+  const coordinates = geojson.geometry.coordinates;
+  return coordinates.every(ring => 
+    ring.length > 3 && 
+    ring[0][0] === ring[ring.length - 1][0] && 
+    ring[0][1] === ring[ring.length - 1][1]
+  );
+};
+
+// Generate a secure random color
 const generateSecureRandomColor = () => {
   const randomBytes = crypto.randomBytes(3); // Generate 3 random bytes
   return `#${randomBytes.toString('hex')}`; // Convert to hexadecimal
 };
+
 // Create a new area
 export const createArea = async (req, res) => {
   try {
     const { geojson, name } = req.body;
 
-    // Validate geojson data structure
-    if (!geojson || geojson.type !== 'Feature' || !geojson.geometry || !geojson.properties) {
+    // Check if geojson is provided
+    if (!geojson) {
+      throw new Error('GeoJSON data is required.');
+    }
+
+    // Manually validate GeoJSON
+    if (!isValidGeoJSON(geojson)) {
       throw new Error('Invalid GeoJSON data. Ensure it conforms to the Feature schema.');
     }
 
@@ -20,6 +58,11 @@ export const createArea = async (req, res) => {
     if (name) {
       geojson.properties.name = name;
     }
+// Check if geometry is defined
+if (!geojson.geometry?.coordinates) {
+  throw new Error('Invalid geometry: Coordinates are missing or malformed.');
+}
+
 
     // Calculate and assign the centroid to the geojson properties
     const center = centroid(geojson);
@@ -35,18 +78,6 @@ export const createArea = async (req, res) => {
 
     // Generate a secure random color and assign it to the geojson properties
     geojson.properties.color = generateSecureRandomColor();
-
-    // Validate geometry structure for Polygon
-    if (
-      geojson.geometry.type !== 'Polygon' ||
-      !geojson.geometry.coordinates.every((ring) =>
-        ring.length > 3 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-      )
-    ) {
-      throw new Error(
-        'Invalid Polygon geometry. Each polygon must have at least 4 vertices, with the first and last coordinates matching.'
-      );
-    }
 
     // Save the area to the database
     const area = new Area({
@@ -65,7 +96,6 @@ export const createArea = async (req, res) => {
   }
 };
 
-
 // Get all areas
 export const getAllAreas = async (req, res) => {
   try {
@@ -76,6 +106,8 @@ export const getAllAreas = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch areas.', error: error.message });
   }
 };
+
+// Save area (with points and inverted coordinates)
 export const saveArea = async (req, res) => {
   try {
     const { points, name } = req.body;
@@ -128,4 +160,3 @@ export const saveArea = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-

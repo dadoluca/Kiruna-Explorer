@@ -30,8 +30,25 @@ app.use('/users', userRoutes);
 app.use('/areas', geolocationRoutes);
 app.use('/api', visualizationRoutes);  // Add the new route for visualization
 
-// Error Handling Middleware - should be added after all routes
-app.use(errorHandler);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  if (err.statusCode) {
+    // Known error with custom status code (e.g., 404, 422, 500)
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      errors: err.errors || [],
+    });
+  }
+
+  // Unknown errors default to 500
+  return res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+  });
+});
+
 
 // To serve static files (e.g., icon images)
 app.use(express.static('public'));

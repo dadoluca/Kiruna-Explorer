@@ -35,12 +35,18 @@ describe('DocumentController', () => {
       const req = { query: {} };
       const res = { json: sinon.stub() };
   
+      // Mock the Document.find method
       sinon.stub(Document, 'find').resolves(documents);
   
+      // Call the controller function
       await documentController.getAllDocuments(req, res);
   
+      // Assertions
       expect(Document.find.calledWith({})).to.be.true;
       expect(res.json.calledWith(documents)).to.be.true;
+  
+      // Restore the stub
+      Document.find.restore();
     });
   
     it('should filter documents based on query parameters', async () => {
@@ -49,26 +55,39 @@ describe('DocumentController', () => {
       const req = { query };
       const res = { json: sinon.stub() };
   
+      // Mock the Document.find method
       sinon.stub(Document, 'find').resolves(filteredDocuments);
   
+      // Call the controller function
       await documentController.getAllDocuments(req, res);
   
+      // Assertions
       expect(Document.find.calledWith(query)).to.be.true;
       expect(res.json.calledWith(filteredDocuments)).to.be.true;
+  
+      // Restore the stub
+      Document.find.restore();
     });
   
     it('should return 500 if there is a server error', async () => {
       const req = { query: {} };
       const res = { status: sinon.stub().returnsThis(), json: sinon.stub() };
   
+      // Mock the Document.find method to reject with an error
       sinon.stub(Document, 'find').rejects(new Error('Server error'));
   
+      // Call the controller function
       await documentController.getAllDocuments(req, res);
   
+      // Assertions
       expect(res.status.calledWith(500)).to.be.true;
       expect(res.json.calledWith({ message: 'Server error' })).to.be.true;
+  
+      // Restore the stub
+      Document.find.restore();
     });
   });
+  
 
   describe('getDocumentById', () => {
     it('should return a document by ID', async () => {
@@ -793,4 +812,8 @@ describe('DocumentController', () => {
       expect(res.download.calledWithMatch('/uploads/file1.pdf')).to.be.true;
     });
   });
+});
+
+after(() => {
+  process.exit(0);  // Ensures Mocha exits after tests
 });

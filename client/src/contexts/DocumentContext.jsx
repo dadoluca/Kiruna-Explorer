@@ -6,9 +6,7 @@ export const DocumentContext = createContext();
 
 export const useDocumentContext = () => useContext(DocumentContext);
 
-
 export const DocumentProvider = ({ children }) => {
-
   const [documents, setDocuments] = useState([]); //all documents retrived
   const [markers, setMarkers] = useState([]); // all documents in a spot and not in an area
   const [docList, setDocList] = useState([]); // all documents displayed in the ListDocument
@@ -16,6 +14,10 @@ export const DocumentProvider = ({ children }) => {
   const [displayedAreas, setDisplayedAreas] = useState([]); // all the list of documents of each area displayed in the Map
   const [municipalArea, setMunicipalArea] = useState(true); // set if municipality will be shown
   const [selectedMarker, setSelectedMarker] = useState(null); // selected marker
+  const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
+  const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
+  const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
+
   
   useEffect(() => {
     
@@ -89,7 +91,7 @@ export const DocumentProvider = ({ children }) => {
   };
 
   const setListContent = (filterFn = () => true) => {
-    const displayedDocument = [];
+    const displayedDocuments = [];
     let docs_copy = documents;
     docs_copy
       .filter(filterFn) // Apply the filter function to include only relevant documents
@@ -97,14 +99,14 @@ export const DocumentProvider = ({ children }) => {
         const coordinates = doc.coordinates.coordinates;
         const [longitude, latitude] = coordinates;
         
-        displayedDocument.push({
+        displayedDocuments.push({
           ...doc,
           longitude: parseFloat(longitude),
           latitude: parseFloat(latitude)
         });
     });
     
-    setDocList(displayedDocument);
+    setDocList(displayedDocuments);
   };
 
   const addDocument = (newDocument) => {
@@ -139,12 +141,28 @@ export const DocumentProvider = ({ children }) => {
     );
   };
 
-  const handleVisualization = (doc) => {
-    setSelectedMarker({
-        doc: doc,
-        position: [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]]
-    })
+  const handleDocCardVisualization = (doc) => {
+      if(doc == null){
+          setSelectedMarker(null);
+          setHighlightedNode(null);
+          setMapMarkers();
+      }
+      else{
+          let newPosition = [doc.coordinates.coordinates[1], doc.coordinates.coordinates[0]];
+          setPosition(newPosition);
+          setSelectedMarker({
+              doc: doc,
+              position: newPosition
+          });
+          setHighlightedNode(doc._id);
+      }
   };
+
+  const getMarker = async (id) => {
+    const singleDoc = await API.getDocumentById(id);
+
+    return singleDoc;
+  }
 
    // Memoize the value object
    const value = useMemo(
@@ -156,6 +174,9 @@ export const DocumentProvider = ({ children }) => {
       displayedAreas,
       municipalArea,
       selectedMarker,
+      highlightedNode,
+      position,
+      visualizeDiagram,
       setMapMarkers,
       addDocument,
       addArea,
@@ -163,10 +184,14 @@ export const DocumentProvider = ({ children }) => {
       updateDocCoords,
       setListContent,
       isArea,
-      handleVisualization,
+      handleDocCardVisualization,
       setSelectedMarker,
+      setPosition,
+      setVisualizeDiagram,
+      setHighlightedNode,
+      getMarker,
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

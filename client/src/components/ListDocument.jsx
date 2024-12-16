@@ -13,7 +13,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const ScrollableDocumentsList = (props) => {
   const { loggedIn } = useContext(AuthContext);
-  const { docList } = useContext(DocumentContext); // Fetch documents from context
+  const { docList, setHighlightedNode } = useContext(DocumentContext); // Fetch documents from context
   const navigate = useNavigate();
 
   const handleFilter = (title) => {
@@ -22,8 +22,7 @@ const ScrollableDocumentsList = (props) => {
   };
 
   const handleCardClick = (doc) => {
-    props.handleVisualize(doc); // Call the visualize function
-    props.closeList(); // Close the list
+    props.visualizeCard(doc); // Call the visualize function
   };
 
   return (
@@ -32,15 +31,16 @@ const ScrollableDocumentsList = (props) => {
       <div className={styles.header}>
         <Row className={styles.headerRow}>
           <Col md={10}>
-            {loggedIn && <SearchBar onFilter={handleFilter} />}
+            {loggedIn && <SearchBar onFilter={handleFilter} inMap={false}/>}
           </Col>
           <Col md={2} className={styles.closeButtonContainer}>
-            <Button
-              className={styles.closeButton}
-              onClick={() => props.closeList()}
+          <button
+            className={styles.closeButton}
+            onClick={() => props.closeList()}
+            aria-label="Close"
             >
-              <i className="bi bi-x-lg"></i>
-            </Button>
+              &times;
+          </button>
           </Col>
         </Row>
       </div>
@@ -52,7 +52,7 @@ const ScrollableDocumentsList = (props) => {
             className={styles.cardWrapper}
             role="button" // Add semantic role
             tabIndex={0} // Make the div focusable
-            onClick={() => handleCardClick(doc)} // Use the new function
+            onClick={() => {setHighlightedNode(doc._id); handleCardClick(doc);}} // Use the new function
             onKeyDown={(e) => { // Handle keyboard interaction
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
@@ -112,7 +112,7 @@ const ScrollableDocumentsList = (props) => {
 
 ScrollableDocumentsList.propTypes = {
   markers: PropTypes.array,
-  handleVisualize: PropTypes.func,
+  visualizeCard: PropTypes.func,
   closeList: PropTypes.func,
   handleFilterByTitleInList: PropTypes.func, // Ensure this prop is defined
   addButton: PropTypes.any, // Specify the expected type for addButton
