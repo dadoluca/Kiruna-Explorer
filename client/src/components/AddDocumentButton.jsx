@@ -30,6 +30,11 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
 
 
+const noXButton =
+  isAddingDocument !== SelectionState.IS_CHOOSING_THE_MODE &&
+  isAddingDocument !== SelectionState.NEW_POINT &&
+  isAddingDocument !== SelectionState.NEW_AREA;
+
 
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
@@ -217,9 +222,7 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
 
                     {/* Plus button - always rendered */}
                     {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
-                        isAddingDocument != SelectionState.IS_CHOOSING_THE_MODE  && 
-                        isAddingDocument != SelectionState.NEW_POINT  &&
-                        isAddingDocument != SelectionState.NEW_AREA ? (
+                            noXButton ? (
                             <button
                                 className={styl.buttonLink}
                                 onClick={() => {
