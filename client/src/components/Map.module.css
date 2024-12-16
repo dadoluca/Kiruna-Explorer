@@ -5,10 +5,9 @@
 .mapContainer {
     position: relative;
     margin: 0 auto;
-    width: 100%; /*width: 97%;*/
+    width: 100%; 
     height: 100%;
     border-top: 1.5px solid black;  /*Solo bordo superiore */
-    /*border-radius: 10px;*/
     overflow: hidden;
 }
 
@@ -89,18 +88,13 @@
     font-family: 'Source Code Pro', monospace;
 }
 
-/* Stato :active senza cambiare colore */
-.addButton:active {
-    background-color: #333333; /* Mantiene lo stesso colore */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-    transform: scale(0.98); /* Piccola riduzione per l’effetto clic */
-    outline: none;
-}
 
 /* Effetto click su .addButton */
 .addButton:active {
     background-color: #444444;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     transform: scale(0.97);
+    outline: none;
 }
 
 /* Stile per il pulsante "Entire Municipality" */
@@ -134,6 +128,8 @@
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.25); /* Ombra più accentuata */
 }
 
+
+
 .spazio{
     width: 0.5rem;
 }
@@ -154,44 +150,6 @@
     transition: transform 0.2s;
 }
 
-.clusterIcon:hover {
-    transform: scale(1.15); /* Slightly enlarge on hover */
-}
-
-.clusterSmall {
-    width: 35px;
-    height: 35px;
-}
-
-.clusterMedium {
-    width: 45px;
-    height: 45px;
-}
-
-.clusterLarge {
-    width: 55px;
-    height: 55px;
-}
-
-.spazio{
-    width: 0.5rem;
-}
-
-
-/*-------------- for Map Cluster Group --------------------*/
-.clusterIcon {
-    background-color: #ffffff4a; /* Base color */
-    color: rgb(0, 0, 0); /* Text color */
-    border-radius: 50%; /* Circular shape */
-    border: 2px solid #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Soft shadow */
-    transition: transform 0.2s;
-}
 
 .clusterIcon:hover {
     transform: scale(1.15); /* Slightly enlarge on hover */

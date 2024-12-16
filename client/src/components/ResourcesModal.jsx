@@ -69,7 +69,7 @@ const ResourcesModal = ({ show, onClose, documentId, documentTitle }) => {
         <Modal.Body>
             {/* List of Resources for the document */}
             {resources.map((resource, index) => (
-                <div className={index}>
+                <div className={index} key={resource._id}>
                     <Row>
                         <Col md={7}>
                             {fileIcons[getFileExtension(resource.originalFilename)] || <FaFileAlt style={{ color: "black" }} />}
