@@ -10,12 +10,6 @@ import { SelectionState } from './SelectionState';
 import CloseModeSelectionButton from './CloseModeSelectionButton';
 import PropTypes from 'prop-types';
 
-function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates, setToggleDrawing, setConfirmSelectedArea }) {
-    const navigate = useNavigate();
-    const [changingDocument, setChangingDocument] = useState(null);
-    const { loggedIn } = useContext(AuthContext);
-    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
-
     // Function to check if a point is inside the polygon (Ray-casting algorithm)
     const isPointInPolygon = (point, vs) => {
         const [x, y] = [point.lat, point.lng];
@@ -29,6 +23,13 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
         }
         return inside;
     };
+function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates, setToggleDrawing, setConfirmSelectedArea }) {
+    const navigate = useNavigate();
+    const [changingDocument, setChangingDocument] = useState(null);
+    const { loggedIn } = useContext(AuthContext);
+    const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
+
+
 
     const handleAssignToMunicipalArea = () => {
         navigate('/document-creation', { state: { isMunicipal: true } });
@@ -248,11 +249,11 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
 }
 
 AddDocumentButton.propTypes = {
-    isAddingDocument: PropTypes.bool.isRequired, 
+    isAddingDocument: PropTypes.string.isRequired, 
     setIsAddingDocument: PropTypes.func.isRequired, 
     kirunaPolygonCoordinates: PropTypes.array.isRequired, 
-    setToggleDrawing: PropTypes.func.isRequired, // Funzione per attivare o disattivare il disegno
-    setConfirmSelectedArea: PropTypes.func.isRequired // Funzione per confermare l'area selezionata
+    setToggleDrawing: PropTypes.func, // Funzione per attivare o disattivare il disegno
+    setConfirmSelectedArea: PropTypes.func // Funzione per confermare l'area selezionata
   };
   
 export default AddDocumentButton;

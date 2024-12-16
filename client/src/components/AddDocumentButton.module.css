@@ -1,7 +1,7 @@
 .background {
   position: absolute;
-  bottom: 125px;
-  right: 10px;
+  bottom: 195px;
+  right: 15px;
   background-color: #333333; /* Grigio scuro */
   color: #ffffff; /* Testo bianco */
   border: none;
@@ -25,8 +25,8 @@
 
 
 .background.expanded {
-  bottom: 124px;
-  right: 9px;
+  bottom: 194px;
+  right: 14px;
   width: auto; /* Larghezza espansa */
   height: min-content; /* Altezza invariata */
   background-color: #33333399; /* Grigio scuro */

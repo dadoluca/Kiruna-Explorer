@@ -398,11 +398,6 @@ const MapComponent = () => {
                 {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
                 <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
 
-                    {/* ADD DOCUMENT BUTTON */}
-                    {loggedIn && (  
-                        <AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> 
-                    )}
-
                     {/* DOCUMENT LIST BUTTON */}
                     {loggedIn && (
                         <button
@@ -427,7 +422,7 @@ const MapComponent = () => {
                         className={`${styles.diagramButton}`}         
                         onClick={() => { setVisualizeDiagram(prev => !prev); }}
                         >
-                            <i class="bi bi-graph-up"></i>
+                            <i className="bi bi-graph-up"></i>
                     </button>
                 </div>
             </div>
