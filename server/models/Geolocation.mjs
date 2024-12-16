@@ -56,7 +56,35 @@ const areaSchema = new mongoose.Schema({
       }
     }
   }
+  
+});
+
+const iconPositionSchema = new mongoose.Schema({
+  iconId: { 
+    type: String, 
+    required: true 
+  },
+  initialPosition: { 
+    type: Object, 
+    required: true 
+  },
+  currentPosition: { 
+    type: Object, 
+    required: true 
+  },
+  year: { 
+    type: Number, 
+    required: true 
+  },
+  month: { 
+    type: Number, 
+    required: false 
+  },
 });
 
 const Area = mongoose.model('Area', areaSchema);
-export default Area;
+const IconPosition = mongoose.model('IconPosition', iconPositionSchema);
+
+ export { Area, IconPosition };
+// const Area = mongoose.model('Area', areaSchema);
+ export default Area;
