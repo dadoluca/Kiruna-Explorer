@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useMapEvents } from 'react-leaflet';
 import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBackspace, faCheck, faCirclePlus, faHouseChimney, faMapLocation, faMapMarker, faPlus, faSquare, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCirclePlus, faHouseChimney, faMapMarker, faPlus, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
 import styl from './addDocumentButton.module.css';
 import { SelectionState } from './SelectionState';
 import CloseModeSelectionButton from './CloseModeSelectionButton';
+import PropTypes from 'prop-types';
 
 function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates, setToggleDrawing, setConfirmSelectedArea }) {
     const navigate = useNavigate();
@@ -132,7 +133,6 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
                             isAddingDocument == SelectionState.NEW_POINT  ||
                             isAddingDocument == SelectionState.NEW_AREA
                             ? styl.expanded : ''}`}
-                    tabIndex={0}
                 >
                     {/* Render selection mode options when choosing how to add a document */}
                     {isAddingDocument == SelectionState.IS_CHOOSING_THE_MODE && (
@@ -247,4 +247,12 @@ function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygo
     );
 }
 
+AddDocumentButton.propTypes = {
+    isAddingDocument: PropTypes.bool.isRequired, 
+    setIsAddingDocument: PropTypes.func.isRequired, 
+    kirunaPolygonCoordinates: PropTypes.array.isRequired, 
+    setToggleDrawing: PropTypes.func.isRequired, // Funzione per attivare o disattivare il disegno
+    setConfirmSelectedArea: PropTypes.func.isRequired // Funzione per confermare l'area selezionata
+  };
+  
 export default AddDocumentButton;
