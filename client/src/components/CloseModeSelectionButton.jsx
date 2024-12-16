@@ -2,15 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types'; // Import PropTypes
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import styl from './addDocumentButton.module.css';
 
 const CloseModeSelectionButton = ({ onClick }) => {
     return (
-        <button
-            style={{ height: '100%', backgroundColor: 'transparent', color: 'white', border: 'none' }}
-            onClick={onClick}
-        >
-            <FontAwesomeIcon icon={faTimes} />
-        </button>
+                <button
+                className={styl.buttonLink}
+                    onClick={onClick}
+                >
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
     );
 };
 
