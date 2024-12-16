@@ -74,6 +74,28 @@ const Diagram = () => {
         return match[1] || match[4] || match[6]; // Return the extracted year
     }
 
+    const parseDate = (dateString) => {
+        const parts = dateString.split('-').map(part => parseInt(part, 10));
+
+        if (parts.length === 3) {
+            // yyyy-mm-dd
+            const year = parts[0];
+            const month = parts[1];
+            const day = parts[2];
+            return year + (month - 1) / 12 + (day - 1) / 365; // Fractions of month and year
+        } else if (parts.length === 2) {
+            // yyyy-mm
+            const year = parts[0];
+            const month = parts[1];
+            return year + (month - 1) / 12; // Fractions of the year
+        } else if (parts.length === 1) {
+            // yyyy
+            return parts[0];
+        } else {
+            throw new Error("Not supported date format: " + dateString);
+        }
+    };
+
     // Function to calculate the radial position of nodes for circular layout
     const calculateRadialPosition = (index, total, centerX, centerY) => {
         if (isNaN(centerX) || isNaN(centerY)) {
@@ -135,9 +157,9 @@ const Diagram = () => {
         setLinks(() => [...linksArray]); // Update the links state
     };
 
-    // Group nodes based on their issuance year and scale
+    // Group nodes based on their issuance date and scale
     const groupedNodes = d3.group(documents, (d) => {
-        const time = parseInt(extractYear(d.issuance_date.toString())); // Extract the year
+        const time = parseDate(d.issuance_date.toString());
         return `${time}-${d.scale}`; // Unique key for the combination of X and Y axes
     });
 
@@ -147,7 +169,7 @@ const Diagram = () => {
             // Update the X-axis domain based on the min/max year from documents
             const newXDomain = range(
                 Math.min(...documents.map((doc) => extractYear(doc.issuance_date.toString()))), 
-                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString())))
+                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString()))) + 1
             );
 
             // Update scale nodes based on scale format
@@ -263,8 +285,11 @@ const Diagram = () => {
     
         // Scales for X and Y axes
         const xScale = d3
-            .scalePoint()
-            .domain(xDomain)
+            .scaleTime()
+            .domain([
+                d3.min(documents, (d) => parseDate(d.issuance_date.toString())),
+                d3.max(documents, (d) => parseDate(d.issuance_date.toString())) + 1
+            ])
             .range([0, width - margin.left - margin.right]);
     
         const yScale = d3
@@ -286,6 +311,10 @@ const Diagram = () => {
 
         // Grids creation
         const xGrid = d3.axisBottom(xScale)
+            .tickValues(range(
+                Math.min(...documents.map((doc) => parseInt(extractYear(doc.issuance_date.toString())))),
+                Math.max(...documents.map((doc) => parseInt(extractYear(doc.issuance_date.toString()))))
+            ))
             .tickSize(-(height - margin.top - margin.bottom)) // Grid lines extend the height of the chart
             .tickFormat("");
 
@@ -323,14 +352,14 @@ const Diagram = () => {
                 enter => { const group = enter.append("g") // Create a new node if it doesn't exist
                     .attr("class", "node-group")
                     .attr("transform", (d) => {
-                        const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
+                        const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
                         const group = groupedNodes.get(groupKey); // Get nodes in the same group
                         const index = group.indexOf(d); // Index of the node in the group
                         const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
                         const { x, y } = calculateRadialPosition(
                             index,
                             group.length,
-                            xScale(parseInt(extractYear(d.issuance_date.toString()))),
+                            xScale(parseDate(d.issuance_date.toString())),
                             yScale(validScale)
                         );
                         return `translate(${x}, ${y})`;
@@ -361,14 +390,14 @@ const Diagram = () => {
                 },
                 update => {const group = update // Update the position of existing nodes
                     .attr("transform", (d) => {
-                        const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
+                        const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
                         const group = groupedNodes.get(groupKey); // Get nodes in the same group
                         const index = group.indexOf(d); // Index of the node in the group
                         const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
                         const { x, y } = calculateRadialPosition(
                             index,
                             group.length,
-                            xScale(parseInt(extractYear(d.issuance_date.toString()))),
+                            xScale(parseDate(d.issuance_date.toString())),
                             yScale(validScale)
                         );
                         return `translate(${x}, ${y})`;
@@ -407,14 +436,14 @@ const Diagram = () => {
 
         // Show and hide popup on mouseover and mouseout
         nodes.on("mouseover", function (event, d) {
-            const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
+            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
             const group = groupedNodes.get(groupKey); // Get nodes in the same group
             const index = group.indexOf(d); // Index of the node in the group
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
             const { x, y } = calculateRadialPosition(
                 index,
                 group.length,
-                xScale(parseInt(extractYear(d.issuance_date.toString()))),
+                xScale(parseDate(d.issuance_date.toString())),
                 yScale(validScale)
             );
             const content = d.title || "Node without title"; 
@@ -435,8 +464,8 @@ const Diagram = () => {
                 // Calculate positions based on link's source and target
                 const sourceNode = documents.find((doc) => doc._id === link.source);
                 const targetNode = documents.find((doc) => doc._id === link.target);
-                const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
-                const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
+                const sourceKey = `${parseDate(sourceNode.issuance_date.toString())}-${sourceNode.scale}`;
+                const targetKey = `${parseDate(targetNode.issuance_date.toString())}-${targetNode.scale}`;
 
                 const sourceGroup = groupedNodes.get(sourceKey);
                 const targetGroup = groupedNodes.get(targetKey);
@@ -453,14 +482,14 @@ const Diagram = () => {
                 const sourcePos = calculateRadialPosition(
                     sourceIndex,
                     sourceGroup.length,
-                    xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
+                    xScale(parseDate(sourceNode.issuance_date.toString())),
                     yScale(validSourceScale)
                 );
 
                 const targetPos = calculateRadialPosition(
                     targetIndex,
                     targetGroup.length,
-                    xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
+                    xScale(parseDate(targetNode.issuance_date.toString())),
                     yScale(validTargetScale)
                 );
 
