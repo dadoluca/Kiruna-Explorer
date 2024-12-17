@@ -120,19 +120,27 @@ const DetailPlanCard = (props) => {
             <span className={styles.connectionCount}>{document.connections || 0}</span>
 
             <Dropdown className={`${styles.dropdownButton}`}>
-              <Dropdown.Toggle variant="link" className={styles.dropdownToggle} />
-              <Dropdown.Menu>
-                {document.relationships?.length > 0 ? (
-                  document.relationships.map((rel, index) => (
-                    <Dropdown.Item key={index} onClick={() => getMarker(rel.documentId).then((doc) =>handleDocCardVisualization(doc))}>
-                      {rel.documentTitle} - {rel.type}
-                    </Dropdown.Item>
-                  ))
-                ) : (
-                  <Dropdown.Item>No related documents</Dropdown.Item>
-                )}
-              </Dropdown.Menu>
-            </Dropdown>
+  <Dropdown.Toggle variant="link" className={styles.dropdownToggle} />
+  <Dropdown.Menu>
+    {document.relationships?.length > 0 ? (
+      document.relationships.map((rel) => (
+        <Dropdown.Item
+          key={rel.documentId} // Use a unique property as the key
+          onClick={() =>
+            getMarker(rel.documentId).then((doc) =>
+              handleDocCardVisualization(doc)
+            )
+          }
+        >
+          {rel.documentTitle} - {rel.type}
+        </Dropdown.Item>
+      ))
+    ) : (
+      <Dropdown.Item>No related documents</Dropdown.Item>
+    )}
+  </Dropdown.Menu>
+</Dropdown>
+
 
             {loggedIn && (
               <FaPlus
