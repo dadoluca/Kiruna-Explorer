@@ -15,12 +15,13 @@ import styles from './CardDocument.module.css';
 
 const DetailPlanCard = (props) => {
   const { loggedIn } = useContext(AuthContext);
-  const { documents, visualizeDiagram, setVisualizeDiagram, setHighlightedNode, handleDocCardVisualization, getMarker } = useDocumentContext();
+  const { documents, visualizeDiagram, setVisualizeDiagram, setHighlightedNode, handleDocCardVisualization, getMarker, selectingMode, selectedDocs, setSelectedDocs, checkDocumentPresence } = useDocumentContext();
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
   const [showModal, setShowModal] = useState(false);
   const [showModalResource, setShowModalResource] = useState(false);
   const [showResources, setShowResources] = useState(false);
+  const [selected, setSelected] = useState(checkDocumentPresence(document));
 
   const handleAddConnection = async () => {
     setShowModal(false);
@@ -30,6 +31,27 @@ const DetailPlanCard = (props) => {
     <Card className={styles.detailPlanCard}
       style={!props.isListing ? { left: "1rem",  marginBottom: "1rem", borderRadius: "12px", zIndex: "999"  } : {}}
     >
+      { selectingMode &&
+        <Col md={3} className="text-center">
+        <Button
+          variant="dark"
+          onClick={() => {
+            if(!selected){
+              setSelectedDocs([...selectedDocs, document]);
+            }
+            else{
+              setSelectedDocs(selectedDocs.filter(doc => doc._id !== document._id));
+            }
+            setSelected(!selected);
+          }}
+          size="sm"
+          className="mb-3"
+        >
+          {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
+        </Button>
+        </Col>
+      }
+
       <Card.Body>
 
         {/* close button */}
@@ -42,17 +64,25 @@ const DetailPlanCard = (props) => {
         </button>
 
         <Card.Title className={`text-center ${styles.cardTitle}`}>
-          {document.title || "N/A"}
-          { !visualizeDiagram &&
-            <Button
-              variant="light"
-              onClick={() => {setVisualizeDiagram(true); setHighlightedNode(document._id);}}
-              size="sm"
-              className="mb-3"
-            >
-              <i class="bi bi-graph-up"></i> Show on diagram
-            </Button>
-    }
+          <Row>
+            <Col>
+              {document.title || "N/A"}
+            </Col>
+              { !visualizeDiagram &&
+              <Col>
+                <Button
+                  variant="light"
+                  onClick={() => {setVisualizeDiagram(true); setHighlightedNode(document._id);}}
+                  size="sm"
+                  className="mb-3"
+                >
+                  <i class="bi bi-graph-up"></i> Show on diagram
+                </Button>
+              </Col>
+              }
+          </Row>
+
+          
         </Card.Title>
 
         <Card.Text className={styles.description}>

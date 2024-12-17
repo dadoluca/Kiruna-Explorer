@@ -12,7 +12,7 @@ const AuthProvider = ({ children }) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
-  const [roleUser, setRoleUser] = useState('');
+  const [isResident, setIsResident] = useState(false); 
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,7 +35,9 @@ const AuthProvider = ({ children }) => {
       console.log(user);
       setLoggedIn(true);
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
-      setRoleUser(user.user.role);
+      if(user.user.role === 'Resident'){
+        setIsResident(true);
+      }
       setUser(user);
     } catch (err) {
       const jsonErr = JSON.parse(err);
@@ -49,7 +51,9 @@ const AuthProvider = ({ children }) => {
       console.log(user);
       setLoggedIn(true);
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
-      setRoleUser(user.user.role);
+      if(user.user.role === 'Resident'){
+        setIsResident(true);
+      }
       setUser(user);
     } catch (err) {
       const jsonErr = JSON.parse(err);
@@ -62,6 +66,7 @@ const AuthProvider = ({ children }) => {
       await API.logOut();
       setLoggedIn(false);
       setMessage({ msg: `Logged out`, type: 'success' });
+      setIsResident(false);
       setUser(null);
     } catch (err) {
       setMessage({ msg: err, type: 'danger' });
@@ -69,7 +74,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ loggedIn, user, message, roleUser, setMessage, handleLogin, handleRegistration, handleLogout }}>
+    <AuthContext.Provider value={{ loggedIn, user, message, isResident, setMessage, handleLogin, handleRegistration, handleLogout }}>
       {/*
 
       Why this Context?
