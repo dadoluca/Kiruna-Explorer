@@ -15,28 +15,37 @@ import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
 import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
 import AddDocumentButton from './AddDocumentButton';
+import Municipality from './Municipality';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
 
 
-function RecenterMap({ newPosition, isListing, selectedMarker }) {
+function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMunicipality }) {
     const map = useMap();
 
-    if(selectedMarker == null) return null;
-
     let pos = newPosition;
-  
-    if (isListing) {
-        const mapSize = map.getSize();
-        const offsetX = mapSize.x * 0.28; // 35vw is the list width
-        const point = map.latLngToContainerPoint(pos);
-        point.x -= offsetX;
-        pos = map.containerPointToLatLng(point);
+    
+    if(isVisualizingMunicipality){
+        map.fitBounds(kirunaPolygonCoordinates);
+        pos = [68.2636, 19.000];
+        //map.setZoom(7);
+        if(selectedMarker != null)
+            pos =  [68.2636, 16.000];
     }
-
+    else{
+        if(selectedMarker == null) return null;
+        if (isListing) {
+            const mapSize = map.getSize();
+            const offsetX = mapSize.x * 0.28; // 35vw is the list width
+            const point = map.latLngToContainerPoint(pos);
+            point.x -=  offsetX;
+            pos = map.containerPointToLatLng(point);
+        }
+    } 
+    console.log("pos", pos);
     map.setView(pos, map.getZoom());
-    }
+}
 
 const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
     polygon[0].map(
@@ -173,7 +182,7 @@ const MapComponent = () => {
     const { loggedIn } = useContext(AuthContext);
     const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
-    const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
+    const [isListing, setIsListing] = useState(false); 
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
     const [satelliteView, setSatelliteView] = useState(true);
     const [toggleDrawing, setToggleDrawing] = useState(false);
@@ -181,6 +190,7 @@ const MapComponent = () => {
     const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     const { isMapHigh } = useMapLayoutContext();
+    const [isVisualizingMunicipality, setIsisualizingMunicipality] = useState(false);
 
 
     useEffect(() => {
@@ -233,6 +243,9 @@ const MapComponent = () => {
 
     const handleCloseList = () => {
         setIsListing(false);
+        if(isVisualizingMunicipality){
+            setIsisualizingMunicipality(false);
+        }
     };
 
     
@@ -270,7 +283,7 @@ const MapComponent = () => {
                         setToggleDrawing={setToggleDrawing} 
                         setConfirmSelectedArea={setConfirmSelectedArea}
                     /> }
-                    <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker}/>
+                    <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker} isVisualizingMunicipality={isVisualizingMunicipality} />
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
 
@@ -365,21 +378,26 @@ const MapComponent = () => {
 
                         </MarkerClusterGroup>
 
-                    {municipalArea &&
-                        <Marker
-                            position={markerPosition} // Use calculated position with offset
-                            icon={multipleDocumentsIcon}
-                            eventHandlers={{ click: () => { setListContent((doc) => doc.areaId === null); setAddButton(null); setIsListing(true); handleDocCardVisualization(null);  
-                            } }}
-                        >
-                                <Tooltip direction="bottom">Municipal Area related documents</Tooltip> 
-                            </Marker>
-                        }
                     </>
                     }
                 </MapContainer>
 
-                <Legend isListing={isListing} a card is/>
+                <Legend isListing={isListing}/>
+
+                {municipalArea &&
+                    <Municipality isListing={isListing} onClick={() => { 
+                        setListContent((doc) => doc.areaId === null);
+                        setAddButton(null);
+                        handleDocCardVisualization(null);
+                        if(isVisualizingMunicipality){
+                            handleCloseList();
+                        }
+                        else{
+                            setIsListing(true);
+                            setIsisualizingMunicipality(true);
+                        }
+                    }}/>
+                }
 
                 {selectedMarker && (
                     <DetailPlanCard
