@@ -1,4 +1,4 @@
-import Area from '../models/Geolocation.mjs';
+import Area, { IconPosition } from '../models/Geolocation.mjs';
 import { centroid } from '@turf/turf';
 import crypto from 'crypto';
 
@@ -159,4 +159,39 @@ export const saveArea = async (req, res) => {
     console.error('Error saving area:', error);
     res.status(400).json({ message: error.message });
   }
+  
 };
+export const saveIconPosition = async (req, res) => {
+  try {
+    const { iconId, position, year, month } = req.body;
+
+    // Ensure year and month are provided
+    if (!year || !month) {
+      return res.status(400).json({ message: 'Year and month are required.' });
+    }
+
+    const existingPosition = await IconPosition.findOne({ iconId });
+    if (existingPosition) {
+      existingPosition.currentPosition = position;
+      existingPosition.year = year;
+      existingPosition.month = month;
+      await existingPosition.save();
+      return res.status(200).json(existingPosition);
+    }
+
+    const newPosition = new IconPosition({
+      iconId,
+      initialPosition: position,
+      currentPosition: position,
+      year,
+      month,
+    });
+
+    await newPosition.save();
+    res.status(201).json(newPosition);
+  } catch (error) {
+    console.error('Error saving icon position:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+

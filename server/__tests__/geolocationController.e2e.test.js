@@ -2,7 +2,8 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { expect } from 'chai';
 import { createApp } from '../createApp.mjs';  
-import Area from '../models/Geolocation.mjs'; // Import your Area model
+import Area, { IconPosition } from '../models/Geolocation.mjs'; // Import your Area model
+import { saveIconPosition } from '../controllers/geolocationController.mjs';
 
 describe('Area API', () => {
   let app;
@@ -21,47 +22,43 @@ describe('Area API', () => {
   beforeEach(async () => {
     // Ensure that the collection is clean before each test
     await Area.deleteMany({});
+    await IconPosition.deleteMany({});
   });
-
   it('should create a new area with valid data', async () => {
-    const newArea = {
+    const validGeoJSON = {
       geojson: {
         type: 'Feature',
-        properties: {
-          name: 'Kiruna Test Area',
-        },
-        centroid: {
-          type: "Point",
-          coordinates: [20.3300, 67.8700]
-        },
         geometry: {
           type: 'Polygon',
           coordinates: [
             [
-              [20.2253, 67.8558],
-              [20.3144, 67.8561],
-              [20.3300, 67.87],
-              [20.2, 67.84],
-              [20.2253, 67.8558]
+              [21.5708,67.4558],
+              [21.5688,67.4538],
+              [21.5724,67.4517],
+              [21.5763,67.4495],
+              [21.5708,67.4558]
+ 
             ]
           ]
         }
-      }
+      },
+      name: 'Test Area'
     };
-  
+    console.log('Request BodyXXXXXXXXX:', JSON.stringify(validGeoJSON));
     const response = await request(app)
-      .post('/areas')
-      .send(newArea)
-      .expect('Content-Type', /json/)
-      .expect(201);
-  
-    console.log("Full Response Body:", JSON.stringify(response.body, null, 2));
-  
-    
-    expect(response.body).to.have.property('geometry');
-    expect(response.body.geometry).to.have.property('coordinates');
-    expect(response.body.geometry.coordinates).to.deep.equal(newArea.geojson.geometry.coordinates);
+      .post('/api/areas') 
+      .send(validGeoJSON)
+      .set('Content-Type', 'application/json');
+
+      console.log('Response Body:', response.body);
+    expect(response.status).to.equal(201);
+    expect(response.body).to.have.property('success', true);
+    expect(response.body).to.have.property('data');
+    expect(response.body.data).to.have.property('geojson');
+    expect(response.body.data.geojson).to.have.property('type', 'Feature');
+    expect(response.body.data.geojson.geometry).to.have.property('type', 'Polygon');
   });
+
   
   
    it('should return all areas', async () => {
@@ -130,7 +127,7 @@ describe('Area API', () => {
     };
 
     const response = await request(app)
-      .post('/areas') // Assuming your route is defined as /areas
+      .post('/api/areas') // Assuming your route is defined as /areas
       .send(areaData)
       .expect('Content-Type', /json/)
       .expect(201);
@@ -146,6 +143,29 @@ describe('Area API', () => {
     expect(response.body.properties.centroid).to.have.property('type', 'Point');
     expect(response.body.properties.centroid.coordinates).to.be.an('array');
   });
+
+
+
+  it('should save a new icon position with valid data', async () => {
+    const requestData = {
+      iconId: 'unique-icon-123', 
+      position: { lat: 60.0, lng: 15.0 },
+      year: 2024,
+      month: 12,
+    };
+
+    const response = await request(app)
+      .post('/api/areas/icon-position')
+      .send(requestData)
+      .set('Accept', 'application/json');
+
+    expect(response.status).to.equal(201); 
+    expect(response.body).to.have.property('iconId', requestData.iconId);
+    expect(response.body).to.have.property('currentPosition');
+    expect(response.body.currentPosition).to.deep.equal(requestData.position);
+  });
+
+
 
   after(async () => {
     // Clean up after all tests

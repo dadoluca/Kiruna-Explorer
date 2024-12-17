@@ -17,7 +17,7 @@ export const createApp = () => {
   // Register your routes
   app.use('/users', userRoutes);
   app.use('/documents', documentRoutes);
-  app.use('/areas', areaRoutes);
+  app.use('/api/areas', areaRoutes);
   app.use(errorHandler);
 
   return app;
