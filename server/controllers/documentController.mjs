@@ -689,4 +689,32 @@ export const getSelectionFields = async (req, res) => {
   }
 };
 
+// Update document's diagram positions
+export const setDiagramPosition = async (req, res) => {
+  try {
+    const { diagramX, diagramY } = req.body;
 
+    if (diagramX === undefined || diagramY === undefined) {
+      return res.status(400).json({ message: 'Both diagramX and diagramY are required in the body' });
+    }
+
+    const document = await Document.findById(req.params.id);
+
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    const updateOrAddField = (field, value) => {
+      if (value !== undefined) {
+        document[field] = value;
+      }
+    };
+
+    updateOrAddField('diagramX', diagramX);
+    updateOrAddField('diagramY', diagramY);
+
+    const updatedDocument = await document.save();
+
+    res.json(updatedDocument);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

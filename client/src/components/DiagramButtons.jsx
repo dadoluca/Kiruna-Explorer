@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const DiagramButtons = () => {
+const DiagramButtons = ({ toggleNodesDrag, savePositions }) => {
   const buttonLinkStyle = {
     backgroundColor: '#333333', // Grigio scuro
     color: '#ffffff', // Testo bianco
@@ -43,8 +44,9 @@ const DiagramButtons = () => {
         onMouseLeave={(e) => {
           Object.assign(e.target.style, buttonLinkStyle);
         }}
+        onClick={toggleNodesDrag}
       >
-        B1
+        Drag
       </button>
       <button
         style={buttonLinkStyle}
@@ -54,11 +56,17 @@ const DiagramButtons = () => {
         onMouseLeave={(e) => {
           Object.assign(e.target.style, buttonLinkStyle);
         }}
+        onClick={savePositions}
       >
-        B2
+        Save
       </button>
     </div>
   );
+};
+
+DiagramButtons.propTypes = {
+  toggleNodesDrag: PropTypes.func.isRequired,
+  savePositions: PropTypes.func.isRequired
 };
 
 export default DiagramButtons;

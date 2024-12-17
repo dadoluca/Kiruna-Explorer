@@ -364,4 +364,29 @@ const downloadResource = async (documentId, filename) => {
   }
 }
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas };
+const setDocumentDiagramPosition = async (documentId, diagramX, diagramY) => {
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/diagram-position`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        diagramX,
+        diagramY
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update diagram position: ${response.statusText}`);
+    }
+
+    const updatedDocument = await response.json();
+    return updatedDocument;
+  } catch (error) {
+    console.error("Error updating diagram position:", error);
+    throw error;
+  }
+};
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas, setDocumentDiagramPosition };

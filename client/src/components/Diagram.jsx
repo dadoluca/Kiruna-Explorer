@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
+import DiagramButtons from "../components/DiagramButtons";
 
 const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
@@ -332,10 +333,10 @@ const Diagram = () => {
                 let newY = event.y;
 
                 const bandWidth = yScale.bandwidth();
-                const originalY = yScale(d.scale);
+                const diagramY = yScale(d.scale);
 
                 newX = Math.max(Math.min(newX, xScale(constraints.max)), xScale(constraints.min));
-                newY = Math.max(Math.min(newY, originalY + bandWidth * 0.45), originalY - bandWidth * 0.45);
+                newY = Math.max(Math.min(newY, diagramY + bandWidth * 0.45), diagramY - bandWidth * 0.45);
 
                 d.fx = newX;
                 d.fy = newY;
@@ -354,7 +355,7 @@ const Diagram = () => {
             const x = xScale(parseDate(d.issuance_date));
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
             const y = yScale(validScale);
-            return { ...d, x, y, fx: x, fy: y, originalX: x, originalY: y };
+            return { ...d, x, y, fx: x, fy: y, diagramX: x, diagramY: y };
         });
 
         const groupedNodes = d3.group(nodesData, (d) => `${parseDate(d.issuance_date.toString())}-${d.scale}`);
@@ -374,8 +375,8 @@ const Diagram = () => {
                 // Close cluster
                 openClusters.delete(groupKey);
                 nodesInGroup.forEach((n) => {
-                    n.fx = n.originalX;
-                    n.fy = n.originalY;
+                    n.fx = n.diagramX;
+                    n.fy = n.diagramY;
                 });
             } else {
                 // Open cluster
@@ -383,8 +384,8 @@ const Diagram = () => {
                 const angleStep = (2 * Math.PI) / nodesInGroup.length;
                 nodesInGroup.forEach((n, i) => {
                     const radius = 30;
-                    n.fx = n.originalX + radius * Math.sin(i * angleStep);
-                    n.fy = n.originalY + radius * Math.cos(i * angleStep);
+                    n.fx = n.diagramX + radius * Math.sin(i * angleStep);
+                    n.fy = n.diagramY + radius * Math.cos(i * angleStep);
                 });
             }
 
@@ -439,13 +440,13 @@ const Diagram = () => {
             const targetNode = nodesData.find((doc) => doc._id === link.target);
         
             const sourcePos = {
-                x: sourceNode.fx !== undefined ? sourceNode.fx : sourceNode.originalX,
-                y: sourceNode.fy !== undefined ? sourceNode.fy : sourceNode.originalY
+                x: sourceNode.fx !== undefined ? sourceNode.fx : sourceNode.diagramX,
+                y: sourceNode.fy !== undefined ? sourceNode.fy : sourceNode.diagramY
             };
         
             const targetPos = {
-                x: targetNode.fx !== undefined ? targetNode.fx : targetNode.originalX,
-                y: targetNode.fy !== undefined ? targetNode.fy : targetNode.originalY
+                x: targetNode.fx !== undefined ? targetNode.fx : targetNode.diagramX,
+                y: targetNode.fy !== undefined ? targetNode.fy : targetNode.diagramY
             };
 
             const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
@@ -692,7 +693,10 @@ const Diagram = () => {
     }, [documents, xDomain, yDomain, links, highlightedNode]);
 
     return (
-        <svg ref={svgRef}></svg>
+        <>
+            <svg ref={svgRef}></svg>
+            <DiagramButtons/>
+        </>
     );
 };
 

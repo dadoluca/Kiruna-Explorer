@@ -2,7 +2,6 @@ import React, { useState, useRef, useContext } from 'react';
 import { FaArrowsAltV } from 'react-icons/fa';
 import MapComponent from '../components/Map';
 import Diagram from "../components/Diagram";
-import DiagramButtons from "../components/DiagramButtons";
 import { MapLayoutProvider, useMapLayoutContext } from '../contexts/MapLayoutContext';
 import styles from './MapPage.module.css';
 import { DocumentContext } from '../contexts/DocumentContext';
@@ -78,7 +77,6 @@ function MapPage() {
 
                 <div className={styles.diagramContainer} style={{ height: diagramHeight }}>
                     <Diagram />
-                    <DiagramButtons/>
                 </div>
             </div>}
         </div>
