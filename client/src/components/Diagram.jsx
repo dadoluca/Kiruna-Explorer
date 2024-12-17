@@ -9,7 +9,6 @@ const Diagram = () => {
     const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
-    const [openClusters, setOpenClusters] = useState(new Set());
     const [links, setLinks] = useState([]); // State for calculated links
 
     // Function to generate a range of numbers
@@ -319,15 +318,10 @@ const Diagram = () => {
 
         // Drag for nodes
         const drag = d3.drag()
-        .on("start", function (event, d) {
-            d3.select(this).raise().classed("active", true);
-        })
-        .on("drag", function (event, d) {
-            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-            const isClusterOpen = openClusters.has(groupKey);
-            const nodesInGroup = groupedNodes.get(groupKey);
-
-            if (!isClusterOpen) {
+            .on("start", function (event, d) {
+                d3.select(this).raise().classed("active", true);
+            })
+            .on("drag", function (event, d) {
                 const constraints = getMovementConstraints(d.issuance_date.toString());
 
                 if (constraints.type === 'fixed') {
@@ -348,28 +342,14 @@ const Diagram = () => {
 
                 d3.select(this)
                     .attr("transform", `translate(${d.fx}, ${d.fy})`);
-            } else {
-                const angleStep = (2 * Math.PI) / nodesInGroup.length;
-                const radius = 30;
 
-                const angle = angleStep * nodesInGroup.indexOf(d);
+                allLinks
+                    .attr("d", (link) => calculateLinkPath(link));
+            })
+            .on("end", function (event, d) {
+                d3.select(this).classed("active", false);
+            });
 
-                const newX = d.originalX + radius * Math.cos(angle);
-                const newY = d.originalY + radius * Math.sin(angle);
-
-                // Update node position
-                d.fx = newX;
-                d.fy = newY;
-
-                d3.select(this)
-                    .attr("transform", `translate(${d.fx}, ${d.fy})`);
-            }
-        })
-        .on("end", function (event, d) {
-            d3.select(this).classed("active", false);
-        });
-        
-        // NODES
         const nodesData = documents.map((d) => {
             const x = xScale(parseDate(d.issuance_date));
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
@@ -388,114 +368,31 @@ const Diagram = () => {
 
         simulation.stop();
 
+        let openClusters = new Set();
         const toggleCluster = (groupKey, nodesInGroup) => {
-            setOpenClusters((prev) => {
-                const updated = new Set(prev);
-                if (updated.has(groupKey)) {
-                    // Close cluster
-                    updated.delete(groupKey);
-                    nodesInGroup.forEach((n) => {
-                        n.fx = n.originalX;
-                        n.fy = n.originalY;
-                    });
-                } else {
-                    // Open cluster
-                    updated.add(groupKey);
-                    const angleStep = (2 * Math.PI) / nodesInGroup.length;
-                    nodesInGroup.forEach((n, i) => {
-                        const radius = 30;
-                        n.fx = n.originalX + radius * Math.sin(i * angleStep);
-                        n.fy = n.originalY + radius * Math.cos(i * angleStep);
-                    });
-                }
-                return updated;
-            });
+            if (openClusters.has(groupKey)) {
+                // Close cluster
+                openClusters.delete(groupKey);
+                nodesInGroup.forEach((n) => {
+                    n.fx = n.originalX;
+                    n.fy = n.originalY;
+                });
+            } else {
+                // Open cluster
+                openClusters.add(groupKey);
+                const angleStep = (2 * Math.PI) / nodesInGroup.length;
+                nodesInGroup.forEach((n, i) => {
+                    const radius = 30;
+                    n.fx = n.originalX + radius * Math.sin(i * angleStep);
+                    n.fy = n.originalY + radius * Math.cos(i * angleStep);
+                });
+            }
+
+            allLinks
+                .attr("d", (link) => calculateLinkPath(link));
 
             simulation.alpha(0.3).restart();
         };
-        
-        const nodesGroup = contentGroup.append("g")
-            .attr("transform", `translate(${margin.left}, ${margin.top + 20})`) // Align with the axes
-
-        const nodes = nodesGroup
-            .selectAll("g.node-group")
-            .data(nodesData, (d) => d._id)  // Use a unique key
-            .join(
-                enter => { 
-                    const group = enter.append("g")
-                        .attr("class", "node-group")
-                        .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`)
-                        .on("click", (event, d) => {
-                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-                            const nodesInGroup = groupedNodes.get(groupKey);
-                            toggleCluster(groupKey, nodesInGroup);
-                        });
-
-                    group.append("rect")
-                        .attr("x", -15) // Posizionamento relativo all'immagine
-                        .attr("y", -15)
-                        .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
-                        .attr("height", 30)
-                        .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
-                        .attr("ry", 5)
-                        .attr("fill", "none")
-                        .attr("stroke", "red")
-                        .attr("stroke-width", 2)
-                        .attr("class", "highlight-rect")
-                        .style("display", (d) => d._id === highlightedNode ? "block" : "none");
-
-                    group.append("image")
-                        .attr("xlink:href", (d) => d.icon) // Node image source
-                        .attr("x", -10) // Center the image relative to the node
-                        .attr("y", -10)
-                        .attr("width", 20)
-                        .attr("height", 20);
-
-                    return group;
-                },
-                update => {const group = update // Update the position of existing nodes
-                    .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`);
-
-                    group.select("rect.highlight-rect")
-                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
-
-                    return group;
-                },
-                exit => exit.remove()  // Remove nodes if necessary
-            )
-            .call(drag);
-
-        /*nodes.on("click", (event, d) => {
-            handleDocCardVisualization(d);
-        });*/
-
-        // Append hidden popup container
-        const popup = nodesGroup.append("g")
-        .attr("class", "node-popup")
-        .style("visibility", "hidden");
-
-        popup.append("rect")
-            .attr("width", 150)
-            .attr("height", 50)
-            .attr("rx", 5) // Rounded corners
-            .attr("fill", "rgba(255, 255, 255, 0.9)")
-            .attr("stroke", "black")
-            .attr("stroke-width", 1);
-
-        popup.append("text")
-            .attr("x", 10)
-            .attr("y", 25)
-            .attr("font-size", 12)
-            .attr("fill", "black");
-
-        // Show and hide popup on mouseover and mouseout
-        nodes.on("mouseover", function (event, d) {
-            const content = d.title || "Node without title"; 
-            showPopup(d.fx, d.fy, content, width-margin.left-margin.right);
-        })
-        .on("mouseout", function () {
-            hidePopup();
-        });
 
         // LINKS
         const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left}, ${margin.top + 20})`);
@@ -626,6 +523,102 @@ const Diagram = () => {
         })
         .on("mouseout", function () {
             linkPopup.style("visibility", "hidden");
+        });
+
+        // NODES
+        const nodesGroup = contentGroup.append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top + 20})`) // Align with the axes
+
+        const nodes = nodesGroup
+            .selectAll("g.node-group")
+            .data(nodesData, (d) => d._id)  // Use a unique key
+            .join(
+                enter => { 
+                    const group = enter.append("g")
+                        .attr("class", "node-group")
+                        .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`)
+                        .on("click", (event, d) => {
+                            event.stopPropagation();
+                            event.preventDefault();
+
+                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+
+                            if (nodesInGroup && nodesInGroup.length === 1 || openClusters.has(groupKey))
+                                handleDocCardVisualization(d);
+                        })
+                        .on("dblclick", (event, d) => {
+                            event.stopPropagation();
+                            event.preventDefault();
+            
+                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+            
+                            if (nodesInGroup && nodesInGroup.length > 1)
+                                toggleCluster(groupKey, nodesInGroup);
+                        });
+
+                    group.append("rect")
+                        .attr("x", -15) // Posizionamento relativo all'immagine
+                        .attr("y", -15)
+                        .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
+                        .attr("height", 30)
+                        .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
+                        .attr("ry", 5)
+                        .attr("fill", "none")
+                        .attr("stroke", "red")
+                        .attr("stroke-width", 2)
+                        .attr("class", "highlight-rect")
+                        .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
+                    group.append("image")
+                        .attr("xlink:href", (d) => d.icon) // Node image source
+                        .attr("x", -10) // Center the image relative to the node
+                        .attr("y", -10)
+                        .attr("width", 20)
+                        .attr("height", 20)
+
+                    return group;
+                },
+                update => {const group = update // Update the position of existing nodes
+                    .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`);
+
+                    group.select("rect.highlight-rect")
+                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
+                    return group;
+                },
+                exit => exit.remove()  // Remove nodes if necessary
+            );
+
+        nodes.call(drag);
+
+        // Append hidden popup container
+        const popup = nodesGroup.append("g")
+        .attr("class", "node-popup")
+        .style("visibility", "hidden");
+
+        popup.append("rect")
+            .attr("width", 150)
+            .attr("height", 50)
+            .attr("rx", 5) // Rounded corners
+            .attr("fill", "rgba(255, 255, 255, 0.9)")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+        popup.append("text")
+            .attr("x", 10)
+            .attr("y", 25)
+            .attr("font-size", 12)
+            .attr("fill", "black");
+
+        // Show and hide popup on mouseover and mouseout
+        nodes.on("mouseover", function (event, d) {
+            const content = d.title || "Node without title"; 
+            showPopup(d.fx, d.fy, content, width-margin.left-margin.right);
+        })
+        .on("mouseout", function () {
+            hidePopup();
         });
 
         //LEGEND
