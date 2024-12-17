@@ -3,10 +3,11 @@
     height: 15px;
     margin-left: 10px;
 }
- 
-.legendIcon{
-    width: 30px;
-    height: 30px;
+
+.legendIcon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
 }
 
 .dropdownToggle {
@@ -63,11 +64,7 @@
     transform: scale(1.05);
 }
 
-.legendIcon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-}
+
 
 .legendText {
     font-size: 0.8rem;
