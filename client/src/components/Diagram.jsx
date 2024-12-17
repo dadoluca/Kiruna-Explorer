@@ -9,15 +9,8 @@ const Diagram = () => {
     const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
+    const [openClusters, setOpenClusters] = useState(new Set());
     const [links, setLinks] = useState([]); // State for calculated links
-    const initialTransform = d3.zoomIdentity;
-
-    // Function to reset zoom
-    function resetZoom() {
-        svg.transition()
-            .duration(750) // Durata della transizione
-            .call(zoom.transform, d3.zoomIdentity); // Ripristina lo zoom originale
-    }
 
     // Function to generate a range of numbers
     function range(start, end) {
@@ -97,38 +90,6 @@ const Diagram = () => {
         }
     };
 
-    // Function to calculate the radial position of nodes for circular layout
-    const calculateRadialPosition = (index, total, centerX, centerY) => {
-        if (isNaN(centerX) || isNaN(centerY)) {
-            console.error("Invalid center coordinates:", { centerX, centerY });
-            return { x: 0, y: 0 };
-        }
-
-        if (total <= 0) {
-            console.error("Invalid total value:", total);
-            return { x: 0, y: 0 };
-        }
-
-        const angle = (index / total) * 2 * Math.PI;
-        const baseRadius = 15;
-        const scale = 1 / Math.sqrt(total);
-
-        const radius = baseRadius * scale;
-
-        let x = centerX + radius * Math.cos(angle);
-        let y = centerY + radius * Math.sin(angle);
-
-        if (isNaN(x) || isNaN(y)) {
-            console.error("Invalid radial position:", { index, total, centerX, centerY, x, y });
-            return { x: 0, y: 0 };
-        }
-
-        x = x - 4;
-        y = y - 4;
-
-        return { x, y };
-    };
-
     // Function to determine the style of links based on their type
     const getLinkStyle = (type) => {
         switch (type) {
@@ -177,12 +138,6 @@ const Diagram = () => {
             return { type: 'year', min: yearStart, max: yearEnd };
         }
     };
-
-    // Group nodes based on their issuance date and scale
-    const groupedNodes = d3.group(documents, (d) => {
-        const time = parseDate(d.issuance_date.toString());
-        return `${time}-${d.scale}`; // Unique key for the combination of X and Y axes
-    });
 
     // Effect to update domains (X and Y) and calculate links when documents change
     useEffect(() => {
@@ -362,11 +317,17 @@ const Diagram = () => {
             .style("stroke", "#888");
         });
 
+        // Drag for nodes
         const drag = d3.drag()
-            .on("start", function (event, d) {
-                d3.select(this).raise().classed("active", true);
-            })
-            .on("drag", function (event, d) {
+        .on("start", function (event, d) {
+            d3.select(this).raise().classed("active", true);
+        })
+        .on("drag", function (event, d) {
+            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+            const isClusterOpen = openClusters.has(groupKey);
+            const nodesInGroup = groupedNodes.get(groupKey);
+
+            if (!isClusterOpen) {
                 const constraints = getMovementConstraints(d.issuance_date.toString());
 
                 if (constraints.type === 'fixed') {
@@ -375,94 +336,125 @@ const Diagram = () => {
 
                 let newX = event.x;
                 let newY = event.y;
-                
+
                 const bandWidth = yScale.bandwidth();
                 const originalY = yScale(d.scale);
 
                 newX = Math.max(Math.min(newX, xScale(constraints.max)), xScale(constraints.min));
                 newY = Math.max(Math.min(newY, originalY + bandWidth * 0.45), originalY - bandWidth * 0.45);
 
-                const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-                const group = groupedNodes.get(groupKey);
-                const index = group ? group.indexOf(d) : 0;
-
-                const { x, y } = calculateRadialPosition(index, group.length, newX, newY);
-                console.log(x, y)
+                d.fx = newX;
+                d.fy = newY;
 
                 d3.select(this)
-                    .attr("transform", `translate(${x}, ${y})`);
+                    .attr("transform", `translate(${d.fx}, ${d.fy})`);
+            } else {
+                const angleStep = (2 * Math.PI) / nodesInGroup.length;
+                const radius = 30;
 
-                // Update node's coordinates
-                d.x = x;
-                d.y = y;
-            })
-            .on("end", function (event, d) {
-                // TODO: Call API
+                const angle = angleStep * nodesInGroup.indexOf(d);
 
-                d3.select(this).classed("active", false);
+                const newX = d.originalX + radius * Math.cos(angle);
+                const newY = d.originalY + radius * Math.sin(angle);
+
+                // Update node position
+                d.fx = newX;
+                d.fy = newY;
+
+                d3.select(this)
+                    .attr("transform", `translate(${d.fx}, ${d.fy})`);
+            }
+        })
+        .on("end", function (event, d) {
+            d3.select(this).classed("active", false);
+        });
+        
+        // NODES
+        const nodesData = documents.map((d) => {
+            const x = xScale(parseDate(d.issuance_date));
+            const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
+            const y = yScale(validScale);
+            return { ...d, x, y, fx: x, fy: y, originalX: x, originalY: y };
+        });
+
+        const groupedNodes = d3.group(nodesData, (d) => `${parseDate(d.issuance_date.toString())}-${d.scale}`);
+
+        const simulation = d3.forceSimulation(nodesData)
+            .force("collide", d3.forceCollide(20))
+            .alphaDecay(0.1)
+            .on("tick", () => {
+                nodes.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
             });
-  
-        // Update existing nodes instead of removing them
+
+        simulation.stop();
+
+        const toggleCluster = (groupKey, nodesInGroup) => {
+            setOpenClusters((prev) => {
+                const updated = new Set(prev);
+                if (updated.has(groupKey)) {
+                    // Close cluster
+                    updated.delete(groupKey);
+                    nodesInGroup.forEach((n) => {
+                        n.fx = n.originalX;
+                        n.fy = n.originalY;
+                    });
+                } else {
+                    // Open cluster
+                    updated.add(groupKey);
+                    const angleStep = (2 * Math.PI) / nodesInGroup.length;
+                    nodesInGroup.forEach((n, i) => {
+                        const radius = 30;
+                        n.fx = n.originalX + radius * Math.sin(i * angleStep);
+                        n.fy = n.originalY + radius * Math.cos(i * angleStep);
+                    });
+                }
+                return updated;
+            });
+
+            simulation.alpha(0.3).restart();
+        };
+        
         const nodesGroup = contentGroup.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
+            .attr("transform", `translate(${margin.left}, ${margin.top + 20})`) // Align with the axes
 
         const nodes = nodesGroup
             .selectAll("g.node-group")
-            .data(documents, (d) => d._id)  // Use a unique key
+            .data(nodesData, (d) => d._id)  // Use a unique key
             .join(
-                enter => { const group = enter.append("g") // Create a new node if it doesn't exist
-                    .attr("class", "node-group")
-                    .attr("transform", (d) => {
-                        const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-                        const group = groupedNodes.get(groupKey); // Get nodes in the same group
-                        const index = group.indexOf(d); // Index of the node in the group
-                        const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-                        const { x, y } = calculateRadialPosition(
-                            index,
-                            group.length,
-                            xScale(parseDate(d.issuance_date.toString())),
-                            yScale(validScale)
-                        );
-                        return `translate(${x}, ${y})`;
-                    })
+                enter => { 
+                    const group = enter.append("g")
+                        .attr("class", "node-group")
+                        .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`)
+                        .on("click", (event, d) => {
+                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+                            toggleCluster(groupKey, nodesInGroup);
+                        });
 
                     group.append("rect")
-                    .attr("x", -15) // Posizionamento relativo all'immagine
-                    .attr("y", -15)
-                    .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
-                    .attr("height", 30)
-                    .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
-                    .attr("ry", 5)
-                    .attr("fill", "none")
-                    .attr("stroke", "red")
-                    .attr("stroke-width", 2)
-                    .attr("class", "highlight-rect")
-                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+                        .attr("x", -15) // Posizionamento relativo all'immagine
+                        .attr("y", -15)
+                        .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
+                        .attr("height", 30)
+                        .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
+                        .attr("ry", 5)
+                        .attr("fill", "none")
+                        .attr("stroke", "red")
+                        .attr("stroke-width", 2)
+                        .attr("class", "highlight-rect")
+                        .style("display", (d) => d._id === highlightedNode ? "block" : "none");
 
                     group.append("image")
-                    .attr("xlink:href", (d) => d.icon) // Node image source
-                    .attr("x", -10) // Center the image relative to the node
-                    .attr("y", -10)
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    ;
+                        .attr("xlink:href", (d) => d.icon) // Node image source
+                        .attr("x", -10) // Center the image relative to the node
+                        .attr("y", -10)
+                        .attr("width", 20)
+                        .attr("height", 20);
 
                     return group;
                 },
                 update => {const group = update // Update the position of existing nodes
-                    .attr("transform", (d) => {
-                        const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-                        const group = groupedNodes.get(groupKey); // Get nodes in the same group
-                        const index = group.indexOf(d); // Index of the node in the group
-                        const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-                        const { x, y } = calculateRadialPosition(
-                            index,
-                            group.length,
-                            xScale(parseDate(d.issuance_date.toString())),
-                            yScale(validScale)
-                        );
-                        return `translate(${x}, ${y})`;
-                    });
+                    .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`);
 
                     group.select("rect.highlight-rect")
                     .style("display", (d) => d._id === highlightedNode ? "block" : "none");
@@ -473,9 +465,9 @@ const Diagram = () => {
             )
             .call(drag);
 
-        nodes.on("click", (event, d) => {
+        /*nodes.on("click", (event, d) => {
             handleDocCardVisualization(d);
-        });
+        });*/
 
         // Append hidden popup container
         const popup = nodesGroup.append("g")
@@ -498,71 +490,36 @@ const Diagram = () => {
 
         // Show and hide popup on mouseover and mouseout
         nodes.on("mouseover", function (event, d) {
-            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-            const group = groupedNodes.get(groupKey); // Get nodes in the same group
-            const index = group.indexOf(d); // Index of the node in the group
-            const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-            const { x, y } = calculateRadialPosition(
-                index,
-                group.length,
-                xScale(parseDate(d.issuance_date.toString())),
-                yScale(validScale)
-            );
             const content = d.title || "Node without title"; 
-            showPopup(x, y, content, width-margin.left-margin.right);
+            showPopup(d.fx, d.fy, content, width-margin.left-margin.right);
         })
         .on("mouseout", function () {
             hidePopup();
         });
 
-        // Draw links between nodes based on calculated links
-        const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
+        // LINKS
+        const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left}, ${margin.top + 20})`);
 
         const allLinks  = linksGroup
             .selectAll("path")
-            .data(links)
-            .join("path")
-            .attr("d", (link) => {
-                // Calculate positions based on link's source and target
-                const sourceNode = documents.find((doc) => doc._id === link.source);
-                const targetNode = documents.find((doc) => doc._id === link.target);
-                const sourceKey = `${parseDate(sourceNode.issuance_date.toString())}-${sourceNode.scale}`;
-                const targetKey = `${parseDate(targetNode.issuance_date.toString())}-${targetNode.scale}`;
-
-                const sourceGroup = groupedNodes.get(sourceKey);
-                const targetGroup = groupedNodes.get(targetKey);
-
-                const sourceIndex = sourceGroup.indexOf(sourceNode);
-                const targetIndex = targetGroup.indexOf(targetNode);
-
-                const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
-                const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
-
-                // Apply an offset based on the link's index in the overall dataset for visual separation
-                const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
-
-                const sourcePos = calculateRadialPosition(
-                    sourceIndex,
-                    sourceGroup.length,
-                    xScale(parseDate(sourceNode.issuance_date.toString())),
-                    yScale(validSourceScale)
-                );
-
-                const targetPos = calculateRadialPosition(
-                    targetIndex,
-                    targetGroup.length,
-                    xScale(parseDate(targetNode.issuance_date.toString())),
-                    yScale(validTargetScale)
-                );
-
-                link.sourcePos = sourcePos;
-                link.targetPos = targetPos;
-
-                // Use a cubic Bezier curve for a smooth connection
-                const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
-
-                return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
-            })
+            .data(links, (link) => `${link.source}-${link.target}`)
+            .join(
+                enter => {
+                    const group = enter.append("path")
+                        .attr("d", (link) => {
+                            return calculateLinkPath(link);
+                        });      
+                    return group;
+                },
+                update => {
+                    update
+                        .attr("d", (link) => {
+                            return calculateLinkPath(link);
+                        });
+                    return update;
+                },
+                exit => exit.remove()
+            )
             .attr("fill", "none")
             .attr("stroke", (d) => {
                 let color;
@@ -580,7 +537,27 @@ const Diagram = () => {
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
 
-        // Append hidden popup container for links
+        function calculateLinkPath(link) {
+            const sourceNode = nodesData.find((doc) => doc._id === link.source);
+            const targetNode = nodesData.find((doc) => doc._id === link.target);
+        
+            const sourcePos = {
+                x: sourceNode.fx !== undefined ? sourceNode.fx : sourceNode.originalX,
+                y: sourceNode.fy !== undefined ? sourceNode.fy : sourceNode.originalY
+            };
+        
+            const targetPos = {
+                x: targetNode.fx !== undefined ? targetNode.fx : targetNode.originalX,
+                y: targetNode.fy !== undefined ? targetNode.fy : targetNode.originalY
+            };
+
+            const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
+
+            const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
+        
+            return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
+        }
+
         const linkPopup = linksGroup.append("g")
             .attr("class", "link-popup")
             .style("visibility", "hidden");
@@ -649,46 +626,9 @@ const Diagram = () => {
         })
         .on("mouseout", function () {
             linkPopup.style("visibility", "hidden");
-        })
-        
-        
-        /*
-        // Add hover interaction for links
-        allLinks.on("mouseover", function (event, d) {
-            const sourcePos = d.sourcePos;
-            const targetPos = d.targetPos;
-        
-            // Calculate the midpoint of the link for popup positioning
-            const midX = (sourcePos.x + targetPos.x) / 2;
-            const midY = (sourcePos.y + targetPos.y) / 2;
-        
-            // Set popup position
-            linkPopup.attr("transform", `translate(${midX}, ${midY})`)
-                .style("visibility", "visible");
-        
-            // Update popup text
-            linkPopup.select("text").text(`Type: ${d.type}`);
-        })
-        .on("mouseout", function () {
-            linkPopup.style("visibility", "hidden");
-        })*/
-        .each(function(d) {
-            const sourcePos = d.sourcePos;
-            const targetPos = d.targetPos;
-
-            const offset = 10;
-
-            // Add an hitbox
-            d3.select(this).append("rect")
-                .attr("x", Math.min(sourcePos.x, targetPos.x) - offset)
-                .attr("y", Math.min(sourcePos.y, targetPos.y) - offset)
-                .attr("width", Math.abs(sourcePos.x - targetPos.x) + 2 * offset)
-                .attr("height", Math.abs(sourcePos.y - targetPos.y) + 2 * offset)
-                .attr("fill", "transparent")
-                .attr("pointer-events", "all");
         });
 
-        //Legend
+        //LEGEND
         const legendGroup = svg.append("g")
         .attr("class", "legend-group")
         .attr("transform", `translate(${10}, ${margin.top})`);
