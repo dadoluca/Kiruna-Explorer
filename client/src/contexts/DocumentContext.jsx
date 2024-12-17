@@ -17,8 +17,9 @@ export const DocumentProvider = ({ children }) => {
   const [visualizeDiagram, setVisualizeDiagram] = useState(false); // set if the diagram will be shown
   const [highlightedNode, setHighlightedNode] = useState(null); //highlighted node
   const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
+  const [selectedDocs, setSelectedDocs] = useState([]); // selected documents
+  const [selectingMode, setSelectingMode] = useState(false);          //for the button to select more documents
 
-  
   useEffect(() => {
     
     const fetchDocuments = async () => {
@@ -164,6 +165,15 @@ export const DocumentProvider = ({ children }) => {
     return singleDoc;
   }
 
+
+  const checkDocumentPresence = (doc) => {        //Function to check if a document is already in the list of the selected ones
+    let isPresent;
+    selectedDocs.find((d) => d._id === doc._id) ? isPresent = true : isPresent = false;
+    console.log(selectedDocs);
+
+    return isPresent;
+  }
+
    // Memoize the value object
    const value = useMemo(
     () => ({
@@ -177,6 +187,8 @@ export const DocumentProvider = ({ children }) => {
       highlightedNode,
       position,
       visualizeDiagram,
+      selectedDocs,
+      selectingMode,
       setMapMarkers,
       addDocument,
       addArea,
@@ -190,8 +202,11 @@ export const DocumentProvider = ({ children }) => {
       setVisualizeDiagram,
       setHighlightedNode,
       getMarker,
+      setSelectedDocs,
+      setSelectingMode,
+      checkDocumentPresence
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode, selectedDocs, selectingMode]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
