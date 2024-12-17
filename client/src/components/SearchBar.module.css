@@ -64,7 +64,7 @@
   list-style: none; /* Remove bullet points */
   margin: 8px 0; /* Add some spacing from the search bar */
   padding: 10px 15px ; /* Add padding for a spacious look */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
+  box-shadow: 0 4px 8px #0000001a; /* Add a subtle shadow for depth */
   z-index: 1001; /* Ensure the suggestions box is above other elements */
 }
 
@@ -83,4 +83,9 @@
 .suggestionItem:hover {
   background-color: #f6deff94; /* Light hover background for feedback */
   transform: scale(1.05);
+}
+
+.matchText{
+    color: #454545;
+    font-size: small;
 }
