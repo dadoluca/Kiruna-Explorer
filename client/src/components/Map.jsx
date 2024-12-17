@@ -170,8 +170,8 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const containerRef = useRef(null);
     const navigate = useNavigate();
-    const { loggedIn } = useContext(AuthContext);
-    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization} = useContext(DocumentContext);
+    const { loggedIn, isResident } = useContext(AuthContext);
+    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectedDocs, setSelectedDocs, selectingMode, setSelectingMode} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); // Listing state SET TO TRUE FOR TESTING
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -181,7 +181,6 @@ const MapComponent = () => {
     const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     const { isMapHigh } = useMapLayoutContext();
-
 
     useEffect(() => {
         // Function to update the map's size
@@ -330,14 +329,25 @@ const MapComponent = () => {
                                         key={marker._id}
                                         marker={marker}
                                         onClick={() => {
-                                            setSelectedMarker({
-                                                doc: marker,
-                                                position: [marker.latitude, marker.longitude]
-                                            });
-                                        
-                                            setHighlightedNode(marker._id);
-                                            setPosition([marker.latitude, marker.longitude]);
-
+                                            if(!selectingMode){
+                                                setSelectedMarker({
+                                                    doc: marker,
+                                                    position: [marker.latitude, marker.longitude]
+                                                });
+                                            
+                                                setHighlightedNode(marker._id);
+                                                setPosition([marker.latitude, marker.longitude]);
+                                            }
+                                            else{
+                                                setSelectedDocs(prev => {
+                                                    if(prev.includes(marker._id)){
+                                                        return prev.filter(id => id !== marker._id);
+                                                    }
+                                                    else{
+                                                        return [...prev, marker._id];
+                                                    }
+                                                });
+                                            }
                                         }
                                         }
 
@@ -397,7 +407,6 @@ const MapComponent = () => {
 
                 {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
                 <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
-
                     {/* DOCUMENT LIST BUTTON */}
                     {loggedIn && (
                         <button
@@ -407,6 +416,37 @@ const MapComponent = () => {
                             <i className="bi bi-list-task"></i>
                         </button>        
                     )}
+
+                    {/* SELECT MORE DOCUMENTS BUTTON */}
+                    {isResident &&
+                        <button
+                            className={`${styles.selectDocumentsButton}`}
+                            onClick={() => {
+                                setSelectingMode(prev => !prev);
+                                console.log(selectedDocs);
+                            }}
+                        >
+                            {
+                                !selectingMode && <i class="bi bi-files"></i>
+                            }
+                            {
+                                selectingMode && <i class="bi bi-send"></i>
+                            }
+                        </button>
+                    }
+
+                    {
+                        selectingMode &&
+                        <button
+                        className={`${styles.selectDocumentsButton}`}
+                        onClick={() => {
+                            setSelectedDocs([]);
+                            setSelectingMode(prev => !prev);
+                        }}
+                         >
+                            <i class="bi bi-x"></i>
+                        </button>
+                    }
 
                     {/* CHANGE MAP VIEW BUTTON */}
                     <button
