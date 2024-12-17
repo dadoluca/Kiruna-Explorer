@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Row, Col } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -12,6 +12,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import NewResourceModal from './NewResourceModal';
 import ResourcesModal from './ResourcesModal';
 import styles from './CardDocument.module.css';
+import { use } from 'react';
 
 const DetailPlanCard = (props) => {
   const { loggedIn } = useContext(AuthContext);
@@ -22,11 +23,15 @@ const DetailPlanCard = (props) => {
   const [showModalResource, setShowModalResource] = useState(false);
   const [showResources, setShowResources] = useState(false);
   console.log(checkDocumentPresence(document));
-  const [selected, setSelected] = useState(checkDocumentPresence(document));
+  const [selected, setSelected] = useState(false);
 
   const handleAddConnection = async () => {
     setShowModal(false);
   };
+
+  useEffect(() => {
+    setSelected(checkDocumentPresence(document));
+  }, [document]);
 
   return (
     <Card className={styles.detailPlanCard}
@@ -45,7 +50,7 @@ const DetailPlanCard = (props) => {
                   setSelectedDocs(selectedDocs.filter(doc => doc._id !== document._id));
                 }
                 
-                setSelected(!selected);
+                setSelected(prev => !prev);
               }}
               size="sm"
               className={`mb-3 ${styles.selectButton}`}

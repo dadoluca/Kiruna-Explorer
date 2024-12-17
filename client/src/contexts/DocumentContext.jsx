@@ -168,11 +168,7 @@ export const DocumentProvider = ({ children }) => {
 
 
   const checkDocumentPresence = (doc) => {        //Function to check if a document is already in the list of the selected ones
-    let isPresent;
-    selectedDocs.find((d) => d._id === doc._id) ? isPresent = true : isPresent = false;
-    console.log(selectedDocs);
-
-    return isPresent;
+    return selectedDocs.find((d) => d._id === doc._id);
   }
 
    // Memoize the value object

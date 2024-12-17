@@ -3,7 +3,7 @@ import { DocumentContext } from '../contexts/DocumentContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckDouble, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
-import styl from './SelectDocumentsButton.module.css';
+import style from './SelectDocumentsButton.module.css';
 import CloseModeSelectionButton from './CloseModeSelectionButton';
 
 const SelectDocumentsButton = () => {
@@ -25,10 +25,10 @@ const SelectDocumentsButton = () => {
 
         { 
             selectingMode && (
-                        <div className={styl.verticalAlignment}>
+                        <div className={style.verticalAlignment}>
                             <div style={{ height: '55px' }}>
                                 <p>Confirm selections {" "}
-                                    <button className={styl.buttonLink} onClick={() => {setSelectedDocs([]); setSelectingMode(prev => !prev); console.log("TO IMPLEMENT VISUALIZATION OF THE AREA OF SELECTED DOCS: ", selectedDocs);}}>     
+                                    <button className={style.buttonLink} onClick={() => {setSelectedDocs([]); setSelectingMode(prev => !prev); console.log("TO IMPLEMENT VISUALIZATION OF THE AREA OF SELECTED DOCS: ", selectedDocs);}}>     
                                         <FontAwesomeIcon icon={faCheckDouble} />
                                     </button>
                                 </p>
