@@ -26,7 +26,7 @@ import PropTypes from 'prop-types';
 function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates, setToggleDrawing, setConfirmSelectedArea }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
-    const { loggedIn } = useContext(AuthContext);
+    const { loggedIn, isResident } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
 
 
@@ -65,7 +65,7 @@ const noXButton =
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn  && !isResident && changingDocument == null) {
                     const newCoords = {
                         lat: e.latlng.lat.toFixed(5),
                         lng: e.latlng.lng.toFixed(5)
@@ -76,7 +76,7 @@ const noXButton =
             click: (e) => {
 
                 // Naviga alla creazione documento se in modalità selezione
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && !isResident && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon =>
                         isPointInPolygon(mouseCoords, polygon)
                     );
@@ -131,7 +131,7 @@ const noXButton =
                 <MapMouseEvents />
             }
 
-            {loggedIn &&(
+            {loggedIn && !isResident &&(
                 <div
                     className={`
                 ${styl.background} 
