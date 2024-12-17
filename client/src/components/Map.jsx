@@ -262,6 +262,13 @@ const MapComponent = () => {
                 zoomControl={false}
                 ref={mapRef}
             >
+                    {<AddDocumentButton 
+                        isAddingDocument={isAddingDocument}
+                        setIsAddingDocument={setIsAddingDocument} 
+                        kirunaPolygonCoordinates={kirunaPolygonCoordinates} 
+                        setToggleDrawing={setToggleDrawing} 
+                        setConfirmSelectedArea={setConfirmSelectedArea}
+                    /> }
                     <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker}/>
 
                     <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
@@ -400,39 +407,6 @@ const MapComponent = () => {
 
                 {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
                 <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
-
-                    {/* CONFIRM BUTTON */}
-                    {loggedIn && toggleDrawing && (
-                        <button
-                            className={`${styles.addAreaButton}`}
-                            onClick={() => {
-                                setConfirmSelectedArea(prev => !prev);
-                                setToggleDrawing(prev => !prev);
-                                console.log("confirm:" + confirmSelectedArea);
-                            }}
-                        >
-                        <i className="bi bi-check"></i>
-                        </button>
-                    )}
-
-                    {/* DRAW BUTTON */}
-                    {loggedIn && (              
-                        <button                        
-                            className={`${styles.areaButton}`}
-                            onClick={() => {
-                                setToggleDrawing(prev => !prev); 
-                                setConfirmSelectedArea(false);
-                            }}
-                        >
-                        <i className="bi bi-square"></i>
-                        </button>
-                    )}
-
-                    {/* ADD DOCUMENT BUTTON */}
-                    {loggedIn && (  
-                        <AddDocumentButton isAddingDocument={isAddingDocument} setIsAddingDocument={setIsAddingDocument} kirunaPolygonCoordinates={kirunaPolygonCoordinates}/> 
-                    )}
-
                     {/* DOCUMENT LIST BUTTON */}
                     {loggedIn && (
                         <button
@@ -488,7 +462,7 @@ const MapComponent = () => {
                         className={`${styles.diagramButton}`}         
                         onClick={() => { setVisualizeDiagram(prev => !prev); }}
                         >
-                            <i class="bi bi-graph-up"></i>
+                            <i className="bi bi-graph-up"></i>
                     </button>
                 </div>
             </div>

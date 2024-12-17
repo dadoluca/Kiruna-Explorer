@@ -71,6 +71,7 @@ function MapPage() {
                     onDoubleClick={handleDoubleClick} // Open the diagram
                     tabIndex="0"
                     role="button"
+                    onFocus={ () => {}}
                 >
                     <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
                 </div>
