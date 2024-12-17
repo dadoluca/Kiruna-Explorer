@@ -29,10 +29,6 @@ const areaSchema = new mongoose.Schema({
         }
       }
     },
-    color: { // Explicitly define color field
-      type: String,
-      required: false
-    }
   },
   geometry: {
     type: {
@@ -84,7 +80,5 @@ const iconPositionSchema = new mongoose.Schema({
 
 const Area = mongoose.model('Area', areaSchema);
 const IconPosition = mongoose.model('IconPosition', iconPositionSchema);
-
- export { Area, IconPosition };
-// const Area = mongoose.model('Area', areaSchema);
+export { Area, IconPosition };
  export default Area;
