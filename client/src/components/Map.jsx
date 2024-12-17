@@ -15,6 +15,7 @@ import SearchBar from './SearchBar';
 import DrawingMap from './DrawingMap';
 import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
 import AddDocumentButton from './AddDocumentButton';
+import SelectDocumentsButton from './SelectDocumentsButton';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
@@ -418,7 +419,10 @@ const MapComponent = () => {
                     )}
 
                     {/* SELECT MORE DOCUMENTS BUTTON */}
-                    {isResident &&
+                    {isResident && <SelectDocumentsButton />}
+
+
+                    {/*{isResident &&
                         <button
                             className={`${styles.selectDocumentsButton}`}
                             onClick={() => {
@@ -446,7 +450,7 @@ const MapComponent = () => {
                          >
                             <i class="bi bi-x"></i>
                         </button>
-                    }
+                    }*/}
 
                     {/* CHANGE MAP VIEW BUTTON */}
                     <button
