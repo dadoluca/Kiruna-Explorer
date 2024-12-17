@@ -43,7 +43,7 @@ function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMuni
             pos = map.containerPointToLatLng(point);
         }
     } 
-    console.log("pos", pos);
+    //console.log("pos", pos);
     map.setView(pos, map.getZoom());
 }
 
@@ -53,12 +53,6 @@ const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.
     )
 );
 
-const multipleDocumentsIcon = new L.Icon({
-    iconUrl: '/multiple_docs.png',  // Point to backend URL
-    iconSize: [40, 40],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-});
 
 const createClusterIcon = (cluster) => {
     const count = cluster.getChildCount();
@@ -99,13 +93,20 @@ const MemoizedMarker = React.memo(
   );
   
   const MemoizedAreaMarker = React.memo(
-    ({ area, onClick }) => (
+    ({ area, icon, onClick, size }) => (
       <Marker
         position={[
           area.properties.centroid.coordinates[1],
           area.properties.centroid.coordinates[0],
         ]}
-        icon={multipleDocumentsIcon}
+        icon={
+            new L.Icon({
+                iconUrl: icon,  
+                iconSize: [size, size],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            })
+        }
         eventHandlers={{ click: onClick }}
       >
         <Tooltip direction="bottom">Area related documents</Tooltip>
@@ -370,21 +371,29 @@ const MapComponent = () => {
                             }
 
                             {displayedAreas.length > 0 &&
-                                displayedAreas.map((area) => (
-                                <React.Fragment key={area._id}>
-                                    <MemoizedAreaMarker
-                                    area={area}
-                                    onClick={() => {
-                                        setListContent((doc) => doc.areaId === area._id);
-                                        if (loggedIn) setAddButton(area);
-                                        setIsListing(true);
-                                        handleDocCardVisualization(null);  
-                                    }}
-                                    />
-                                    <MemoizedPolygon area={area} />
-                                </React.Fragment>
-                                ))
+                                displayedAreas.map((area) => {
+                                    const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
+                                    let icon = documentCount === 1 ? "/one-doc.png" : documentCount === 2 ? "/two-docs.png" : "/multiple_docs.png";
+                                    let size = documentCount === 1 ? 30 : documentCount === 2 ? 35 : 40;
+                                    return (
+                                    <React.Fragment key={area._id}>
+                                        <MemoizedAreaMarker
+                                        icon={icon}
+                                        size={size}
+                                        area={area}
+                                        onClick={() => {
+                                            setListContent((doc) => doc.areaId === area._id);
+                                            if (loggedIn) setAddButton(area);
+                                            setIsListing(true);
+                                            handleDocCardVisualization(null);  
+                                        }}
+                                        />
+                                        <MemoizedPolygon area={area} />
+                                    </React.Fragment>
+                                    );
+                                })
                             }
+
 
                         </MarkerClusterGroup>
 

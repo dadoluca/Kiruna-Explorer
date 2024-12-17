@@ -87,6 +87,7 @@ export const DocumentProvider = ({ children }) => {
     });
 
     setMarkers(validMarkers);
+    console.log("areasSet", areasSet);
     setDisplayedAreas(Array.from(areasSet));
     setMunicipalArea(isMunicipalArea);
   };
