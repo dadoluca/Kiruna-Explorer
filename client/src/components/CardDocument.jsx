@@ -21,6 +21,7 @@ const DetailPlanCard = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [showModalResource, setShowModalResource] = useState(false);
   const [showResources, setShowResources] = useState(false);
+  console.log(checkDocumentPresence(document));
   const [selected, setSelected] = useState(checkDocumentPresence(document));
 
   const handleAddConnection = async () => {
@@ -32,24 +33,27 @@ const DetailPlanCard = (props) => {
       style={!props.isListing ? { left: "1rem",  marginBottom: "1rem", borderRadius: "12px", zIndex: "999"  } : {}}
     >
       { selectingMode &&
-        <Col md={3} className="text-center">
-        <Button
-          variant="dark"
-          onClick={() => {
-            if(!selected){
-              setSelectedDocs([...selectedDocs, document]);
-            }
-            else{
-              setSelectedDocs(selectedDocs.filter(doc => doc._id !== document._id));
-            }
-            setSelected(!selected);
-          }}
-          size="sm"
-          className="mb-3"
-        >
-          {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
-        </Button>
-        </Col>
+        <Row>
+          <Col md={5} className="text-center">
+            <Button
+              variant="dark"
+              onClick={() => {
+                if(!selected){
+                  setSelectedDocs([...selectedDocs, document]);
+                }
+                else{
+                  setSelectedDocs(selectedDocs.filter(doc => doc._id !== document._id));
+                }
+                
+                setSelected(!selected);
+              }}
+              size="sm"
+              className={`mb-3 ${styles.selectButton}`}
+            >
+              {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
+            </Button>
+          </Col>
+        </Row>
       }
 
       <Card.Body>
