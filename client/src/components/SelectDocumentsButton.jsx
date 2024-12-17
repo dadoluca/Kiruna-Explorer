@@ -28,7 +28,7 @@ const SelectDocumentsButton = () => {
                         <div className={styl.verticalAlignment}>
                             <div style={{ height: '55px' }}>
                                 <p>Confirm selections {" "}
-                                    <button className={styl.buttonLink} onClick={() => {console.log("TO IMPLEMENT VISUALIZATION OF THE AREA OF SELECTED DOCS: ", selectedDocs)}}>     
+                                    <button className={styl.buttonLink} onClick={() => {setSelectedDocs([]); setSelectingMode(prev => !prev); console.log("TO IMPLEMENT VISUALIZATION OF THE AREA OF SELECTED DOCS: ", selectedDocs);}}>     
                                         <FontAwesomeIcon icon={faCheckDouble} />
                                     </button>
                                 </p>

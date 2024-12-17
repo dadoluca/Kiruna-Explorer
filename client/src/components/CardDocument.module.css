@@ -18,7 +18,24 @@
   scrollbar-color: #e8d9ee rgba(255, 255, 255, 0);
 }
 
+.selectButton {
+  border-radius: 50px; /* Forma ovale */
+  padding: 0.5rem 1.5rem; /* Spaziatura interna */
+  font-size: 0.9rem; /* Dimensione del testo */
+  background-color: #343a40; /* Colore di sfondo scuro */
+  color: white; /* Colore del testo */
+  border: none; /* Rimuove il bordo */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Transizioni per il colore e il movimento */
+}
 
+.selectButton:hover {
+  background-color: #495057; /* Colore più chiaro al passaggio del mouse */
+  transform: scale(1.05); /* Leggero ingrandimento al passaggio del mouse */
+}
+
+.selectButton:active {
+  transform: scale(0.95); /* Effetto pressione */
+}
 
 .closeButton {
   position: absolute;
