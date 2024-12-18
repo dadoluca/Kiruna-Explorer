@@ -44,7 +44,7 @@ function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMuni
             pos = map.containerPointToLatLng(point);
         }
     } 
-    //console.log("pos", pos);
+    
     map.setView(pos, map.getZoom());
 }
 
@@ -182,7 +182,7 @@ const MapComponent = () => {
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const { loggedIn, isResident } = useContext(AuthContext);
-    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectedDocs, setSelectedDocs, selectingMode, setSelectingMode} = useContext(DocumentContext);
+    const { position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectingMode, setSelectingMode } = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); 
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
