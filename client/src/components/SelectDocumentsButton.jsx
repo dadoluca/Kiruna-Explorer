@@ -7,6 +7,11 @@ import style from './SelectDocumentsButton.module.css';
 import CloseModeSelectionButton from './CloseModeSelectionButton';
 
 const SelectDocumentsButton = () => {
+ // Using DocumentContext to manage the state of selected documents and selecting mode:
+    // selectedDocs: list of selected documents
+    // setSelectedDocs: function to update the selectedDocs
+    // selectingMode: indicates whether the selecting mode is active or not
+    // setSelectingMode: function to toggle the selectingMode state
     const { selectedDocs, setSelectedDocs, selectingMode, setSelectingMode } = useContext(DocumentContext);
 
     return (

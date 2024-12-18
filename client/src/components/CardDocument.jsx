@@ -1,3 +1,4 @@
+// Import necessary libraries, components, and styles
 import React, { useEffect, useState, useContext } from 'react';
 import Card from 'react-bootstrap/Card';
 import { Row, Col } from 'react-bootstrap';
@@ -14,21 +15,28 @@ import ResourcesModal from './ResourcesModal';
 import styles from './CardDocument.module.css';
 import { use } from 'react';
 
+// Functional component for displaying detailed information about a document
 const DetailPlanCard = (props) => {
   const { loggedIn } = useContext(AuthContext);
   const { documents, visualizeDiagram, setVisualizeDiagram, setHighlightedNode, handleDocCardVisualization, getMarker, selectingMode, selectedDocs, setSelectedDocs, checkDocumentPresence } = useDocumentContext();
+ 
+   // Find the relevant document by ID from the document list
   const document = documents.find(doc => doc._id === props.doc._id) || {};
 
+  // Modal visibility states
   const [showModal, setShowModal] = useState(false);
   const [showModalResource, setShowModalResource] = useState(false);
-  const [showResources, setShowResources] = useState(false);
+  const [showResources, setShowResources] = useState(false); // Tracks if the document is selected in selecting mode
   console.log(checkDocumentPresence(document));
+
   const [selected, setSelected] = useState(false);
 
+  // Handle closing the "Add Connection" modal
   const handleAddConnection = async () => {
     setShowModal(false);
   };
 
+// Update the selection state when the document changes
   useEffect(() => {
     setSelected(checkDocumentPresence(document));
   }, [document]);
@@ -240,6 +248,7 @@ const DetailPlanCard = (props) => {
   );
 };
 
+// Define PropTypes for component props
 DetailPlanCard.propTypes = {
   doc: PropTypes.object,
   onClose: PropTypes.func,
@@ -248,5 +257,5 @@ DetailPlanCard.propTypes = {
   isListing: PropTypes.bool,
 };
 
-
+// Export the component
 export default DetailPlanCard;
