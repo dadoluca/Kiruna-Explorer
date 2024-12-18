@@ -28,7 +28,8 @@ import {
   uploadResource,
   getResourcesForDocument,
   downloadResource,
-  getSelectionFields
+  getSelectionFields,
+  setDiagramPosition
 } from '../controllers/documentController.mjs';
 
 const router = express.Router();
@@ -43,6 +44,7 @@ router.get('/selection-fields', getSelectionFields);                // Add route
 router.get('/:id', getDocumentById);                                // Get a document by ID
 router.put('/:id', updateDocument);                                 // Update an existing document by ID
 router.delete('/:id', deleteDocument);                              // Delete a document by ID
+router.put('/:id/diagram-position', setDiagramPosition);          // Update document's diagram position
 
 // Document relationship routes
 router.post('/:id/relationships', addRelationship);                 // Add a relationship to a document

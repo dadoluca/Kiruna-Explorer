@@ -1,24 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
+import DiagramButtons from "../components/DiagramButtons";
+import API from '../services/api';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
-    const { documents } = useDocumentContext(); // Accessing documents from context
+    const { documents, updateDocument } = useDocumentContext(); // Accessing documents from context
     const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
-    const initialTransform = d3.zoomIdentity;
-
-    // Function to reset zoom
-    function resetZoom() {
-        svg.transition()
-            .duration(750) // Durata della transizione
-            .call(zoom.transform, d3.zoomIdentity); // Ripristina lo zoom originale
-    }
-
+    const [isDragging, setIsDragging]= useState(false);
+    const nodesDataRef = useRef([]);
+    
     // Function to generate a range of numbers
     function range(start, end) {
         if (start > end) {
@@ -74,36 +72,27 @@ const Diagram = () => {
         return match[1] || match[4] || match[6]; // Return the extracted year
     }
 
-    // Function to calculate the radial position of nodes for circular layout
-    const calculateRadialPosition = (index, total, centerX, centerY) => {
-        if (isNaN(centerX) || isNaN(centerY)) {
-            console.error("Invalid center coordinates:", { centerX, centerY });
-            return { x: 0, y: 0 };
+    // Function to transform a date in a decimal
+    const parseDate = (dateString) => {
+        const parts = dateString.split('-').map(part => parseInt(part, 10));
+
+        if (parts.length === 3) {
+            // yyyy-mm-dd
+            const year = parts[0];
+            const month = parts[1];
+            const day = parts[2];
+            return year + (month - 1) / 12 + (day - 1) / 365; // Fractions of month and year
+        } else if (parts.length === 2) {
+            // yyyy-mm
+            const year = parts[0];
+            const month = parts[1];
+            return year + (month - 1) / 12; // Fractions of the year
+        } else if (parts.length === 1) {
+            // yyyy
+            return parts[0];
+        } else {
+            throw new Error("Not supported date format: " + dateString);
         }
-
-        if (total <= 0) {
-            console.error("Invalid total value:", total);
-            return { x: 0, y: 0 };
-        }
-
-        const angle = (index / total) * 2 * Math.PI;
-        const baseRadius = 15;
-        const scale = 1 / Math.sqrt(total);
-
-        const radius = baseRadius * scale;
-
-        let x = centerX + radius * Math.cos(angle);
-        let y = centerY + radius * Math.sin(angle);
-
-        if (isNaN(x) || isNaN(y)) {
-            console.error("Invalid radial position:", { index, total, centerX, centerY, x, y });
-            return { x: 0, y: 0 };
-        }
-
-        x = x - 4;
-        y = y - 4;
-
-        return { x, y };
     };
 
     // Function to determine the style of links based on their type
@@ -135,11 +124,58 @@ const Diagram = () => {
         setLinks(() => [...linksArray]); // Update the links state
     };
 
-    // Group nodes based on their issuance year and scale
-    const groupedNodes = d3.group(documents, (d) => {
-        const time = parseInt(extractYear(d.issuance_date.toString())); // Extract the year
-        return `${time}-${d.scale}`; // Unique key for the combination of X and Y axes
-    });
+    // Function for drag's constraints
+    const getMovementConstraints = (dateString) => {
+        const parts = dateString.split('-').map(part => parseInt(part, 10));
+    
+        if (parts.length === 3) {
+            // yyyy-mm-dd: Can't move
+            return { type: 'fixed', min: null, max: null };
+        } else if (parts.length === 2) {
+            // yyyy-mm: Can move only in month
+            const monthStart = parseDate(`${parts[0]}-${parts[1]}-01`); // First day of the month
+            const monthEnd = parseDate(`${parts[0]}-${parts[1]}-28`); // Last day of the month
+            return { type: 'month', min: monthStart, max: monthEnd };
+        } else if (parts.length === 1) {
+            // yyyy: Can move only in year
+            const yearStart = parseDate(`${parts[0]}-01-01`); // First day of the year
+            const yearEnd = parseDate(`${parts[0]}-12-31`); // Last day of the year
+            return { type: 'year', min: yearStart, max: yearEnd };
+        }
+    };
+ 
+    // Function to store new positions in the DB
+    const savePositions = async () => {
+        try {
+            const nodes = nodesDataRef.current;
+            const modifiedNodes = [];
+
+            nodes.forEach((node) => {
+                if (node.fx !== node.diagramX || node.fy !== node.diagramY) {
+                    modifiedNodes.push(node);
+                }
+            });
+      
+            const updatePromises = modifiedNodes.map((node) => API.setDocumentDiagramPosition(node._id, node.fx, node.fy));
+      
+            const results = await Promise.all(updatePromises);
+            
+            results.forEach((document) => {
+                updateDocument(document);
+            });
+
+            console.log(documents)
+            console.log("results", results)
+
+            setIsDragging(false);
+      
+            console.log('Positions saved successfully!');
+            toast.success("New positions saved successfully!");
+        } catch (error) {
+            console.error('Error in saving positions:', error);
+            toast.error("Failed to save new positions!");
+        }
+    };
 
     // Effect to update domains (X and Y) and calculate links when documents change
     useEffect(() => {
@@ -147,7 +183,7 @@ const Diagram = () => {
             // Update the X-axis domain based on the min/max year from documents
             const newXDomain = range(
                 Math.min(...documents.map((doc) => extractYear(doc.issuance_date.toString()))), 
-                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString())))
+                Math.max(...documents.map((doc) => extractYear(doc.issuance_date.toString()))) + 1
             );
 
             // Update scale nodes based on scale format
@@ -263,8 +299,11 @@ const Diagram = () => {
     
         // Scales for X and Y axes
         const xScale = d3
-            .scalePoint()
-            .domain(xDomain)
+            .scaleTime()
+            .domain([
+                d3.min(documents, (d) => parseDate(d.issuance_date.toString())),
+                d3.max(documents, (d) => parseDate(d.issuance_date.toString())) + 1
+            ])
             .range([0, width - margin.left - margin.right]);
     
         const yScale = d3
@@ -286,6 +325,10 @@ const Diagram = () => {
 
         // Grids creation
         const xGrid = d3.axisBottom(xScale)
+            .tickValues(range(
+                Math.min(...documents.map((doc) => parseInt(extractYear(doc.issuance_date.toString())))),
+                Math.max(...documents.map((doc) => parseInt(extractYear(doc.issuance_date.toString()))))
+            ))
             .tickSize(-(height - margin.top - margin.bottom)) // Grid lines extend the height of the chart
             .tickFormat("");
 
@@ -311,167 +354,120 @@ const Diagram = () => {
             .attr("y2", y)
             .style("stroke", "#888");
         });
-  
-        // Update existing nodes instead of removing them
-        const nodesGroup = contentGroup.append("g")
-            .attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`) // Align with the axes
 
-        const nodes = nodesGroup
-            .selectAll("g.node-group")
-            .data(documents, (d) => d._id)  // Use a unique key
-            .join(
-                enter => { const group = enter.append("g") // Create a new node if it doesn't exist
-                    .attr("class", "node-group")
-                    .attr("transform", (d) => {
-                        const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
-                        const group = groupedNodes.get(groupKey); // Get nodes in the same group
-                        const index = group.indexOf(d); // Index of the node in the group
-                        const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-                        const { x, y } = calculateRadialPosition(
-                            index,
-                            group.length,
-                            xScale(parseInt(extractYear(d.issuance_date.toString()))),
-                            yScale(validScale)
-                        );
-                        return `translate(${x}, ${y})`;
-                    })
+        // Drag for nodes
+        const drag = d3.drag()
+            .on("start", function (event, d) {
+                d3.select(this).raise().classed("active", true);
+            })
+            .on("drag", function (event, d) {
+                const constraints = getMovementConstraints(d.issuance_date.toString());
 
-                    group.append("rect")
-                    .attr("x", -15) // Posizionamento relativo all'immagine
-                    .attr("y", -15)
-                    .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
-                    .attr("height", 30)
-                    .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
-                    .attr("ry", 5)
-                    .attr("fill", "none")
-                    .attr("stroke", "red")
-                    .attr("stroke-width", 2)
-                    .attr("class", "highlight-rect")
-                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+                if (constraints.type === 'fixed') {
+                    return;
+                }
 
-                    group.append("image")
-                    .attr("xlink:href", (d) => d.icon) // Node image source
-                    .attr("x", -10) // Center the image relative to the node
-                    .attr("y", -10)
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    ;
+                let newX = event.x;
+                let newY = event.y;
 
-                    return group;
-                },
-                update => {const group = update // Update the position of existing nodes
-                    .attr("transform", (d) => {
-                        const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
-                        const group = groupedNodes.get(groupKey); // Get nodes in the same group
-                        const index = group.indexOf(d); // Index of the node in the group
-                        const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-                        const { x, y } = calculateRadialPosition(
-                            index,
-                            group.length,
-                            xScale(parseInt(extractYear(d.issuance_date.toString()))),
-                            yScale(validScale)
-                        );
-                        return `translate(${x}, ${y})`;
-                    });
+                const bandWidth = yScale.bandwidth();
+                const diagramY = yScale(d.scale);
 
-                    group.select("rect.highlight-rect")
-                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+                newX = Math.max(Math.min(newX, xScale(constraints.max)), xScale(constraints.min));
+                newY = Math.max(Math.min(newY, diagramY + bandWidth * 0.45), diagramY - bandWidth * 0.45);
 
-                    return group;
-                },
-                exit => exit.remove()  // Remove nodes if necessary
-            );
+                d.fx = newX;
+                d.fy = newY;
 
-        nodes.on("click", (event, d) => {
-            handleDocCardVisualization(d);
-        });
+                d3.select(this)
+                    .attr("transform", `translate(${d.fx}, ${d.fy})`);
 
-        // Append hidden popup container
-        const popup = nodesGroup.append("g")
-        .attr("class", "node-popup")
-        .style("visibility", "hidden");
-
-        popup.append("rect")
-            .attr("width", 150)
-            .attr("height", 50)
-            .attr("rx", 5) // Rounded corners
-            .attr("fill", "rgba(255, 255, 255, 0.9)")
-            .attr("stroke", "black")
-            .attr("stroke-width", 1);
-
-        popup.append("text")
-            .attr("x", 10)
-            .attr("y", 25)
-            .attr("font-size", 12)
-            .attr("fill", "black");
-
-        // Show and hide popup on mouseover and mouseout
-        nodes.on("mouseover", function (event, d) {
-            const groupKey = `${parseInt(extractYear(d.issuance_date.toString()))}-${d.scale}`;
-            const group = groupedNodes.get(groupKey); // Get nodes in the same group
-            const index = group.indexOf(d); // Index of the node in the group
+                allLinks
+                    .attr("d", (link) => calculateLinkPath(link));
+            })
+            .on("end", function (event, d) {
+                d3.select(this).classed("active", false);
+            });
+        
+        // Set up nodes
+        const nodesData = documents.map((d) => {
+            const x = d.diagramX !== undefined ? d.diagramX : xScale(parseDate(d.issuance_date));
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-            const { x, y } = calculateRadialPosition(
-                index,
-                group.length,
-                xScale(parseInt(extractYear(d.issuance_date.toString()))),
-                yScale(validScale)
-            );
-            const content = d.title || "Node without title"; 
-            showPopup(x, y, content, width-margin.left-margin.right);
-        })
-        .on("mouseout", function () {
-            hidePopup();
+            const y = d.diagramY !== undefined ? d.diagramY : yScale(validScale);
+            
+            return { 
+                ...d, 
+                x, 
+                y, 
+                fx: x, 
+                fy: y, 
+                diagramX: x, 
+                diagramY: y 
+            };
         });
 
-        // Draw links between nodes based on calculated links
-        const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left - 10}, ${margin.top + 25})`);
+        // 
+        const groupedNodes = d3.group(nodesData, (d) => `(${d.diagramX},${d.diagramY})`);
+
+        // Force simulation for clusters
+        const simulation = d3.forceSimulation(nodesData)
+            .force("collide", d3.forceCollide(20))
+            .alphaDecay(0.1)
+            .on("tick", () => {
+                nodes.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+            });
+
+        simulation.stop();
+
+        let openClusters = new Set();
+        const toggleCluster = (groupKey, nodesInGroup) => {
+            if (openClusters.has(groupKey)) {
+                // Close cluster
+                openClusters.delete(groupKey);
+                nodesInGroup.forEach((n) => {
+                    n.fx = n.diagramX;
+                    n.fy = n.diagramY;
+                });
+            } else {
+                // Open cluster
+                openClusters.add(groupKey);
+                const angleStep = (2 * Math.PI) / nodesInGroup.length;
+                nodesInGroup.forEach((n, i) => {
+                    const radius = 30;
+                    n.fx = n.diagramX + radius * Math.sin(i * angleStep);
+                    n.fy = n.diagramY + radius * Math.cos(i * angleStep);
+                });
+            }
+
+            allLinks
+                .attr("d", (link) => calculateLinkPath(link));
+
+            simulation.alpha(0.3).restart();
+        };
+
+        // LINKS
+        const linksGroup = contentGroup.append("g").attr("transform", `translate(${margin.left}, ${margin.top + 20})`);
 
         const allLinks  = linksGroup
             .selectAll("path")
-            .data(links)
-            .join("path")
-            .attr("d", (link) => {
-                // Calculate positions based on link's source and target
-                const sourceNode = documents.find((doc) => doc._id === link.source);
-                const targetNode = documents.find((doc) => doc._id === link.target);
-                const sourceKey = `${parseInt(extractYear(sourceNode.issuance_date.toString()))}-${sourceNode.scale}`;
-                const targetKey = `${parseInt(extractYear(targetNode.issuance_date.toString()))}-${targetNode.scale}`;
-
-                const sourceGroup = groupedNodes.get(sourceKey);
-                const targetGroup = groupedNodes.get(targetKey);
-
-                const sourceIndex = sourceGroup.indexOf(sourceNode);
-                const targetIndex = targetGroup.indexOf(targetNode);
-
-                const validSourceScale = yDomain.includes(sourceNode.scale) ? sourceNode.scale : yDomain[0];
-                const validTargetScale = yDomain.includes(targetNode.scale) ? targetNode.scale : yDomain[0];
-
-                // Apply an offset based on the link's index in the overall dataset for visual separation
-                const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
-
-                const sourcePos = calculateRadialPosition(
-                    sourceIndex,
-                    sourceGroup.length,
-                    xScale(parseInt(extractYear(sourceNode.issuance_date.toString()))),
-                    yScale(validSourceScale)
-                );
-
-                const targetPos = calculateRadialPosition(
-                    targetIndex,
-                    targetGroup.length,
-                    xScale(parseInt(extractYear(targetNode.issuance_date.toString()))),
-                    yScale(validTargetScale)
-                );
-
-                link.sourcePos = sourcePos;
-                link.targetPos = targetPos;
-
-                // Use a cubic Bezier curve for a smooth connection
-                const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
-
-                return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
-            })
+            .data(links, (link) => `${link.source}-${link.target}`)
+            .join(
+                enter => {
+                    const group = enter.append("path")
+                        .attr("d", (link) => {
+                            return calculateLinkPath(link);
+                        });      
+                    return group;
+                },
+                update => {
+                    update
+                        .attr("d", (link) => {
+                            return calculateLinkPath(link);
+                        });
+                    return update;
+                },
+                exit => exit.remove()
+            )
             .attr("fill", "none")
             .attr("stroke", (d) => {
                 let color;
@@ -489,7 +485,27 @@ const Diagram = () => {
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", (d) => getLinkStyle(d.type)) // Style for each link
 
-        // Append hidden popup container for links
+        function calculateLinkPath(link) {
+            const sourceNode = nodesData.find((doc) => doc._id === link.source);
+            const targetNode = nodesData.find((doc) => doc._id === link.target);
+        
+            const sourcePos = {
+                x: sourceNode.fx !== undefined ? sourceNode.fx : sourceNode.diagramX,
+                y: sourceNode.fy !== undefined ? sourceNode.fy : sourceNode.diagramY
+            };
+        
+            const targetPos = {
+                x: targetNode.fx !== undefined ? targetNode.fx : targetNode.diagramX,
+                y: targetNode.fy !== undefined ? targetNode.fy : targetNode.diagramY
+            };
+
+            const offset = links.filter(l => l.source === link.source && l.target === link.target).indexOf(link) * 15;
+
+            const midX = ((sourcePos.x + offset) + (targetPos.x + offset)) / 2;  // Midpoint for the curve
+        
+            return `M ${sourcePos.x} ${sourcePos.y} C ${midX} ${sourcePos.y} ${midX} ${targetPos.y} ${targetPos.x} ${targetPos.y}`;
+        }
+
         const linkPopup = linksGroup.append("g")
             .attr("class", "link-popup")
             .style("visibility", "hidden");
@@ -558,46 +574,110 @@ const Diagram = () => {
         })
         .on("mouseout", function () {
             linkPopup.style("visibility", "hidden");
-        })
-        
-        
-        /*
-        // Add hover interaction for links
-        allLinks.on("mouseover", function (event, d) {
-            const sourcePos = d.sourcePos;
-            const targetPos = d.targetPos;
-        
-            // Calculate the midpoint of the link for popup positioning
-            const midX = (sourcePos.x + targetPos.x) / 2;
-            const midY = (sourcePos.y + targetPos.y) / 2;
-        
-            // Set popup position
-            linkPopup.attr("transform", `translate(${midX}, ${midY})`)
-                .style("visibility", "visible");
-        
-            // Update popup text
-            linkPopup.select("text").text(`Type: ${d.type}`);
-        })
-        .on("mouseout", function () {
-            linkPopup.style("visibility", "hidden");
-        })*/
-        .each(function(d) {
-            const sourcePos = d.sourcePos;
-            const targetPos = d.targetPos;
-
-            const offset = 10;
-
-            // Add an hitbox
-            d3.select(this).append("rect")
-                .attr("x", Math.min(sourcePos.x, targetPos.x) - offset)
-                .attr("y", Math.min(sourcePos.y, targetPos.y) - offset)
-                .attr("width", Math.abs(sourcePos.x - targetPos.x) + 2 * offset)
-                .attr("height", Math.abs(sourcePos.y - targetPos.y) + 2 * offset)
-                .attr("fill", "transparent")
-                .attr("pointer-events", "all");
         });
 
-        //Legend
+        // NODES
+        const nodesGroup = contentGroup.append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top + 20})`) // Align with the axes
+
+        const nodes = nodesGroup
+            .selectAll("g.node-group")
+            .data(nodesData, (d) => d._id)  // Use a unique key
+            .join(
+                enter => { 
+                    const group = enter.append("g")
+                        .attr("class", "node-group")
+                        .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`)
+                        .on("dblclick", (event, d) => {
+                            event.stopPropagation();
+                            event.preventDefault();
+            
+                            const groupKey = `(${d.diagramX},${d.diagramY})`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+                            console.log("nodesInGroup", nodesInGroup)
+            
+                            if (nodesInGroup && nodesInGroup.length > 1)
+                                toggleCluster(groupKey, nodesInGroup);
+                        });
+                    
+                    if(!isDragging){
+                        group.on("click", (event, d) => {
+                            event.stopPropagation();
+                            event.preventDefault();
+
+                            const groupKey = `(${d.diagramX},${d.diagramY})`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+
+                            if (nodesInGroup && nodesInGroup.length === 1 || openClusters.has(groupKey))
+                                handleDocCardVisualization(d);
+                        })
+                    }
+
+                    group.append("rect")
+                        .attr("x", -15) // Posizionamento relativo all'immagine
+                        .attr("y", -15)
+                        .attr("width", 30) // Dimensioni leggermente più grandi dell'immagine
+                        .attr("height", 30)
+                        .attr("rx", 5)  // Aggiungi il raggio per angoli arrotondati
+                        .attr("ry", 5)
+                        .attr("fill", "none")
+                        .attr("stroke", "red")
+                        .attr("stroke-width", 2)
+                        .attr("class", "highlight-rect")
+                        .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
+                    group.append("image")
+                        .attr("xlink:href", (d) => d.icon) // Node image source
+                        .attr("x", -10) // Center the image relative to the node
+                        .attr("y", -10)
+                        .attr("width", 20)
+                        .attr("height", 20)
+
+                    return group;
+                },
+                update => {const group = update // Update the position of existing nodes
+                    .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`);
+
+                    group.select("rect.highlight-rect")
+                    .style("display", (d) => d._id === highlightedNode ? "block" : "none");
+
+                    return group;
+                },
+                exit => exit.remove()  // Remove nodes if necessary
+            );
+        
+        if (isDragging)
+            nodes.call(drag);
+
+        // Append hidden popup container
+        const popup = nodesGroup.append("g")
+        .attr("class", "node-popup")
+        .style("visibility", "hidden");
+
+        popup.append("rect")
+            .attr("width", 150)
+            .attr("height", 50)
+            .attr("rx", 5) // Rounded corners
+            .attr("fill", "rgba(255, 255, 255, 0.9)")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+        popup.append("text")
+            .attr("x", 10)
+            .attr("y", 25)
+            .attr("font-size", 12)
+            .attr("fill", "black");
+
+        // Show and hide popup on mouseover and mouseout
+        nodes.on("mouseover", function (event, d) {
+            const content = d.title || "Node without title"; 
+            showPopup(d.fx, d.fy, content, width-margin.left-margin.right);
+        })
+        .on("mouseout", function () {
+            hidePopup();
+        });
+
+        //LEGEND
         const legendGroup = svg.append("g")
         .attr("class", "legend-group")
         .attr("transform", `translate(${10}, ${margin.top})`);
@@ -665,10 +745,17 @@ const Diagram = () => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links, highlightedNode]);
+
+        // Update nodesData ref
+        nodesDataRef.current = nodesData;
+
+    }, [documents, xDomain, yDomain, links, highlightedNode, isDragging]);
 
     return (
-        <svg ref={svgRef}></svg>
+        <>
+            <svg ref={svgRef}></svg>
+            <DiagramButtons isDragging={isDragging} setIsDragging={setIsDragging} savePositions={savePositions} />
+        </>
     );
 };
 

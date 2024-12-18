@@ -45,6 +45,8 @@ const documentSchema = new mongoose.Schema({
   areaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Area' },
   description: String,
   icon_url: String,
+  diagramX: { type: Number, required: false },
+  diagramY: { type: Number, required: false },
   relationships: [
     {
       documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
