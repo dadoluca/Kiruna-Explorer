@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types'; // Import PropTypes
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import style from './addDocumentButton.module.css';
+import style from './AddDocumentButton.module.css';
 
 const CloseModeSelectionButton = ({ onClick }) => {
     return (

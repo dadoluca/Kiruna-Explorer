@@ -5,7 +5,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faCirclePlus, faHouseChimney, faMapMarker, faPlus, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
 import styles from './Map.module.css';
-import styl from './addDocumentButton.module.css';
+import styl from './AddDocumentButton.module.css';
 import { SelectionState } from './SelectionState';
 import CloseModeSelectionButton from './CloseModeSelectionButton';
 import PropTypes from 'prop-types';
@@ -26,7 +26,7 @@ import PropTypes from 'prop-types';
 function AddDocumentButton({ isAddingDocument, setIsAddingDocument, kirunaPolygonCoordinates, setToggleDrawing, setConfirmSelectedArea }) {
     const navigate = useNavigate();
     const [changingDocument, setChangingDocument] = useState(null);
-    const { loggedIn, isResident } = useContext(AuthContext);
+    const { loggedIn } = useContext(AuthContext);
     const [mouseCoords, setMouseCoords] = useState({ lat: null, lng: null }); // Mouse coordinates
 
 
@@ -65,7 +65,7 @@ const noXButton =
         useMapEvents({
             mousemove: (e) => {
                 // Aggiorna le coordinate correnti del mouse
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn  && !isResident && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
                     const newCoords = {
                         lat: e.latlng.lat.toFixed(5),
                         lng: e.latlng.lng.toFixed(5)
@@ -76,7 +76,7 @@ const noXButton =
             click: (e) => {
 
                 // Naviga alla creazione documento se in modalità selezione
-                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && !isResident && changingDocument == null) {
+                if (isAddingDocument == SelectionState.NEW_POINT && loggedIn && changingDocument == null) {
                     const isInAnyPolygon = kirunaPolygonCoordinates.some(polygon =>
                         isPointInPolygon(mouseCoords, polygon)
                     );
@@ -131,7 +131,7 @@ const noXButton =
                 <MapMouseEvents />
             }
 
-            {loggedIn && !isResident &&(
+            {loggedIn &&(
                 <div
                     className={`
                 ${styl.background} 
@@ -221,8 +221,8 @@ const noXButton =
                     )}
 
                     {/* Plus button - always rendered */}
-                    {isAddingDocument != SelectionState.NOT_IN_PROGRESS &&
-                        noXButton ? (
+                    {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
+                            noXButton ? (
                             <button
                                 className={styl.buttonLink}
                                 onClick={() => {
@@ -236,10 +236,8 @@ const noXButton =
                                     }}
                                 />
                             </button>
-                        ) : null 
-                    }   
-
-                    {isAddingDocument == SelectionState.NOT_IN_PROGRESS &&(
+                        ) : null
+                    ) : (
                         <button
                             style={{ backgroundColor: 'transparent', color: 'white', border: 'none' }}
                             onClick={() => setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE)}
