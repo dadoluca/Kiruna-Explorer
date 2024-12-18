@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
     const [scaleNodesT, setScaleNodesT] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
-    const { documents } = useDocumentContext(); // Accessing documents from context
+    const { documents, updateDocument } = useDocumentContext(); // Accessing documents from context
     const { handleVisualization, highlightedNode, setHighlightedNode, handleDocCardVisualization } = useDocumentContext(); // Accessing handleVisualization from context
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
@@ -148,12 +148,26 @@ const Diagram = () => {
     const savePositions = async () => {
         try {
             const nodes = nodesDataRef.current;
+            const modifiedNodes = [];
+
+            nodes.forEach((node) => {
+                if (node.fx !== node.diagramX || node.fy !== node.diagramY) {
+                    modifiedNodes.push(node);
+                }
+            });
       
-            const updatePromises = nodes.map((node) =>
-                API.setDocumentDiagramPosition(node._id, node.fx, node.fy)
-            );
+            const updatePromises = modifiedNodes.map((node) => API.setDocumentDiagramPosition(node._id, node.fx, node.fy));
       
-            await Promise.all(updatePromises);
+            const results = await Promise.all(updatePromises);
+            
+            results.forEach((document) => {
+                updateDocument(document);
+            });
+
+            console.log(documents)
+            console.log("results", results)
+
+            setIsDragging(false);
       
             console.log('Positions saved successfully!');
             toast.success("New positions saved successfully!");
@@ -374,7 +388,8 @@ const Diagram = () => {
             .on("end", function (event, d) {
                 d3.select(this).classed("active", false);
             });
-
+        
+        // Set up nodes
         const nodesData = documents.map((d) => {
             const x = d.diagramX !== undefined ? d.diagramX : xScale(parseDate(d.issuance_date));
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
@@ -391,8 +406,10 @@ const Diagram = () => {
             };
         });
 
-        const groupedNodes = d3.group(nodesData, (d) => `${parseDate(d.issuance_date.toString())}-${d.scale}`);
+        // 
+        const groupedNodes = d3.group(nodesData, (d) => `(${d.diagramX},${d.diagramY})`);
 
+        // Force simulation for clusters
         const simulation = d3.forceSimulation(nodesData)
             .force("collide", d3.forceCollide(20))
             .alphaDecay(0.1)
@@ -575,8 +592,9 @@ const Diagram = () => {
                             event.stopPropagation();
                             event.preventDefault();
             
-                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const groupKey = `(${d.diagramX},${d.diagramY})`;
                             const nodesInGroup = groupedNodes.get(groupKey);
+                            console.log("nodesInGroup", nodesInGroup)
             
                             if (nodesInGroup && nodesInGroup.length > 1)
                                 toggleCluster(groupKey, nodesInGroup);
@@ -587,7 +605,7 @@ const Diagram = () => {
                             event.stopPropagation();
                             event.preventDefault();
 
-                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const groupKey = `(${d.diagramX},${d.diagramY})`;
                             const nodesInGroup = groupedNodes.get(groupKey);
 
                             if (nodesInGroup && nodesInGroup.length === 1 || openClusters.has(groupKey))
@@ -628,11 +646,8 @@ const Diagram = () => {
                 exit => exit.remove()  // Remove nodes if necessary
             );
         
-        if (isDragging) {
+        if (isDragging)
             nodes.call(drag);
-        } else {
-            nodes.on('.drag', null);
-        }
 
         // Append hidden popup container
         const popup = nodesGroup.append("g")

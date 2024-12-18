@@ -377,14 +377,17 @@ const setDocumentDiagramPosition = async (documentId, diagramX, diagramY) => {
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to update diagram position: ${response.statusText}`);
+    if (response.ok) {
+      const updatedDocument = await response.json();
+      return {
+        ...updatedDocument,
+        icon: `${SERVER_BASE_URL}${updatedDocument.icon_url}`,
+      };
+    } else {
+      throw new Error(`Failed to update document position: ${response.statusText}`);
     }
-
-    const updatedDocument = await response.json();
-    return updatedDocument;
   } catch (error) {
-    console.error("Error updating diagram position:", error);
+    console.error("Error updating document position:", error);
     throw error;
   }
 };

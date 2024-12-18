@@ -47,7 +47,9 @@ const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
           onMouseLeave={(e) => {
             Object.assign(e.target.style, buttonLinkStyle);
           }}
-          onClick={savePositions}
+          onClick={() => {
+            savePositions();
+          }}
         >
           <i className="bi bi-save" style={{ fontSize: '1.2rem' }}></i> {/* Icona Save */}
           </button>
@@ -65,7 +67,8 @@ const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
               toast.info("Now you can start moving the documents.");
             else
               toast.info("Now you can't move the documents anymore.");
-            setIsDragging((prev) => !prev)
+
+            setIsDragging((prev) => !prev);
           }}
         >
           <i className="bi bi-arrows-move" style={{ fontSize: '1.2rem' }}></i> {/* Icona Drag */}
