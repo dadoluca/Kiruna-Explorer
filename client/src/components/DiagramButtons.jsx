@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
+const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
   const buttonLinkStyle = {
     backgroundColor: '#333333', // Grigio scuro
     color: '#ffffff', // Testo bianco
@@ -36,7 +38,7 @@ const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
 
   return (
     <div style={containerStyle}>
-      {showButton && (
+      {isDragging && (
         <button
           style={buttonLinkStyle}
           onMouseEnter={(e) => {
@@ -51,23 +53,30 @@ const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
           </button>
       )}
         <button
-        style={buttonLinkStyle}
-        onMouseEnter={(e) => {
-          Object.assign(e.target.style, buttonHoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          Object.assign(e.target.style, buttonLinkStyle);
-        }}
-        onClick={toggleNodesDrag}
-      >
-        <i className="bi bi-arrows-move" style={{ fontSize: '1.2rem' }}></i> {/* Icona Drag */}
+          style={buttonLinkStyle}
+          onMouseEnter={(e) => {
+            Object.assign(e.target.style, buttonHoverStyle);
+          }}
+          onMouseLeave={(e) => {
+            Object.assign(e.target.style, buttonLinkStyle);
+          }}
+          onClick={() => {
+            if(!isDragging)
+              toast.info("Now you can start moving the documents.");
+            else
+              toast.info("Now you can't move the documents anymore.");
+            setIsDragging((prev) => !prev)
+          }}
+        >
+          <i className="bi bi-arrows-move" style={{ fontSize: '1.2rem' }}></i> {/* Icona Drag */}
         </button>
     </div>
   );
 };
 
 DiagramButtons.propTypes = {
-  toggleNodesDrag: PropTypes.func.isRequired,
+  isDragging: PropTypes.bool.isRequired,
+  setIsDragging: PropTypes.func.isRequired,
   savePositions: PropTypes.func.isRequired
 };
 

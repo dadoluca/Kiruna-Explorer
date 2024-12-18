@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
 import DiagramButtons from "../components/DiagramButtons";
+import API from '../services/api';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Diagram = () => {
     const [scaleNodes, setScaleNodes] = useState([]);   // Nodes for numeric scales, used only to dynamically update the Y-axis
@@ -11,7 +14,8 @@ const Diagram = () => {
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
-    const [showButton, setShowButton]= useState(true);
+    const [isDragging, setIsDragging]= useState(false);
+    const nodesDataRef = useRef([]);
     
     // Function to generate a range of numbers
     function range(start, end) {
@@ -137,6 +141,25 @@ const Diagram = () => {
             const yearStart = parseDate(`${parts[0]}-01-01`); // First day of the year
             const yearEnd = parseDate(`${parts[0]}-12-31`); // Last day of the year
             return { type: 'year', min: yearStart, max: yearEnd };
+        }
+    };
+ 
+    // Function to store new positions in the DB
+    const savePositions = async () => {
+        try {
+            const nodes = nodesDataRef.current;
+      
+            const updatePromises = nodes.map((node) =>
+                API.setDocumentDiagramPosition(node._id, node.fx, node.fy)
+            );
+      
+            await Promise.all(updatePromises);
+      
+            console.log('Positions saved successfully!');
+            toast.success("New positions saved successfully!");
+        } catch (error) {
+            console.error('Error in saving positions:', error);
+            toast.error("Failed to save new positions!");
         }
     };
 
@@ -353,10 +376,19 @@ const Diagram = () => {
             });
 
         const nodesData = documents.map((d) => {
-            const x = xScale(parseDate(d.issuance_date));
+            const x = d.diagramX !== undefined ? d.diagramX : xScale(parseDate(d.issuance_date));
             const validScale = yDomain.includes(d.scale) ? d.scale : yDomain[0];
-            const y = yScale(validScale);
-            return { ...d, x, y, fx: x, fy: y, diagramX: x, diagramY: y };
+            const y = d.diagramY !== undefined ? d.diagramY : yScale(validScale);
+            
+            return { 
+                ...d, 
+                x, 
+                y, 
+                fx: x, 
+                fy: y, 
+                diagramX: x, 
+                diagramY: y 
+            };
         });
 
         const groupedNodes = d3.group(nodesData, (d) => `${parseDate(d.issuance_date.toString())}-${d.scale}`);
@@ -539,16 +571,6 @@ const Diagram = () => {
                     const group = enter.append("g")
                         .attr("class", "node-group")
                         .attr("transform", (d) => `translate(${d.fx}, ${d.fy})`)
-                        .on("click", (event, d) => {
-                            event.stopPropagation();
-                            event.preventDefault();
-
-                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
-                            const nodesInGroup = groupedNodes.get(groupKey);
-
-                            if (nodesInGroup && nodesInGroup.length === 1 || openClusters.has(groupKey))
-                                handleDocCardVisualization(d);
-                        })
                         .on("dblclick", (event, d) => {
                             event.stopPropagation();
                             event.preventDefault();
@@ -559,6 +581,19 @@ const Diagram = () => {
                             if (nodesInGroup && nodesInGroup.length > 1)
                                 toggleCluster(groupKey, nodesInGroup);
                         });
+                    
+                    if(!isDragging){
+                        group.on("click", (event, d) => {
+                            event.stopPropagation();
+                            event.preventDefault();
+
+                            const groupKey = `${parseDate(d.issuance_date.toString())}-${d.scale}`;
+                            const nodesInGroup = groupedNodes.get(groupKey);
+
+                            if (nodesInGroup && nodesInGroup.length === 1 || openClusters.has(groupKey))
+                                handleDocCardVisualization(d);
+                        })
+                    }
 
                     group.append("rect")
                         .attr("x", -15) // Posizionamento relativo all'immagine
@@ -592,8 +627,12 @@ const Diagram = () => {
                 },
                 exit => exit.remove()  // Remove nodes if necessary
             );
-
-        nodes.call(drag);
+        
+        if (isDragging) {
+            nodes.call(drag);
+        } else {
+            nodes.on('.drag', null);
+        }
 
         // Append hidden popup container
         const popup = nodesGroup.append("g")
@@ -691,13 +730,17 @@ const Diagram = () => {
                         .attr("alignment-baseline", "middle");
                 }
             );
-    }, [documents, xDomain, yDomain, links, highlightedNode]);
+
+        // Update nodesData ref
+        nodesDataRef.current = nodesData;
+
+    }, [documents, xDomain, yDomain, links, highlightedNode, isDragging]);
 
     return (
         <>
             <svg ref={svgRef}></svg>
-            <DiagramButtons showButton={showButton} />
-            </>
+            <DiagramButtons isDragging={isDragging} setIsDragging={setIsDragging} savePositions={savePositions} />
+        </>
     );
 };
 
