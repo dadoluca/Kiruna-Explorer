@@ -6,6 +6,8 @@ import Button from 'react-bootstrap/Button';
 import PropTypes from 'prop-types';
 import API from '../services/api';
 import Select from 'react-select';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnection }) => {
   const { updateDocument } = useDocumentContext();
@@ -62,28 +64,23 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
         const selectedTitle = selectedDocument ? selectedDocument.title : '';
 
         for (const type of connection.selectedTypes) {
-          const result1 = await API.createConnection({
+          const result = await API.createConnection({
             documentId,
             newDocumentId: connection.selectedDocumentId,
             type,
             title: selectedTitle,
           });
-          updateDocument(result1);
-
-          const result2 = await API.createConnection({
-            documentId: connection.selectedDocumentId,
-            newDocumentId: documentId,
-            type,
-            title: documentTitle,
-          });
-          updateDocument(result2);
+          updateDocument(result.document1);
+          updateDocument(result.document2);
         }
       }
 
       onAddConnection();
       setConnections([{ selectedDocumentId: '', selectedTypes: [] }]);
+      toast.success("Connections added successfully!");
     } catch (error) {
       console.error('Error creating connections:', error);
+      toast.error("Failed to create a new connection!");
     }
   };
 

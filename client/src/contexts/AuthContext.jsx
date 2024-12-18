@@ -1,17 +1,13 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useMemo } from 'react';
 import API from '../services/api.jsx';
 
 const AuthContext = createContext();
 
-//Provider: the component that distributes the value prop to the "consuming" child components.
 const AuthProvider = ({ children }) => {
-  /*
-  Since the state information is simple and does not involve a complex
-  series of actions that modify it, we use useState rather than useReducer.
-  */
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
+  const [isResident, setIsResident] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,9 +27,11 @@ const AuthProvider = ({ children }) => {
   const handleLogin = async (credentials) => {
     try {
       const user = await API.logIn(credentials);
-      console.log(user);
       setLoggedIn(true);
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
+      if (user.user.role === 'Resident') {
+        setIsResident(true);
+      }
       setUser(user);
     } catch (err) {
       const jsonErr = JSON.parse(err);
@@ -44,9 +42,11 @@ const AuthProvider = ({ children }) => {
   const handleRegistration = async (newUser) => {
     try {
       const user = await API.register(newUser);
-      console.log(user);
       setLoggedIn(true);
       setMessage({ msg: `Welcome, ${user.user.name}!`, type: 'success' });
+      if (user.user.role === 'Resident') {
+        setIsResident(true);
+      }
       setUser(user);
     } catch (err) {
       const jsonErr = JSON.parse(err);
@@ -59,22 +59,26 @@ const AuthProvider = ({ children }) => {
       await API.logOut();
       setLoggedIn(false);
       setMessage({ msg: `Logged out`, type: 'success' });
+      setIsResident(false);
       setUser(null);
     } catch (err) {
       setMessage({ msg: err, type: 'danger' });
     }
   };
 
+  const contextValue = useMemo(() => ({
+    loggedIn,
+    user,
+    message,
+    isResident,
+    setMessage,
+    handleLogin,
+    handleRegistration,
+    handleLogout
+  }), [loggedIn, user, message, isResident]);
+
   return (
-    <AuthContext.Provider value={{ loggedIn, user, message, setMessage, handleLogin, handleRegistration, handleLogout }}>
-      {/*
-
-      Why this Context?
-
-      All components within the AuthProvider can access the Auth State and Auth Context functions
-      without having to explicitly pass this information through the props, resolving prop drilling.
-
-      */}
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

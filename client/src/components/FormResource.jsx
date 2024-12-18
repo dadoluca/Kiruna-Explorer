@@ -6,16 +6,15 @@ import { Button, Row, Col, Card } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import styles from './FormDocument.module.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import API from '../services/api';
-
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ResourceForm(props){
     const navigate = useNavigate();
     const documentId = props.id;
 
     const [files, setFiles] = useState([]);
-    const [error, setError] = useState('');
     
     const handleFileChange = (event) => {
       const selectedFiles = event.target.files;
@@ -30,22 +29,20 @@ function ResourceForm(props){
         await API.addResources(documentId, files);
 
         // Reset form fields after submission
-        alert("Resources added successfully!");
+        toast.success("Resources added successfully!");
         navigate('/map');
-    } catch (error) {
+      } catch (error) {
         console.error("Failed to add resources to the document:", error);
-    }
+        toast.error("Failed to add resources to the document!");
+      }
 
       console.log(files);
-      setError('');
-      alert('');
     };
   
     return (
         <Card className={styles.formCard}>
-        <Card.Title className={styles.title}><i class="bi bi-file-earmark-medical-fill"></i>Add resources</Card.Title>
+        <Card.Title className={styles.title}><i className="bi bi-file-earmark-medical-fill"></i>Add resources</Card.Title>
             <Card.Body>
-                {error && <Alert variant="danger">{error}</Alert>}
                 <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="formFileMultiple" className="mb-3">
                     <Form.Label>Add resources</Form.Label>
@@ -67,7 +64,7 @@ function ResourceForm(props){
                         </Col>
                         <Col>
                             <Button 
-                            variant="dark" 
+                                variant="dark" 
                                 onClick={handleSubmit} 
                                 className="w-100"
                             >

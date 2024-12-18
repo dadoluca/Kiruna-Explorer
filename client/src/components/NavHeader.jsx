@@ -25,7 +25,7 @@ function NavHeader() {
           ) : (
             // Show login prompt if not logged in
             <Link to="/login" className={`${styles.customLink} btn`}>
-              Are you an Urban Planner?
+              Are you an Urban Planner or a Resident?
             </Link>
           )}
         </div>

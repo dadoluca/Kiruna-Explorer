@@ -27,7 +27,9 @@ import {
   setToMunicipality,
   uploadResource,
   getResourcesForDocument,
-  downloadResource
+  downloadResource,
+  getSelectionFields,
+  setDiagramPosition
 } from '../controllers/documentController.mjs';
 
 const router = express.Router();
@@ -38,9 +40,11 @@ router.post('/', validateDocument, createDocument);                 // Create a 
 router.get('/', getAllDocuments);
 router.get('/paginated', getDocumentsWithSortingPagination);        // Fetch documents with sorting, pagination, and filtering
 router.get('/all/titles', getAllTitles);                            // Get all document titles (with optional filters)
+router.get('/selection-fields', getSelectionFields);                // Add route for retrieving selection fields
 router.get('/:id', getDocumentById);                                // Get a document by ID
 router.put('/:id', updateDocument);                                 // Update an existing document by ID
 router.delete('/:id', deleteDocument);                              // Delete a document by ID
+router.put('/:id/diagram-position', setDiagramPosition);          // Update document's diagram position
 
 // Document relationship routes
 router.post('/:id/relationships', addRelationship);                 // Add a relationship to a document

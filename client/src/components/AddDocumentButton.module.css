@@ -1,0 +1,76 @@
+.background {
+  position: absolute;
+  bottom: 195px;
+  right: 15px;
+  background-color: #333333; /* Grigio scuro */
+  color: #ffffff; /* Testo bianco */
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%; /* Forma circolare quando chiuso */
+  width: 3rem; /* Larghezza e altezza per il cerchio */
+  height: 3rem;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+  cursor: pointer;
+  z-index: 1000;
+  transform-origin: right; /* Ancoraggio a destra */
+  outline: none; /* Rimuove il contorno focus */
+  user-select: none; /* Impedisce la selezione del testo al clic */
+  overflow: hidden;
+}
+
+
+.background.expanded {
+  bottom: 194px;
+  right: 14px;
+  width: auto; /* Larghezza espansa */
+  height: min-content; /* Altezza invariata */
+  background-color: #33333399; /* Grigio scuro */
+  border-radius: 1.5rem; /* Bordi curvi con altezza uguale al pulsante chiuso */
+  justify-content: flex-start; /* Allinea il contenuto a sinistra */
+  font-family: 'Source Code Pro', monospace;
+  padding-bottom: 3px;
+  padding-top: 3px;
+  padding-right: 3px;
+  padding-left: 30px;
+  
+}
+
+.verticalAlignment {
+  display: flex;
+  flex-direction: column; /* Allinea gli elementi verticalmente */
+  align-items: flex-end; /* Allinea gli elementi a destra */
+  height: min-content;
+}
+
+.buttonLink{
+  background-color: #333333; /* Grigio scuro */
+  color: #ffffff; /* Testo bianco */
+  border: none;
+  border-radius: 50%; /* Forma circolare quando chiuso */
+  width: 3rem; /* Larghezza e altezza per il cerchio */
+  height: 3rem;
+  justify-content: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+  cursor: pointer;
+  transform-origin: right; /* Ancoraggio a destra */
+  outline: none; /* Rimuove il contorno focus */
+  user-select: none; /* Impedisce la selezione del testo al clic */
+  overflow: hidden; 
+}
+
+.buttonLink.hover{
+  background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+p {
+  margin: 0; /* Rimuove il margine di default del <p> */
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1rem;
+  color: #ffffff; /* Testo bianco */
+}

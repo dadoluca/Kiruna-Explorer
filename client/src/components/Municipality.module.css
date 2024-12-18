@@ -1,0 +1,30 @@
+
+.municipalityIcon{
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.btnStyle{
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: small;
+}
+
+.buttonContainer{
+    position: absolute;
+    top: 15px;
+    left: 49vw;
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 30px;
+    padding: 10px;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    width: 17vw;
+    min-width: 220px;
+}
+
+.isListing{
+    left: 53vw;
+}

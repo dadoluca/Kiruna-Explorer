@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { useState } from 'react';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -12,45 +11,86 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import API from '../services/api';
 import styles from './FormDocument.module.css';
 import { useDocumentContext } from '../contexts/DocumentContext';
+import kirunaGeoJSON from '../data/KirunaMunicipality.json';
+import * as turf from "@turf/turf";
+import { ButtonGroup, ToggleButton } from 'react-bootstrap';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function DocumentInsert() {
     const navigate = useNavigate();
     const location = useLocation(); // Get location
-    const { coordinates, isMunicipal } = location.state || {}; // Extract coordinates and isMunicipal state
-    const { documents } = useDocumentContext();
+    const { coordinates, isMunicipal, customArea } = location.state || {}; // Extract coordinates and isMunicipal state
+    const { documents, addDocument } = useDocumentContext();
 
     const [errors, setErrors] = useState({});
     const [title, setTitle] = useState('');
-    const [stakeholders, setStakeholders] = useState('');
+    const [stakeholders, setStakeholders] = useState([]);
+    const [customStakeholder, setCustomStakeholder] = useState('');
     const [type, setType] = useState('');
     const [customType, setCustomType] = useState(''); // New state for custom document type
     const [scale, setScale] = useState('');
     const [customScale, setCustomScale] = useState(''); // New state for custom scale 
-    
-    //const [connections] = useState(0);
     const [pages, setPages] = useState('Not specified');
     const [language, setLanguage] = useState('Not specified');
     const [customLanguage, setCustomLanguage] = useState(''); // New state for custom language
     const [longitude, setLongitude] = useState(coordinates ? coordinates.lng : 20.2253); // Set coordinates if available
     const [latitude, setLatitude] = useState(coordinates ? coordinates.lat : 67.8558); // Set coordinates if available
     const [description, setDescription] = useState('');
-    
     const [activeButton, setActiveButton] = useState(1);
     // date picker 
     const [date, setDate] = useState(null);
     const [dateFormat, setDateFormat] = useState("yyyy-MM-dd");
     const [formattedDate, setFormattedDate] = useState("");
 
-    const [stakeholdersArray, setStakeholdersArray] = useState([]);
-
     const [connections, setConnections] = useState([]);
     const [resources, setResources] = useState([]);
+    //municipality/single point button group
+    const [isArea] = useState(customArea || null);
+    const [municipal, setMunicipal] = useState(isMunicipal);
+    
+    let initialRadioValue;
+        if (isArea !== null) {
+        initialRadioValue = 'coordinates';
+        } else {
+        initialRadioValue = municipal ? 'entire-municipality' : 'coordinates';
+        }
+    const [radioValue, setRadioValue] = useState(initialRadioValue);
 
-    const handleStakeholders = (ev) => {
-        setStakeholders(ev.target.value);
-        setStakeholdersArray(ev.target.value.split(','));
+
+    const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates;
+
+    // Handle Stakeholders
+    const predefinedStakeholders = [
+        { value: 'Kiruna kommun', label: 'Kiruna kommun' },
+        { value: 'Residents', label: 'Residents' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+        { value: 'LKAB', label: 'LKAB' },
+        { value: 'White Arkitekter', label: 'White Arkitekter' },
+    ];
+
+    const handleStakeholdersChange = (selectedOptions) => {
+        setStakeholders(selectedOptions || []);
     };
 
+    const handleCustomStakeholderChange = (ev) => {
+        setCustomStakeholder(ev.target.value);
+    };
+
+    const addCustomStakeholder = () => {
+        if (customStakeholder) {
+            const newStakeholder = { value: customStakeholder, label: customStakeholder };
+            
+            setStakeholders((prevStakeholders) => [
+                ...prevStakeholders,
+                newStakeholder
+            ]);
+
+            setCustomStakeholder('');
+        }
+    };
+
+    // Handle Connections
     const handleAddConnection = () => {
         setConnections(prev => [
             ...prev,
@@ -62,34 +102,11 @@ function DocumentInsert() {
         ]);
     };
 
-    const handleAddResource = () => {
-        setResources(prev => [
-          ...prev,
-          {
-            selectedResource: '',
-          }
-        ]);
-    };
-
-    const handleRemoveResource = (index) => {
-        const newResources = [...resources];
-        newResources.splice(index, 1);
-
-        setResources(newResources);
-    };
-
     const handleChange = (index, field, value) => {
         const newConnections = [...connections];
         newConnections[index][field] = value;
 
         setConnections(newConnections);
-    };
-
-    const handleChangeResource = (index, e) =>{
-        const newResources = [...resources];
-        newResources[index] = e.target.files[0];
-
-        setResources(newResources);
     };
 
     const handleRemoveConnection = (index) => {
@@ -112,6 +129,36 @@ function DocumentInsert() {
         setConnections(newConnections);
     };
 
+    const getAvailableOptions = (index) => {
+        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
+        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
+    };
+
+    // Handle Resources
+    const handleAddResource = () => {
+        setResources(prev => [
+          ...prev,
+          {
+            selectedResource: '',
+          }
+        ]);
+    };
+
+    const handleRemoveResource = (index) => {
+        const newResources = [...resources];
+        newResources.splice(index, 1);
+
+        setResources(newResources);
+    };
+
+    const handleChangeResource = (index, e) =>{
+        const newResources = [...resources];
+        newResources[index] = e.target.files[0];
+
+        setResources(newResources);
+    };
+    
+
     const handleSubmit = async () => {
         console.log('submit');
 
@@ -121,9 +168,9 @@ function DocumentInsert() {
         }
 
         // Create the document object
-        const document = {
+        let document = {
             title,
-            stakeholders: stakeholdersArray,
+            stakeholders: stakeholders.map(stakeholder => stakeholder.value),
             type: customType || type, // Use custom type if provided
             scale,
             issuance_date: formattedDate,
@@ -131,19 +178,25 @@ function DocumentInsert() {
             connections: 0,
             pages,
             description,
-            areaId: isMunicipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
-            coordinates: isMunicipal ? undefined : { // Only include coordinates if not municipal
+            areaId: municipal ? null : undefined, // Set areaId to null if municipal area, else keep it undefined
+            coordinates: (municipal || customArea) ? undefined : { // Only include coordinates if not municipal
                 type: "Point",
                 coordinates: [
                     parseFloat(longitude),
                     parseFloat(latitude)
                 ]
             }
-        };
+        }
+
+        if (customArea) {
+            document.areaId = customArea._id;
+            document.coordinates= customArea.properties.centroid;
+        }
 
         try {
             console.log(document);
             const newDoc = await API.createDocument(document);
+            addDocument(newDoc);
 
             for (const connection of connections) {
                 const selectedDocument = documents.find((doc) => doc._id === connection.selectedDocumentId);
@@ -156,24 +209,20 @@ function DocumentInsert() {
                     type,
                     title: selectedTitle,
                   });
-        
-                  await API.createConnection({
-                    documentId: connection.selectedDocumentId,
-                    newDocumentId: newDoc._id,
-                    type,
-                    title: document.title,
-                  });
                 }
             }
 
-            await API.addResources(newDoc._id, resources);
+            if(resources.length > 0) {
+                await API.addResources(newDoc._id, resources);
+            }
 
             // Reset form fields after submission
             resetForm();
-            alert("Document added successfully!");
-            navigate('/');
+            toast.success("Document added successfully!");
+            navigate('/map');
         } catch (error) {
             console.error("Failed to create a new document:", error);
+            toast.error("Failed to create a new document!");
         }
     };
 
@@ -218,26 +267,26 @@ function DocumentInsert() {
         let newErrors = {};
 
         if (!title) newErrors.title = 'Title is required';
-        if (!stakeholders) newErrors.stakeholders = 'Stakeholders are required';
-        if (!(type || customType)) newErrors.type = 'Type is required'; // Check for custom type
+        if (!stakeholders || stakeholders.length === 0) {
+            newErrors.stakeholders = 'Stakeholders are required';
+        }
+        if (!type) newErrors.type = 'Type is required';
+        if (type === 'Add Custom...' && !customType) {
+            newErrors.customType = 'Type is required';
+        }
         if (!scale) newErrors.scale = 'Scale is required';
+        if (scale === 'Add Custom...' && !customScale) {
+            newErrors.customScale = 'Scale is required';
+        }
         if (!description) newErrors.description = 'Description is required';
         if (!date) newErrors.date = 'Date is required';
 
         // Only validate latitude and longitude if not a municipal document
-        if (!isMunicipal) {
+        if (!municipal) {
             if (!latitude) newErrors.latitude = 'Latitude is required';
             if (!longitude) newErrors.longitude = 'Longitude is required';
         }
-
-        if (connections && connections.length > 0) {
-            connections.forEach((connection, index) => {
-                if (!connection.selectedDocumentId) {
-                    newErrors[`connections[${index}].selectedDocumentId`] = 'Document is required for each connection';
-                }
-            });
-        }
-
+        
         setErrors(newErrors);
         console.log(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -245,7 +294,7 @@ function DocumentInsert() {
 
     const resetForm = () => {
         setTitle('');
-        setStakeholders('');
+        setStakeholders([]);
         setType('');
         setScale('');
         setDate('');
@@ -260,49 +309,11 @@ function DocumentInsert() {
         setConnections([]);
     };
 
-    const getAvailableOptions = (index) => {
-        const selectedDocumentIds = connections.map(conn => conn.selectedDocumentId);
-        return documents.filter(doc => !selectedDocumentIds.includes(doc._id));
-    };
-
-    // Le coordinate del poligono di Kiruna
-    const kirunaPolygonCoordinates = [
-        [67.881950910, 20.18],  // Top-left point
-        [67.850, 20.2100],      // Clockwise
-        [67.8410, 20.2000],
-        [67.84037, 20.230],
-        [67.8260, 20.288],
-        [67.8365, 20.304],
-        [67.842, 20.303],
-        [67.844, 20.315],
-        [67.8350, 20.350],
-        [67.850, 20.370],
-        [67.860, 20.300]
-    ];
-
-    // Funzione per verificare se il punto è all'interno del poligono (Algoritmo di Ray-casting)
-    const isPointInPolygon = (point, vs) => {
-        const [x, y] = [point.lat, point.lng];
-        let inside = false;
-        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-            const [xi, yi] = vs[i];
-            const [xj, yj] = vs[j];
-            const intersect = ((yi > y) !== (yj > y)) &&
-                (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-            if (intersect) inside = !inside;
-        }
-        return inside;
-    };
-
     // Funzione per validare le coordinate
     const validateCoordinates = (lat, lng) => {
         // Converte in numeri e verifica che siano numeri validi
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lng);
-    
-        if (isNaN(latitude) || isNaN(longitude)) {
-            return "Coordinates must be valid numbers.";
-        }
     
         // Verifica se la latitudine e la longitudine sono nei limiti
         if (latitude < -90 || latitude > 90) {
@@ -313,9 +324,10 @@ function DocumentInsert() {
         }
     
         // Verifica se il punto è all'interno del poligono
-        const point = { lat: latitude, lng: longitude };
-        if (!isPointInPolygon(point, kirunaPolygonCoordinates)) {
-            return "The point is not inside the Kiruna polygon.";
+        const point = turf.point([longitude, latitude]);
+        const kiruna = turf.multiPolygon(kirunaPolygonCoordinates);
+        if (!turf.booleanPointInPolygon(point, kiruna)) {
+            return "The point is not inside the Kiruna municipality.";
         }
     
         return null; // nessun errore
@@ -324,19 +336,32 @@ function DocumentInsert() {
     // Utilizzo nel form
     const handleCoordinateChange = (ev, coordinateType) => {
         const value = ev.target.value;
+        
+        // Aggiorna la latitudine o longitudine in base al tipo di coordinata
         if (coordinateType === "latitude") {
             setLatitude(value);
         } else if (coordinateType === "longitude") {
             setLongitude(value);
         }
-
-        const error = validateCoordinates(latitude, longitude); // Esegui la validazione
-        setErrors({ ...errors, [coordinateType]: error });
-    }
+    
+        // Esegui la validazione delle coordinate
+        const error = validateCoordinates(latitude, longitude);
+        
+        // Se c'è un errore, aggiungilo allo stato degli errori, altrimenti rimuovilo
+        setErrors(prevErrors => {
+            const newErrors = { ...prevErrors };
+            if (error) {
+                newErrors[coordinateType] = error;
+            } else {
+                delete newErrors[coordinateType]; // rimuove l'errore se non c'è
+            }
+            return newErrors;
+        });
+    };
 
     return (
         <Card className={styles.formCard}>
-            <Card.Title className={styles.title}><i class="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
+            <Card.Title className={styles.title}><i className="bi bi-file-earmark-fill"></i>Insert Document</Card.Title>
             <Card.Body>
                 <FloatingLabel label="Title of the document *" className={styles.formField}>
                     <Form.Control
@@ -404,7 +429,11 @@ function DocumentInsert() {
                             type="text"
                             value={customType}
                             onChange={(ev) => setCustomType(ev.target.value)}
+                            isInvalid={!!errors.customType}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.customType}
+                        </Form.Control.Feedback>
                     </FloatingLabel>
                 )}
 
@@ -420,40 +449,54 @@ function DocumentInsert() {
                 )}
 
                 {/* Stakeholders */}
-                <FloatingLabel label="Stakeholders *" className={styles.formField}>
-                    <Form.Control
-                        type="text"
+                <FloatingLabel className={styles.formField}>
+                    <Select
+                        isMulti
                         value={stakeholders}
-                        onChange={handleStakeholders}
-                        isInvalid={!!errors.stakeholders}
-                        required
+                        onChange={handleStakeholdersChange}
+                        options={predefinedStakeholders}
+                        placeholder="Select stakeholders *"
+                        styles={{
+                            menu: (base) => ({
+                                ...base,
+                                zIndex: 1050
+                            }),
+                            control: (base) => ({
+                                ...base,
+                                borderColor: errors.stakeholders ? 'red' : base.borderColor,
+                            }),
+                        }}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.stakeholders}
-                    </Form.Control.Feedback>
+                    {errors.stakeholders && (
+                        <div className="invalid-feedback d-block">
+                            {errors.stakeholders}
+                        </div>
+                    )}
                 </FloatingLabel>
 
-                {/* Connections - Non-editable field with value set to 1 */}
-                <Row>
-                    <Col md={6}>
-                        <FloatingLabel label="Connections *" className="mb-3">
-                            <Form.Control type="number" value={0} disabled required />
-                        </FloatingLabel>
-                    </Col>
-                    <Col md={6}>
-                        <FloatingLabel label="Pages" className="mb-3">
-                            <Form.Control
-                                type="text"
-                                value={pages}
-                                onChange={(ev) => setPages(ev.target.value)}
-                            />
-                        </FloatingLabel>
-                    </Col>
-                </Row>
+                {/* Custom Stakeholder */}
+                <FloatingLabel label="Custom Stakeholder" className="mb-3">
+                    <Form.Control
+                        type="text"
+                        value={customStakeholder}
+                        onChange={handleCustomStakeholderChange}
+                    />
+                </FloatingLabel>
 
-                <Row className="mb-3">
+                <Button 
+                    variant="light"
+                    onClick={addCustomStakeholder}
+                    size="sm"
+                    className="mb-5"
+                >
+                    Add Custom Stakeholder to the List
+                </Button>
+
+
+                <Row>
+                    {/* Scale */}
                     <Col md={6}>
-                        <FloatingLabel label="Scale *" className="mb-3">
+                        <FloatingLabel label="Scale *" className="mb-4">
                             <Form.Select
                                 value={scale}
                                 onChange={(ev) => {
@@ -462,6 +505,8 @@ function DocumentInsert() {
                                         setCustomScale('');
                                     }
                                 }}
+                                isInvalid={!!errors.scale}
+                                required
                             >   
                                 <option value="">Select a scale</option>
                                 <option value="1:1">1:1</option>
@@ -475,26 +520,70 @@ function DocumentInsert() {
                                 <option value="1:1000">1:1000</option>
                                 <option>Add Custom...</option>
                             </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.scale}
+                            </Form.Control.Feedback>
                         </FloatingLabel>
-                        <Form.Control.Feedback type="invalid">
-                            {errors.scale}
-                        </Form.Control.Feedback>
                     </Col>
-                    {/* Custom Scale Input */}
+                    {/* Pages */}
                     <Col md={6}>
-                        {scale === "Add Custom..." && (
-                            <FloatingLabel label="Custom Scale *" className="mb-3">
-                                <Form.Control
-                                    type="text"
-                                    value={customScale}
-                                    onChange={(ev) => setCustomScale(ev.target.value)}
-                                />
-                            </FloatingLabel>
-                        )}
+                        <FloatingLabel label="Pages" className="mb-4">
+                            <Form.Control
+                                type="text"
+                                value={pages}
+                                onChange={(ev) => setPages(ev.target.value)}
+                            />
+                        </FloatingLabel>
                     </Col>
                 </Row>
 
-                {!isMunicipal && (
+                {/* Custom Scale Input */}
+                {scale === "Add Custom..." && (
+                    <FloatingLabel label="Custom Scale *" className="mb-4">
+                        <Form.Control
+                            type="text"
+                            value={customScale}
+                            onChange={(ev) => setCustomScale(ev.target.value)}
+                            isInvalid={!!errors.customScale}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.customScale}
+                        </Form.Control.Feedback>
+                    </FloatingLabel>
+                )}
+                
+                {/* Coordinates */}
+                {isArea === null &&(
+                    <div className="mb-4">
+                        <ButtonGroup>
+                            <ToggleButton
+                                id="radio-0"
+                                type="radio"
+                                variant={radioValue === "coordinates" ? "success" : "dark"}
+                                name="radio"
+                                value="coordinates"
+                                checked={radioValue === "coordinates"}
+                                onChange={(e) => setRadioValue(e.currentTarget.value)}
+                                onClick={() => {setMunicipal(false)}}
+                            >
+                                Coordinates
+                            </ToggleButton>
+                            <ToggleButton
+                                id="radio-1"
+                                type="radio"
+                                variant={radioValue === "entire-municipality" ? "success" : "dark"}  
+                                name="radio"
+                                value="entire-municipality"
+                                checked={radioValue === "entire-municipality"}
+                                onChange={(e) => setRadioValue(e.currentTarget.value)}
+                                onClick={() => {setMunicipal(true)}}
+                            >
+                                Entire municipality
+                            </ToggleButton>
+                        </ButtonGroup>
+                    </div>
+                )}
+                {!municipal && isArea === null &&(
                     <Row className="mb-4">
                         <Col md={6}>
                             <FloatingLabel label="Longitude *">
@@ -527,6 +616,7 @@ function DocumentInsert() {
                     </Row>
                 )}
 
+                {/* Date */}
                 <Row className="mb-4 d-flex">
                     <Col>
                         <div className="d-flex gap-2 justify-content-center">
@@ -560,7 +650,13 @@ function DocumentInsert() {
                             dateFormat={dateFormat}
                             showPopperArrow={false}
                             placeholderText="Choose a date *"
+                            className={`form-control ${errors.date ? 'is-invalid' : ''}`}
                         />
+                        {errors.date && (
+                            <div className="invalid-feedback" style={{ display: 'block' }}>
+                                {errors.date}
+                            </div>
+                        )}
                     </Col>
                 </Row>
 
@@ -576,7 +672,8 @@ function DocumentInsert() {
                         {errors.description}
                     </Form.Control.Feedback>
                 </FloatingLabel>
-
+                
+                {/* Connections */}
                 {connections.map((connection, index) => {
                     return (
                         <div key={index} className="mb-3">
@@ -596,8 +693,7 @@ function DocumentInsert() {
                                         value: doc._id,
                                         label: doc.title
                                     }))}
-                                    isInvalid={!!errors[`connections[${index}].selectedDocumentId`]}
-                                    placeholder="Select a document to connect *"
+                                    placeholder="Select a document to connect"
                                     getOptionLabel={(e) => e.label}
                                     isClearable={true}
                                     styles={{
@@ -610,9 +706,6 @@ function DocumentInsert() {
                                         }),
                                     }}
                                 />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors[`connections[${index}].selectedDocumentId`]}
-                                </Form.Control.Feedback>
                             </div>
                             
                             {connection.selectedDocumentId && (
@@ -662,6 +755,7 @@ function DocumentInsert() {
                     );
                 })}
 
+                {/* Resources */}
                 {resources.map((resource, index) => (
                     <div key={index} className="mb-3">
                         <FloatingLabel label="Resource to add" className="mb-3">

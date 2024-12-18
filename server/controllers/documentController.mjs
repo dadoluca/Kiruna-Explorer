@@ -2,7 +2,7 @@ import Document from '../models/Document.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import Joi from 'joi';
 
 // Create a new document
 export const createDocument = async (req, res) => {
@@ -38,15 +38,63 @@ export const createDocument = async (req, res) => {
   }
 };
 
-// Get all documents with optional filters
+// Get all documents with optional filters and pagination
+const sanitizeInput = (input) =>
+  typeof input === 'string' ? validator.escape(input.trim()) : input;
+
 export const getAllDocuments = async (req, res) => {
   try {
-    const documents = await Document.find(req.query);
-    res.json(documents);
+    // Define a validation schema using Joi
+    const schema = Joi.object({
+      page: Joi.number().integer().min(1).default(1),
+      limit: Joi.number().integer().min(1).max(100).default(1000),
+      title: Joi.string().max(255).allow(null, ''),
+      type: Joi.string().valid('type1', 'type2', 'type3').allow(null, ''), // Replace 'type1', etc., with actual types
+      tag: Joi.string().max(255).allow(null, ''),
+    });
+
+    // Validate the request query parameters against the schema
+    const { page, limit, title, type, tag } = await schema.validateAsync(req.query);
+
+    // Construct filter object with sanitized inputs
+    const filter = {};
+    if (title) {
+      filter.title = { $regex: new RegExp(`^${sanitizeInput(title)}`, 'i') }; // Case-insensitive regex
+    }
+    if (type) {
+      filter.type = sanitizeInput(type); // Exact match
+    }
+    if (tag) {
+      filter.tags = { $in: [sanitizeInput(tag)] }; // Filter by tags
+    }
+
+    // Fetch documents securely with pagination
+    const documents = await Document.find(filter)
+      .skip((page - 1) * limit) // Skip documents for pagination
+      .limit(limit) // Limit number of documents per page
+      .exec();
+
+    // Count documents securely with the same filter
+    const totalDocuments = await Document.countDocuments(filter);
+
+    // Return response with paginated documents and metadata
+    res.status(200).json({
+      data: documents,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalDocuments / limit),
+        totalDocuments,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching documents:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
+
+
 
 // Get a document by ID
 export const getDocumentById = async (req, res, next) => {
@@ -102,19 +150,37 @@ export const deleteDocument = async (req, res) => {
 // Add a new relationship to a document
 export const addRelationship = async (req, res) => {
   const { documentId: newDocumentId, type, title } = req.body;
+
+  const session = await Document.startSession();
+  session.startTransaction();
+
   try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
+    const document = await Document.findById(req.params.id).session(session);
+    const relatedDocument = await Document.findById(newDocumentId).session(session);
+
+    if (!document || !relatedDocument) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'One or both documents not found' });
     }
 
-    const newRelationship = { documentId: newDocumentId, documentTitle: title, type}; 
+    const newRelationship = { documentId: newDocumentId, documentTitle: title, type };
     document.relationships.push(newRelationship);
     document.connections = (document.connections || 0) + 1;
-    await document.save();
+    await document.save({ session });
 
-    res.status(201).json(document);
+    const reverseRelationship = { documentId: req.params.id, documentTitle: document.title, type };
+    relatedDocument.relationships.push(reverseRelationship);
+    relatedDocument.connections = (relatedDocument.connections || 0) + 1;
+    await relatedDocument.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({ document1: document, document2: relatedDocument });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };
@@ -620,5 +686,53 @@ export const downloadResource = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+  
+};
+
+// Retrieve selection fields options
+export const getSelectionFields = async (req, res) => {
+  try {
+    // Fetch stakeholders and document types from the database
+    const stakeholders = await Document.distinct('stakeholders'); // Example: Retrieve stakeholders
+    const documentTypes = await Document.distinct('type'); // Example: Retrieve document types
+
+    // Return the data
+    res.json({
+      stakeholders,
+      documentTypes,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update document's diagram positions
+export const setDiagramPosition = async (req, res) => {
+  try {
+    const { diagramX, diagramY } = req.body;
+
+    if (diagramX === undefined || diagramY === undefined) {
+      return res.status(400).json({ message: 'Both diagramX and diagramY are required in the body' });
+    }
+
+    const document = await Document.findById(req.params.id);
+
+    if (!document) return res.status(404).json({ message: 'Document not found' });
+
+    const updateOrAddField = (field, value) => {
+      if (value !== undefined) {
+        document[field] = value;
+      }
+    };
+
+    updateOrAddField('diagramX', diagramX);
+    updateOrAddField('diagramY', diagramY);
+
+    const updatedDocument = await document.save();
+
+    res.json(updatedDocument);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };

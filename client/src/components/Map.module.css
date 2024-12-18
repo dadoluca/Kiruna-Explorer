@@ -1,22 +1,74 @@
-.mapPage{
-    height: 91vh;
+.mapPage {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
 .mapContainer {
     position: relative;
     margin: 0 auto;
-    width: 100%; /*width: 97%;*/
+    width: 100%;
     height: 100%;
-    border-top: 1.5px solid black;  /*Solo bordo superiore */
-    /*border-radius: 10px;*/
+    border-top: 1.5px solid black;
     overflow: hidden;
 }
 
-/* Pulsante per aggiunta in basso a destra */
-.addButton {
+.listing {
+    width: 55vw;
+    left: auto;
+    right: 0;
+}
+
+
+.popupHeader {
+    display: flex;
+    justify-content: flex-end; /* Allinea il pulsante di chiusura a destra */
+    padding: 10px;
+    border-bottom: 1px solid #ddd; /* Linea di separazione per l'intestazione */
+    z-index: 1000;
+
+}
+
+.closeButton {
+    background: none; /* Rimuove lo sfondo di default */
+    border: none; /* Rimuove il bordo di default */
+    font-size: 20px; /* Dimensione del pulsante */
+    cursor: pointer; /* Cambia il cursore per indicare interattività */
+    color: #555; /* Colore neutro */
+}
+
+.closeButton:hover {
+    color: red; /* Cambia colore al passaggio del mouse */
+}
+
+.popupContent {
+    padding: 15px; /* Spazio interno per il contenuto */
+}
+
+.buttonRow{
     position: absolute;
-    bottom: 15px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
+    z-index: 1001;
+}
+
+.buttonCol {
+    position: absolute;
+    bottom: 20px;
+    right: 15px;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Allinea il contenuto a sinistra */
+    z-index: 1001;
+}
+
+.areaButton {
     background-color: #333333; /* Grigio scuro */
     color: #ffffff; /* Testo bianco */
     border: none;
@@ -38,10 +90,12 @@
     overflow: hidden; 
 }
 
+.areaButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
 .listButton {
-    position: absolute;
-    bottom: 70px; /* Distanza dal bordo inferiore per posizionarlo sopra l'addButton */
-    right: 10px; /* Allineamento a destra come addButton */
     background-color: #333333; /* Colore grigio leggermente più chiaro */
     color: #ffffff; /* Testo bianco */
     border: none;
@@ -68,6 +122,87 @@
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
 }
 
+.satelliteButton {
+    background-color: #333333; /* Colore grigio leggermente più chiaro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare */
+    width: 3rem; /* Dimensioni uguali a addButton */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo */
+    overflow: hidden;
+}
+
+.satelliteButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+.diagramButton {
+    background-color: #333333; /* Colore grigio leggermente più chiaro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare */
+    width: 3rem; /* Dimensioni uguali a addButton */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo */
+    overflow: hidden;
+}
+
+.diagramButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
+.selectDocumentsButton {
+    background-color: #333333; /* Colore grigio leggermente più chiaro */
+    color: #ffffff; /* Testo bianco */
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%; /* Forma circolare */
+    width: 3rem; /* Dimensioni uguali a addButton */
+    height: 3rem;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transizione fluida */
+    cursor: pointer;
+    z-index: 1000;
+    transform-origin: right; /* Ancoraggio a destra */
+    outline: none; /* Rimuove il contorno focus */
+    user-select: none; /* Impedisce la selezione del testo */
+    overflow: hidden;
+}
+
+.selectDocumentsButton:hover {
+    background-color: #666666; /* Colore più chiaro al passaggio del mouse */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Effetto ombra aumentato */
+}
+
 .listButton.hidden {
     opacity: 0; /* Trasparente */
     visibility: hidden; /* Non cliccabile */
@@ -87,6 +222,10 @@
     padding: 0.5rem 1rem;
     justify-content: flex-start; /* Allinea il contenuto a sinistra */
     font-family: 'Source Code Pro', monospace;
+}
+
+.addButton.expanded:hover {
+    background-color: #3d3d3d; /* Colore meno chiaro al passaggio del mouse */
 }
 
 /* Stato :active senza cambiare colore */
@@ -214,11 +353,6 @@
 
 .styles.popup {
     overflow-y: auto;
+    width: 500px;
 }
 
-.buttonGroupUI {
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    gap: 10px; 
-}

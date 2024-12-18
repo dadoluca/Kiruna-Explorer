@@ -33,15 +33,6 @@ const logOut = async() => {
 }
   
 const getUserInfo = async () => {
-    /*const response = await fetch(SERVER_URL + '/api/sessions/current', {
-      credentials: 'include',
-    });
-    const user = await response.json();
-    if (response.ok) {
-      return user;
-    } else {
-      throw user;  // an object with the error coming from the server
-    }*/
    throw new Error('Not authenticated');
 };
 
@@ -65,25 +56,33 @@ const register = async (newUser) => {
   
 
 const createDocument = async (document) => {
-    try {
-      const response = await fetch(`${DOCUMENTS_API_BASE_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(document),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to create document: ${response.statusText}`);
-      }
-  
-      return await response.json();
-    } catch (error) {
-      console.error("Error in createDocument:", error);
-      throw error;
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(document),
+    });
+
+    if (response.ok) {
+      // Parse and enhance the document data
+      const responseData = await response.json();
+      return {
+        ...responseData,
+        icon: `${SERVER_BASE_URL}${responseData.icon_url}`,
+      };
+    } else {
+      // Throw an error with the status text
+      throw new Error(`Failed to create document: ${response.statusText}`);
     }
+  } catch (error) {
+    // Log and rethrow the error
+    console.error("Error in createDocument:", error);
+    throw error;
   }
+};
+
 
   // Returns a list of documents
   // Optional filters example: { title: "Example Document", issuance_date: "2023-10-12" }
@@ -100,7 +99,7 @@ const createDocument = async (document) => {
       });
       if (response.ok) {
         let data = await response.json();
-        data = data.map(doc => ({
+        data = data.data.map(doc => ({
           ...doc,
           icon: `${SERVER_BASE_URL}${doc.icon_url}`,
         }));  
@@ -157,19 +156,39 @@ const createDocument = async (document) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ documentId: newDocumentId, type, title }), 
+        body: JSON.stringify({ documentId: newDocumentId, type, title }),
       });
+      
+      if (response.ok) {
+        // Parse and enhance the response document
+        const responseData = await response.json();
+
+        const enhancedDocument1 = {
+          ...responseData.document1,
+          icon: `${SERVER_BASE_URL}${responseData.document1.icon_url}`,
+        };
   
-      if (!response.ok) {
+        const enhancedDocument2 = {
+          ...responseData.document2,
+          icon: `${SERVER_BASE_URL}${responseData.document2.icon_url}`,
+        };
+
+        return {
+          ...responseData,
+          document1: enhancedDocument1,
+          document2: enhancedDocument2,
+        };
+      } else {
+        // Throw an error with the response status
         throw new Error(`Failed to create connection: ${response.statusText}`);
       }
-  
-      return await response.json();
     } catch (error) {
+      // Log and rethrow the error
       console.error("Error in createConnection:", error);
       throw error;
     }
   };
+  
 
   // type should be 'Point'
   const updateDocumentCoordinates = async (documentId, type, coordinates) => {
@@ -257,20 +276,11 @@ const createDocument = async (document) => {
     }
   }
 
-  /* Example: points = [
-                [
-                  [67.881950910, 20.18],
-                  [67.850, 20.2100],   
-                  [67.8410, 20.2000],
-                  [67.84037, 20.230],
-                  [67.8260, 20.288] (can be closed or not)
-                ]
-              ]; */
-  const createArea = async (points, name = null) => {
+  const createArea = async (geojson, name = null) => {
     try {
-      const area = {
-        points,
-        ...(name && { name })
+      const payload = {
+        geojson,
+        ...(name && { name }),
       };
   
       const response = await fetch(`${AREAS_API_BASE_URL}/`, {
@@ -278,7 +288,7 @@ const createDocument = async (document) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(area),
+        body: JSON.stringify(payload),
       });
   
       if (!response.ok) {
@@ -366,4 +376,32 @@ const downloadResource = async (documentId, filename) => {
   }
 }
 
-export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas };
+const setDocumentDiagramPosition = async (documentId, diagramX, diagramY) => {
+  try {
+    const response = await fetch(`${DOCUMENTS_API_BASE_URL}/${documentId}/diagram-position`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        diagramX,
+        diagramY
+      })
+    });
+
+    if (response.ok) {
+      const updatedDocument = await response.json();
+      return {
+        ...updatedDocument,
+        icon: `${SERVER_BASE_URL}${updatedDocument.icon_url}`,
+      };
+    } else {
+      throw new Error(`Failed to update document position: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("Error updating document position:", error);
+    throw error;
+  }
+};
+
+export default { logIn, logOut, getUserInfo, register, createDocument, getDocuments, getDocumentById, getAvailableDocuments, createConnection, updateDocumentCoordinates, setDocumentToMunicipality, fetchDocuments, fetchDocumentFields, getResources, addResources, downloadResource, createArea, getAllAreas, setDocumentDiagramPosition };

@@ -1,0 +1,41 @@
+/* Contenitore principale per la mappa e il diagramma */
+.mainContainer {
+    display: flex;
+    flex-direction: column;
+    height: 91vh;
+    width: 100%;
+}
+
+.mapContainer {
+    flex: 1; /* Occupiamo il resto dello spazio per la mappa */
+    overflow: hidden;
+}
+
+.resizeBar {
+    background-color: #333;
+    padding: 10px;
+    cursor: row-resize;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    user-select: none; /* Disabilita la selezione del testo durante il ridimensionamento */
+}
+
+.resizeBar:hover {
+    background-color: #555;
+}
+
+.resizeIcon {
+    color: #fff;
+    font-size: 16px;
+}
+
+.diagramContainer {
+    overflow: auto;
+    background: rgba(245, 245, 245, 0.7);
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

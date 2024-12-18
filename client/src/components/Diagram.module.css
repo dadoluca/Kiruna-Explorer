@@ -1,0 +1,22 @@
+.node-popup {
+  font-size: 10px; 
+  padding: 4px; 
+  border-radius: 4px; 
+}
+
+.node-popup rect {
+  rx: 4; 
+  ry: 4;
+}
+
+.link-popup {
+  font-size: 8px;
+  padding: 3px; 
+  border-radius: 3px; 
+}
+
+.link-popup rect {
+  rx: 3; 
+  ry: 3;
+}
+

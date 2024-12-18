@@ -1,25 +1,27 @@
 .landingContainer {
     display: flex;
+    flex-direction: column; /* Default to column layout for smaller screens */
     align-items: center;
-    justify-content: space-between;
-    padding: 4rem 2rem;
-    background: transparent; /*linear-gradient(180deg, rgba(255, 78, 113, 0.4), rgba(178, 181, 255, 0.75)); /* Soft pink to light blue gradient with transparency */
-    height: 91vh;
+    justify-content: center; /* Center items for smaller screens */
+    padding: 2rem 1rem; /* Adjust padding for smaller screens */
+    background: transparent; 
+    height: auto; /* Adjust height to fit content */
+    min-height: 91vh; /* Maintain a minimum height */
     color: #ffffff;
 }
 
 .content {
-    max-width: 500px;
-    margin-left: 5vw;
-    padding: 2rem;
-    text-align: left;
+    max-width: 90%; /* Allow content to shrink on smaller screens */
+    margin: 0;
+    padding: 1.5rem;
+    text-align: center; /* Center-align text on small screens */
     animation: fadeIn 1.5s ease-in-out;
 }
 
 .headerImage {
-    margin-right: 10vw;
-    width: 96%;
-    max-width: 380px;
+    margin: 1rem 0; /* Adjust margins for better spacing on smaller screens */
+    width: 90%; /* Make the image width responsive */
+    max-width: 300px; /* Adjust max-width for smaller screens */
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(6, 6, 6, 0.99);
     transition: transform 0.5s ease;
@@ -31,35 +33,35 @@
 }
 
 .title {
-    font-size: 3.5rem;
+    font-size: 2.5rem; /* Scale down title font size on smaller screens */
     font-weight: bold;
     -webkit-background-clip: text;
-    color:#232229;
+    color: #232229;
     margin-bottom: 1rem;
     text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for contrast */
 }
 
 .description {
-    font-size: 1.1rem;
-    line-height: 1.6;
+    font-size: 1rem; /* Adjust font size for smaller screens */
+    line-height: 1.5;
     color: #535157;
     font-family: 'Roboto', sans-serif; 
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1); 
-    margin-bottom: 2rem; 
+    margin-bottom: 1.5rem; 
 }
 
 .mapButton {
-    padding: 0.8rem 2rem;
-    font-size: 1.1rem;
+    padding: 0.6rem 1.5rem; /* Adjust padding */
+    font-size: 1rem; /* Scale down button text */
     color: #ffffff;
     background: linear-gradient(90deg, #8079ff, #ff5d7d); /* Gradient matching theme */
     border: none;
-    border-radius: 25px;
+    border-radius: 20px; /* Slightly smaller border radius */
     cursor: pointer;
     transition: background 0.3s, transform 0.3s;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-    text-decoration: none; /* Rimuove la sottolineatura */
-    display: inline-block; /* Rende il link come un elemento blocco */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Block-like appearance */
 }
 
 .mapButton:hover {
@@ -67,8 +69,44 @@
     transform: translateY(-3px);
 }
 
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 768px) {
+    .landingContainer {
+        flex-direction: row; /* Row layout for medium screens and above */
+        padding: 4rem 2rem;
+    }
+
+    .content {
+        max-width: 500px;
+        margin-left: 5vw;
+        text-align: left;
+    }
+
+    .headerImage {
+        margin-right: 10vw;
+        max-width: 380px;
+    }
+
+    .title {
+        font-size: 3.5rem; /* Restore original size */
+    }
+
+    .description {
+        font-size: 1.1rem; /* Restore original size */
+    }
+
+    .mapButton {
+        font-size: 1.1rem; /* Restore original size */
+        padding: 0.8rem 2rem; /* Restore original padding */
+    }
+}
+
+@media (min-width: 1024px) {
+    .landingContainer {
+        justify-content: space-between; /* Restore space-between alignment */
+    }
 }

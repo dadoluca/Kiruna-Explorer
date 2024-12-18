@@ -1,8 +1,8 @@
 .searchBar {
   position: absolute; /* Position the search bar over the content */
   top: 15px; /* Distance from the top of the screen */
-  left: 60px; /* Distance from the left side of the screen */
-  width: 35vw;
+  left: 20px; /* Distance from the left side of the screen */
+  width: 29vw;
   min-width: 250px; /* Fixed width for the search bar */
   z-index: 1000; /* Ensure it stays above the map and other elements */
   /*max-width: 600px; /* Increase width for a modern look */
@@ -15,7 +15,11 @@
   background-color: #fff; /* Light pink background to match the modern design */
   border-radius: 30px; /* Fully rounded corners */
   padding: 2px 15px; /* Add padding for a spacious look */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a soft shadow for depth */
+  border: 1px solid #ddd;
+}
+
+.inMap{
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .input {
@@ -59,9 +63,9 @@
   border-radius: 30px; /* Match the rounded search bar corners */
   list-style: none; /* Remove bullet points */
   margin: 8px 0; /* Add some spacing from the search bar */
-  padding: 2px 10px; /* Add padding for a spacious look */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
-  z-index: 1000; /* Ensure the suggestions box is above other elements */
+  padding: 10px 15px ; /* Add padding for a spacious look */
+  box-shadow: 0 4px 8px #0000001a; /* Add a subtle shadow for depth */
+  z-index: 1001; /* Ensure the suggestions box is above other elements */
 }
 
 .suggestions li:nth-child(n+6) {
@@ -72,9 +76,16 @@
   padding: 10px 15px; /* Add padding for clickable area */
   cursor: pointer;
   border-radius: 15px; /* Slightly round individual items */
+  font-size: small;
   transition: background-color 0.2s ease; /* Smooth hover effect */
 }
 
 .suggestionItem:hover {
-  background-color: #f9f9f9; /* Light hover background for feedback */
+  background-color: #f6deff94; /* Light hover background for feedback */
+  transform: scale(1.05);
+}
+
+.matchText{
+    color: #454545;
+    font-size: small;
 }
