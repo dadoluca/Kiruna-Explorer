@@ -589,7 +589,7 @@ async function createDatabase() {
       title: "Detailed plan for Gruvstaspark 2, etapp 3, del av SJ-området m m. (58)",
       stakeholders: "Kiruna kommun",
       scale: "1 : 1,500",
-      issuanceDate: "10/2018",
+      issuance_date: "2018-10",
       type: "Prescriptive document",
       connections: 0,
       language: "Swedish",
@@ -763,7 +763,7 @@ async function createDatabase() {
       issuance_date: "2024-06-02",
       type: "Material effect",
       connections: 2,
-      language: "-",
+      language: "Swedish",
       pages: "-",
       coordinates: {
         type: "Point",
