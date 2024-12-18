@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
+  const [hovered, setHovered] = useState(false);
+
   const buttonLinkStyle = {
     backgroundColor: '#333333', // Grigio scuro
     color: '#ffffff', // Testo bianco
@@ -40,13 +42,9 @@ const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
     <div style={containerStyle}>
       {isDragging && (
         <button
-          style={buttonLinkStyle}
-          onMouseEnter={(e) => {
-            Object.assign(e.target.style, buttonHoverStyle);
-          }}
-          onMouseLeave={(e) => {
-            Object.assign(e.target.style, buttonLinkStyle);
-          }}
+          style={{ ...buttonLinkStyle, ...(hovered && buttonHoverStyle) }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           onClick={() => {
             savePositions();
           }}
@@ -55,13 +53,9 @@ const DiagramButtons = ({ isDragging, setIsDragging, savePositions }) => {
           </button>
       )}
         <button
-          style={buttonLinkStyle}
-          onMouseEnter={(e) => {
-            Object.assign(e.target.style, buttonHoverStyle);
-          }}
-          onMouseLeave={(e) => {
-            Object.assign(e.target.style, buttonLinkStyle);
-          }}
+          style={{ ...buttonLinkStyle, ...(hovered && buttonHoverStyle) }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           onClick={() => {
             if(!isDragging)
               toast.info("Now you can start moving the documents.");
