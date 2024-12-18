@@ -162,9 +162,21 @@ const createDocument = async (document) => {
       if (response.ok) {
         // Parse and enhance the response document
         const responseData = await response.json();
+
+        const enhancedDocument1 = {
+          ...responseData.document1,
+          icon: `${SERVER_BASE_URL}${responseData.document1.icon_url}`,
+        };
+  
+        const enhancedDocument2 = {
+          ...responseData.document2,
+          icon: `${SERVER_BASE_URL}${responseData.document2.icon_url}`,
+        };
+
         return {
           ...responseData,
-          icon: `${SERVER_BASE_URL}${responseData.icon_url}`,
+          document1: enhancedDocument1,
+          document2: enhancedDocument2,
         };
       } else {
         // Throw an error with the response status
