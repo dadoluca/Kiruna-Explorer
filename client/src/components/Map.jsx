@@ -301,7 +301,7 @@ const MapComponent = () => {
                         />
                     )}
 
-                    {kirunaPolygonCoordinates.map((polygonCoordinates) => (
+                     {!showUnion && kirunaPolygonCoordinates.map((polygonCoordinates) => (
                         <Polygon
                             key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
                             positions={polygonCoordinates}
@@ -312,8 +312,21 @@ const MapComponent = () => {
                     ))}
 
                     {
-                    
-                    isAddingDocument === SelectionState.EXISTING_POINT
+                        showUnion &&
+                        selectedDocs.filter((doc)=>doc.areaId === null).length>0 &&
+                         kirunaPolygonCoordinates.map((polygonCoordinates) => (
+                            <Polygon
+                                key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
+                                positions={polygonCoordinates}
+                                color="gray"
+                                fillColor="#D3D3D3"
+                                fillOpacity={0.4}
+                            />)
+                         )
+                    }
+
+                    {
+                    isAddingDocument === SelectionState.EXISTING_POINT 
                     ?
                         <>
                         {
@@ -329,14 +342,14 @@ const MapComponent = () => {
                          ))
                         }
                         </>
-                    :
-
+                    : 
                     <>
                         <MarkerClusterGroup
                             showCoverageOnHover={false}
                             iconCreateFunction={createClusterIcon}
                         >
                             {
+                                !showUnion &&
                                 markers
                                     .filter(marker => marker.areaId === undefined)
                                     .map((marker) => (
@@ -371,6 +384,45 @@ const MapComponent = () => {
                                 ))
                             }
 
+                            {
+                                showUnion &&
+
+                                //documenti selezionati senza area
+                                markers
+                                    .filter(marker => marker.areaId === undefined && selectedDocs.find((doc) => doc._id === marker._id))
+                                    .map((marker) => (
+                                    <MemoizedMarker
+                                        key={marker._id}
+                                        marker={marker}
+                                        onClick={() => {
+                                            if(!selectingMode){
+                                                setSelectedMarker({
+                                                    doc: marker,
+                                                    position: [marker.latitude, marker.longitude]
+                                                });
+                                            
+                                                setHighlightedNode(marker._id);
+                                                setPosition([marker.latitude, marker.longitude]);
+                                            }
+                                            else{
+                                                setSelectedDocs(prev => {
+                                                    if(prev.includes(marker._id)){
+                                                        return prev.filter(id => id !== marker._id);
+                                                    }
+                                                    else{
+                                                        return [...prev, marker._id];
+                                                    }
+                                                });
+                                            }
+                                        }
+                                        }
+
+                                    />
+                                
+                                ))
+                            
+                            }
+
                             {displayedAreas.length > 0 && !showUnion &&
                                 displayedAreas.map((area) => {
                                     const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
@@ -396,22 +448,31 @@ const MapComponent = () => {
                             }
 
                             {
-                                displayedAreas.length > 0 && showUnion && selectedDocs!==([]) &&
-                                // turf.union(selectedDocs.map((doc)=>{}))
-                                    <Polygon
-                                        positions = {
-                                            displayedAreas
-                                                .filter((area) => {
-                                                    return selectedDocs.find((doc) => doc.areaId === area._id)
-                                                })
-                                                .map((area) => area.geometry.coordinates)
-                                                .reduce((acc, polygon) => {
-                                                    console.log(turf.polygon(polygon));
-                                                    return turf.union(acc, turf.polygon(polygon))},
-                                                    turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]))
-                                        }
-                                    />
-                            }
+                                displayedAreas.length > 0 && showUnion && selectedDocs.length!==0 &&
+                                    displayedAreas.filter((area)=>{
+                                        return selectedDocs.find((doc) => doc.areaId === area._id);
+                                    }).map((area)=>{
+                                        const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
+                                        let icon = documentCount === 1 ? "/one-doc.png" : documentCount === 2 ? "/two-docs.png" : "/multiple_docs.png";
+                                        let size = documentCount === 1 ? 30 : documentCount === 2 ? 35 : 40;
+                                        return (
+                                        <React.Fragment key={area._id}>
+                                            <MemoizedAreaMarker
+                                            icon={icon}
+                                            size={size}
+                                            area={area}
+                                            onClick={() => {
+                                                setListContent((doc) => doc.areaId === area._id);
+                                                if (loggedIn) setAddButton(area);
+                                                setIsListing(true);
+                                                handleDocCardVisualization(null);  
+                                            }}
+                                            />
+                                            <MemoizedPolygon area={area} />
+                                        </React.Fragment>
+                                        );
+                                    })
+                                }
 
                         </MarkerClusterGroup>
 
