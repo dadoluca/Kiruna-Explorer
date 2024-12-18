@@ -1,563 +1,253 @@
-
-import React, { useState,  useContext, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMap,  Polygon, Tooltip } from 'react-leaflet';
-import { useNavigate } from 'react-router-dom';
-import { DocumentContext } from '../contexts/DocumentContext';
-import { useMapLayoutContext } from '../contexts/MapLayoutContext';
-import DetailPlanCard from './CardDocument';
+import React, { useEffect, useState, useContext } from 'react';
+import Card from 'react-bootstrap/Card';
+import { Row, Col } from 'react-bootstrap';
+import ListGroup from 'react-bootstrap/ListGroup';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Button from 'react-bootstrap/Button';
+import PropTypes from "prop-types";
+import { FaUser, FaCalendarAlt, FaMapMarkerAlt, FaFileAlt, FaLanguage, FaBook, FaProjectDiagram, FaPlus } from 'react-icons/fa';
+import NewLinkModal from './NewLinkModal';
+import { useDocumentContext } from '../contexts/DocumentContext';
 import { AuthContext } from '../contexts/AuthContext';
-import styles from './Map.module.css';
-import L, { marker } from 'leaflet';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
-import Legend from './Legend';
-import ScrollableDocumentsList from './ListDocument';
-import SearchBar from './SearchBar';
-import DrawingMap from './DrawingMap';
-import { MdSatelliteAlt } from "react-icons/md";            //satellite icon for button
-import AddDocumentButton from './AddDocumentButton';
-import SelectDocumentsButton from './SelectDocumentsButton';
-import Municipality from './Municipality';
-import API from '../services/api';
-import kirunaGeoJSON from '../data/KirunaMunicipality.json';
-import { SelectionState } from './SelectionState'; 
-import * as turf from '@turf/turf';
+import NewResourceModal from './NewResourceModal';
+import ResourcesModal from './ResourcesModal';
+import styles from './CardDocument.module.css';
+import { use } from 'react';
 
+const DetailPlanCard = (props) => {
+  const { loggedIn } = useContext(AuthContext);
+  const { documents, visualizeDiagram, setVisualizeDiagram, setHighlightedNode, handleDocCardVisualization, getMarker, selectingMode, selectedDocs, setSelectedDocs, checkDocumentPresence } = useDocumentContext();
+  const document = documents.find(doc => doc._id === props.doc._id) || {};
 
-function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMunicipality }) {
-    const map = useMap();
+  const [showModal, setShowModal] = useState(false);
+  const [showModalResource, setShowModalResource] = useState(false);
+  const [showResources, setShowResources] = useState(false);
+  //console.log(checkDocumentPresence(document));
+  const [selected, setSelected] = useState(false);
 
-    let pos = newPosition;
-    
-    if(isVisualizingMunicipality){
-        map.fitBounds(kirunaPolygonCoordinates);
-        pos = [68.2636, 19.000];
-        if(selectedMarker != null)
-            pos =  [68.2636, 16.000];
-    }
-    else{
-        if(selectedMarker == null) return null;
-        if (isListing) {
-            const mapSize = map.getSize();
-            const offsetX = mapSize.x * 0.28; // 35vw is the list width
-            const point = map.latLngToContainerPoint(pos);
-            point.x -=  offsetX;
-            pos = map.containerPointToLatLng(point);
-        }
-    } 
-    
-    map.setView(pos, map.getZoom());
-}
+  const handleAddConnection = async () => {
+    setShowModal(false);
+  };
 
-const kirunaPolygonCoordinates = kirunaGeoJSON.features[0].geometry.coordinates.map(polygon =>
-    polygon[0].map(
-      ([lng, lat]) => [lat, lng]
-    )
-);
+  useEffect(() => {
+    setSelected(checkDocumentPresence(document));
+  }, [document]);
 
-
-const createClusterIcon = (cluster) => {
-    const count = cluster.getChildCount();
-
-    // Determine size based on count
-    let clusterClass = styles.clusterSmall;
-    if (count > 20) clusterClass = styles.clusterLarge;
-    else if (count > 10) clusterClass = styles.clusterMedium;
-
-    return L.divIcon({
-        html: `<div class="${styles.clusterIcon} ${clusterClass}">${count}</div>`,
-        className: '', // Use only custom class
-        iconSize: L.point(40, 40, true),
-    });
-};
-
-const MemoizedMarker = React.memo(
-    ({ marker, onClick }) => (
-      <Marker
-        position={[marker.latitude, marker.longitude]}
-        icon={
-          new L.Icon({
-            iconUrl: marker.icon,
-            iconSize: [28, 28],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32],
-          })
-        }
-        eventHandlers={{ click: onClick }}
-      >
-        <Tooltip direction="bottom">{marker.title}</Tooltip>
-      </Marker>
-    ),
-    (prevProps, nextProps) => 
-      prevProps.marker.latitude === nextProps.marker.latitude &&
-      prevProps.marker.longitude === nextProps.marker.longitude &&
-      prevProps.marker.icon === nextProps.marker.icon
-  );
-  
-  const MemoizedAreaMarker = React.memo(
-    ({ area, icon, onClick, size }) => (
-      <Marker
-        position={[
-          area.properties.centroid.coordinates[1],
-          area.properties.centroid.coordinates[0],
-        ]}
-        icon={
-            new L.Icon({
-                iconUrl: icon,  
-                iconSize: [size, size],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            })
-        }
-        eventHandlers={{ click: onClick }}
-      >
-        <Tooltip direction="bottom">Area related documents</Tooltip>
-      </Marker>
-    ),
-    (prevProps, nextProps) => 
-      prevProps.area._id === nextProps.area._id &&
-      prevProps.area.properties.centroid.coordinates[0] ===
-        nextProps.area.properties.centroid.coordinates[0] &&
-      prevProps.area.properties.centroid.coordinates[1] ===
-        nextProps.area.properties.centroid.coordinates[1]
-  );
-  
-  const MemoizedPolygon = React.memo(
-    ({ area }) => (
-      <Polygon
-        key={`${area._id}_Polygon`}
-        positions={area.geometry.coordinates.map((ring) =>
-          ring.map(([longitude, latitude]) => [latitude, longitude])
-        )}
-        color={area.properties.color}
-      />
-    ),
-    (prevProps, nextProps) => 
-      prevProps.area._id === nextProps.area._id &&
-      JSON.stringify(prevProps.area.geometry.coordinates) ===
-        JSON.stringify(nextProps.area.geometry.coordinates)
-    );
-
-const MemoizedSelectPointMarker = React.memo(
-    ({ marker, onClick }) => {
-        const markerRef = React.useRef(null);
-
-        const handleMouseOver = () => {
-            if (markerRef.current) {
-                markerRef.current._icon.style.filter = 'brightness(0.5)'; //  hover 
-            }
-        };
-
-        const handleMouseOut = () => {
-            if (markerRef.current) {
-                markerRef.current._icon.style.filter = 'brightness(1)'; // remove hover
-            }
-        };
-
-        return (
-            <Marker
-                ref={markerRef}
-                position={[marker.latitude, marker.longitude]}
-                eventHandlers={{
-                    click: onClick,
-                    mouseover: handleMouseOver,
-                    mouseout: handleMouseOut,
-                }}
-            >
-                <Tooltip>{marker.latitude}, {marker.longitude}</Tooltip>
-            </Marker>
-        );
-    },
-    (prevProps, nextProps) => {
-        // Check if the important properties have changed (e.g., coordinates)
-        return prevProps.marker.latitude === nextProps.marker.latitude &&
-            prevProps.marker.longitude === nextProps.marker.longitude;
-    }
-);
-
-const markerPosition = [67.8636, 20.280];
-
-const MapComponent = () => {
-    const mapRef = useRef(null);
-    const containerRef = useRef(null);
-    const navigate = useNavigate();
-    const { loggedIn, isResident } = useContext(AuthContext);
-    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectedDocs, setSelectedDocs, selectingMode, showUnion} = useContext(DocumentContext);
-    const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
-    const [isListing, setIsListing] = useState(false); 
-    const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
-    const [satelliteView, setSatelliteView] = useState(true);
-    const [toggleDrawing, setToggleDrawing] = useState(false);
-    const [confirmSelectedArea, setConfirmSelectedArea] = useState(false);
-    const [addButton, setAddButton] = useState(null);
-    const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-    const { isMapHigh } = useMapLayoutContext();
-    const [isVisualizingMunicipality, setIsisualizingMunicipality] = useState(false);
-
-    useEffect(() => {
-        // Function to update the map's size
-        const handleResize = () => {
-            if (mapRef.current) {
-                mapRef.current.invalidateSize(); // Force the map to re-render
-            }
-        };
-
-        // Set up the ResizeObserver
-        const resizeObserver = new ResizeObserver(() => {
-            handleResize(); // Call the function whenever the container's size changes
-        });
-
-        if (containerRef.current) {
-            resizeObserver.observe(containerRef.current);
-        }
-
-        // Cleanup: disconnect the ResizeObserver when the component unmounts
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, []);
-
-    // Handler to update filtered documents on map
-    const handleFilterByTitle = (title) => {
-        console.log("title ", title);
-        if(!title || title === "All"){
-            setMapMarkers();
-            handleDocCardVisualization(null);
-        }
-        else{
-            setMapMarkers((doc) => doc.title === title);//passing the filter
-            const doc = documents.find(doc => doc.title === title);
-            handleDocCardVisualization(doc);
-        }
-    };
-
-    // Handler to update filtered documents on list
-    const handleFilterByTitleInList = (title) => {
-        console.log("title ", title);
-        if(!title || title === "All"){
-            setListContent();
-        }
-        else{
-            setListContent((doc) => doc.title === title);//passing the filter
-        }
-    };
-
-    const handleMarkerClick = (marker) => {
-        if(!selectingMode){
-            setSelectedMarker({
-                doc: marker,
-                position: [marker.latitude, marker.longitude]
-            });
-        
-            setHighlightedNode(marker._id);
-            setPosition([marker.latitude, marker.longitude]);
-        }
-        else{
-            setSelectedDocs(prev => {
-                if(prev.includes(marker._id)){
-                    return prev.filter(id => id !== marker._id);
+  return (
+    <Card className={styles.detailPlanCard}
+      style={!props.isListing ? { left: "1rem",  marginBottom: "1rem", borderRadius: "12px", zIndex: "999"  } : {}}
+    >
+      { selectingMode &&
+        <Row>
+          <Col md={5} className="text-center">
+            <Button
+              variant="dark"
+              onClick={() => {
+                if(!selected){
+                  console.log("STO AGGIUNGENDO");
+                  setSelectedDocs([...selectedDocs, document]);
                 }
                 else{
-                    return [...prev, marker._id];
+                  setSelectedDocs(selectedDocs.filter(doc => doc._id !== document._id));
                 }
-            });
-        }
-    }
-
-
-    const handleCloseList = () => {
-        setIsListing(false);
-        if(isVisualizingMunicipality){
-            setIsisualizingMunicipality(false);
-        }
-    };
-
-    
-    const handlePolygonDrawn = async (polygonLayer) => {
-        try {
-            const area = await API.createArea(polygonLayer.toGeoJSON());
-            addArea(area);
-            console.log("Area successfully created.");
-            navigate('/document-creation', { state: { customArea: area } });
-        } catch (error) {
-            console.error("Error during area creation:", error.message);
-        }
-    };
-
-    const handleChangeCoordinates = (doc) => {
-        setChangingDocument(doc);
-        setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE); // Start selecting mode
-    };
-
-    return (
-        <div ref={containerRef} className={styles.mapPage}>
-            <div className={styles.mapContainer} >
-            {/*loggedIn &&*/ !isListing && <SearchBar onFilter={handleFilterByTitle} inMap={true} /> }
-            <MapContainer 
-                center={position} 
-                zoom={8} 
-                className={` ${isListing ? styles.listing : styles.mapContainer}`} 
-                zoomControl={false}
-                ref={mapRef}
+                
+                setSelected(prev => !prev);
+              }}
+              size="sm"
+              className={`mb-3 ${styles.selectButton}`}
             >
-                    {<AddDocumentButton 
-                        isAddingDocument={isAddingDocument}
-                        setIsAddingDocument={setIsAddingDocument} 
-                        kirunaPolygonCoordinates={kirunaPolygonCoordinates} 
-                        setToggleDrawing={setToggleDrawing} 
-                        setConfirmSelectedArea={setConfirmSelectedArea}
-                    /> }
-                    <RecenterMap newPosition={position} isListing={isListing} selectedMarker={selectedMarker} isVisualizingMunicipality={isVisualizingMunicipality} />
+              {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
+            </Button>
+          </Col>
+        </Row>
+      }
 
-                    <DrawingMap onPolygonDrawn={handlePolygonDrawn} limitArea={kirunaPolygonCoordinates} EnableDrawing={toggleDrawing} confirmSelectedArea={confirmSelectedArea}/>
+      <Card.Body>
 
-                    {satelliteView ? (
-                        <TileLayer
-                        url={`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${accessToken}`}
-                        attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        id="mapbox/satellite-v9"
-                      />
-                      ) : (
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                    )}
+        {/* close button */}
+        <button
+          className={styles.closeButton}
+          onClick={props.onClose}
+          aria-label="Close"
+          >
+            &times;
+        </button>
 
-                     {!showUnion && kirunaPolygonCoordinates.map((polygonCoordinates) => (
-                        <Polygon
-                            key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
-                            positions={polygonCoordinates}
-                            color="gray"
-                            fillColor="#D3D3D3"
-                            fillOpacity={0.4}
-                        />
-                    ))}
+        <Card.Title className={`text-center ${styles.cardTitle}`}>
+          <Row>
+            <Col>
+              {document.title || "N/A"}
+            </Col>
+              { !visualizeDiagram &&
+              <Col>
+                <Button
+                  variant="light"
+                  onClick={() => {setVisualizeDiagram(true); setHighlightedNode(document._id);}}
+                  size="sm"
+                  className="mb-3"
+                >
+                  <i class="bi bi-graph-up"></i> Show on diagram
+                </Button>
+              </Col>
+              }
+          </Row>
 
-                    {
-                        showUnion &&
-                        selectedDocs.filter((doc)=>doc.areaId === null).length>0 &&
-                         kirunaPolygonCoordinates.map((polygonCoordinates) => (
-                            <Polygon
-                                key={JSON.stringify(polygonCoordinates)} // Generate a unique key using the coordinates
-                                positions={polygonCoordinates}
-                                color="gray"
-                                fillColor="#D3D3D3"
-                                fillOpacity={0.4}
-                            />)
-                         )
-                    }
+          
+        </Card.Title>
 
-                    {
-                    isAddingDocument === SelectionState.EXISTING_POINT 
-                    ?
-                        <>
-                        {
-                             markers
-                                .filter(marker => marker.areaId === undefined)
-                                .map((marker) => (
-                                <MemoizedSelectPointMarker
-                                    key={marker._id}
-                                    marker={marker}
-                                    onClick={() => {navigate('/document-creation', { state: { coordinates: { lat: marker.latitude, lng: marker.longitude } } });}}
-                                />
-                         
-                         ))
-                        }
-                        </>
-                    : 
-                    <>
+        <Card.Text className={styles.description}>
+          <strong>Description: </strong> {document.description || "N/A"}
+        </Card.Text>
 
-                        <MarkerClusterGroup
-                            showCoverageOnHover={false}
-                            iconCreateFunction={createClusterIcon}
-                        >
-                            {
-                                !showUnion &&
-                                markers
-                                    .filter(marker => marker.areaId === undefined)
-                                    .map((marker) => (
-                                    <MemoizedMarker
-                                        key={marker._id}
-                                        marker={marker}
-                                        onClick={() => handleMarkerClick(marker)}
+        <ListGroup variant="flush">
+          <ListGroup.Item className={styles.listItem}>
+            <FaUser className={styles.icon} />
+            <strong> Stakeholders:</strong> {document.stakeholders?.length > 0 ? (
+              document.stakeholders.map((item) => (
+                <div key={item.id} className={styles.stakeholderItem}>{item}</div>
+              ))
+            ) : "N/A"}
+          </ListGroup.Item>
+          
+          <ListGroup.Item className={styles.listItem}>
+            <FaMapMarkerAlt className={styles.icon} />
+            <strong> Scale: </strong> {document.scale || "N/A"}
+          </ListGroup.Item>
 
-                                    />
-                                
-                                ))
-                            }
+          <ListGroup.Item className={styles.listItem}>
+            <FaCalendarAlt className={styles.icon} />
+            <strong> Issuance date: </strong> {document.issuance_date || "N/A"}
+          </ListGroup.Item>
 
-                            {
-                                showUnion &&
+          <ListGroup.Item className={styles.listItem}>
+            <FaFileAlt className={styles.icon} />
+            <strong> Type: </strong> {document.type || "N/A"}
+          </ListGroup.Item>
 
-                                //documenti selezionati senza area
-                                markers
-                                    .filter(marker => marker.areaId === undefined && selectedDocs.find((doc) => doc._id === marker._id))
-                                    .map((marker) => (
-                                    <MemoizedMarker
-                                        key={marker._id}
-                                        marker={marker}
-                                        onClick={() => {
-                                            if(!selectingMode){
-                                                setSelectedMarker({
-                                                    doc: marker,
-                                                    position: [marker.latitude, marker.longitude]
-                                                });
-                                            
-                                                setHighlightedNode(marker._id);
-                                                setPosition([marker.latitude, marker.longitude]);
-                                            }
-                                            else{
-                                                setSelectedDocs(prev => {
-                                                    if(prev.includes(marker._id)){
-                                                        return prev.filter(id => id !== marker._id);
-                                                    }
-                                                    else{
-                                                        return [...prev, marker._id];
-                                                    }
-                                                });
-                                            }
-                                        }
-                                        }
+          <ListGroup.Item className={styles.listItem}>
+            <FaProjectDiagram className={styles.icon} />
+            <strong> Connections: </strong> 
+            <span className={styles.connectionCount}>{document.connections || 0}</span>
 
-                                    />
-                                
-                                ))
-                            
-                            }
-
-                            {displayedAreas.length > 0 && !showUnion &&
-                                displayedAreas.map((area) => {
-                                    const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
-                                    let icon;
-                                    let size;
-                                    if(documentCount === 1){
-                                        icon = "/one-doc.png";
-                                        size = 30;
-                                    } else if(documentCount === 2){
-                                        icon = "/two-docs.png";
-                                        size = 35;
-                                    }else{
-                                        icon = "/multiple_docs.png";
-                                        size = 40;
-                                    }
-        
-                                    return (
-                                    <React.Fragment key={area._id}>
-                                        <MemoizedAreaMarker
-                                        icon={icon}
-                                        size={size}
-                                        area={area}
-                                        onClick={() => {
-                                            setListContent((doc) => doc.areaId === area._id);
-                                            if (loggedIn) setAddButton(area);
-                                            setIsListing(true);
-                                            handleDocCardVisualization(null);  
-                                        }}
-                                        />
-                                        <MemoizedPolygon area={area} />
-                                    </React.Fragment>
-                                    );
-                                })
-                            }
-
-                            {
-                                displayedAreas.length > 0 && showUnion && selectedDocs.length!==0 &&
-                                    displayedAreas.filter((area)=>{
-                                        return selectedDocs.find((doc) => doc.areaId === area._id);
-                                    }).map((area)=>{
-                                        const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
-                                        let icon = documentCount === 1 ? "/one-doc.png" : documentCount === 2 ? "/two-docs.png" : "/multiple_docs.png";
-                                        let size = documentCount === 1 ? 30 : documentCount === 2 ? 35 : 40;
-                                        return (
-                                        <React.Fragment key={area._id}>
-                                            <MemoizedAreaMarker
-                                            icon={icon}
-                                            size={size}
-                                            area={area}
-                                            onClick={() => {
-                                                setListContent((doc) => doc.areaId === area._id);
-                                                if (loggedIn) setAddButton(area);
-                                                setIsListing(true);
-                                                handleDocCardVisualization(null);  
-                                            }}
-                                            />
-                                            <MemoizedPolygon area={area} />
-                                        </React.Fragment>
-                                        );
-                                    })
-                                }
-
-                        </MarkerClusterGroup>
-                    }
-                </MapContainer>
-
-                <Legend isListing={isListing}/>
-
-                {municipalArea &&
-                    <Municipality isListing={isListing} onClick={() => { 
-                        setListContent((doc) => doc.areaId === null);
-                        setAddButton(null);
-                        handleDocCardVisualization(null);
-                        if(isVisualizingMunicipality){
-                            handleCloseList();
-                        }
-                        else{
-                            setIsListing(true);
-                            setIsisualizingMunicipality(true);
-                        }
-                    }}/>
-                }
-
-                {selectedMarker && (
-                    <DetailPlanCard
-                        doc={selectedMarker.doc}
-                        onClose={() => handleDocCardVisualization(null)}
-                        onChangeCoordinates={handleChangeCoordinates}
-                        onToggleSelecting={setIsAddingDocument}
-                        isListing={isListing}
-                    />
-
-                )}
-
-                {isListing  
-                && <ScrollableDocumentsList visualizeCard={handleDocCardVisualization} closeList={handleCloseList} handleFilterByTitleInList={handleFilterByTitleInList} handleFilterByTitle={handleFilterByTitle} addButton={addButton}/>}
-
-                {/* ------------------- BUTTONS ---------------------------------------------------------------------- */}
-                <div className={` ${!isMapHigh && loggedIn ? styles.buttonRow : styles.buttonCol }`}>
-                    {/* DOCUMENT LIST BUTTON */}
-                    {loggedIn && (
-                        <button
-                        className={`${styles.listButton}`}
-                        onClick={() => { setIsListing(prev => !prev); setListContent() }}
-                        >
-                            <i className="bi bi-list-task"></i>
-                        </button>        
-                    )}
-
-                    {/* SELECT MORE DOCUMENTS BUTTON */}
-                    {isResident && <SelectDocumentsButton />}
+            <Dropdown className={`${styles.dropdownButton}`}>
+  <Dropdown.Toggle variant="link" className={styles.dropdownToggle} />
+  <Dropdown.Menu>
+    {document.relationships?.length > 0 ? (
+      document.relationships.map((rel) => (
+        <Dropdown.Item
+          key={rel.documentId} // Use a unique property as the key
+          onClick={() =>
+            getMarker(rel.documentId).then((doc) =>
+              handleDocCardVisualization(doc)
+            )
+          }
+        >
+          {rel.documentTitle} - {rel.type}
+        </Dropdown.Item>
+      ))
+    ) : (
+      <Dropdown.Item>No related documents</Dropdown.Item>
+    )}
+  </Dropdown.Menu>
+</Dropdown>
 
 
-                    {/* CHANGE MAP VIEW BUTTON */}
-                    <button
-                        className={`${styles.satelliteButton}`}
-                        onClick={() => { setSatelliteView(prev => !prev); }}
-                        >
-                            <MdSatelliteAlt />
-                    </button>
-                    
-                    
-                    {/* VIEW DIAGRAM BUTTON */}
-                    <button
-                        className={`${styles.diagramButton}`}         
-                        onClick={() => { setVisualizeDiagram(prev => !prev); }}
-                        >
-                            <i className="bi bi-graph-up"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+            {loggedIn && (
+              <FaPlus
+                className={styles.addConnectionIcon}
+                onClick={() => setShowModal(true)}
+              />
+            )}
+          </ListGroup.Item>
+
+          <ListGroup.Item className={styles.listItem}>
+            <FaLanguage className={styles.icon} />
+            <strong> Language: </strong> {document.language || "N/A"}
+          </ListGroup.Item>
+
+          <ListGroup.Item className={styles.listItem}>
+            <FaBook className={styles.icon} />
+            <strong> Pages: </strong> {document.pages || "N/A"}
+          </ListGroup.Item>
+        </ListGroup>
+
+        <NewLinkModal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+          onAddConnection={handleAddConnection}
+        />
+
+        <NewResourceModal
+          show={showModalResource}
+          onClose={() => setShowModalResource(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
+
+        <ResourcesModal
+          show={showResources}
+          onClose={() => setShowResources(false)}
+          documentId={document._id}
+          documentTitle={document.title}
+        />
+
+        <Row>
+          <Col>
+            <Button
+              variant="light"
+              onClick={() => setShowResources(true)}
+              size="sm"
+              className="mb-3"
+            >
+              <i className="bi bi-folder2-open"></i> Show resources
+            </Button>
+          </Col>
+          <Col>
+            {loggedIn && (
+              <Button
+                variant="light"
+                onClick={() => setShowModalResource(true)}
+                size="sm"
+                className="mb-3"
+              >
+                <i className="bi bi-file-earmark-medical-fill"></i> Add resources
+              </Button>
+            )}
+          </Col>
+          <Col>
+            { loggedIn && (
+              <Button
+                variant="light"
+                onClick={() => {
+                  props.onClose(); // Close the popup
+                  setTimeout(() => {
+                    props.onChangeCoordinates(props.doc); // Trigger coordinate change
+                    props.onToggleSelecting(true); // Switch to selecting mode
+                  }, 0); // Delay execution for a tick
+                }}
+              
+                size="sm"
+                className="mb-3"
+              >
+                <i className="bi bi-geo-alt-fill"></i> Change coordinates
+              </Button>
+            )}
+          </Col>
+        </Row>
+      </Card.Body>
+    </Card>
+  );
 };
 
-export default MapComponent;
+DetailPlanCard.propTypes = {
+  doc: PropTypes.object,
+  onClose: PropTypes.func,
+  onChangeCoordinates: PropTypes.func.isRequired,
+  onToggleSelecting: PropTypes.func.isRequired,
+  isListing: PropTypes.bool,
+};
+
+
+export default DetailPlanCard;
