@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const DiagramButtons = ({ toggleNodesDrag, savePositions }) => {
+const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
   const buttonLinkStyle = {
     backgroundColor: '#333333', // Grigio scuro
     color: '#ffffff', // Testo bianco
@@ -36,7 +36,21 @@ const DiagramButtons = ({ toggleNodesDrag, savePositions }) => {
 
   return (
     <div style={containerStyle}>
-      <button
+      {showButton && (
+        <button
+          style={buttonLinkStyle}
+          onMouseEnter={(e) => {
+            Object.assign(e.target.style, buttonHoverStyle);
+          }}
+          onMouseLeave={(e) => {
+            Object.assign(e.target.style, buttonLinkStyle);
+          }}
+          onClick={savePositions}
+        >
+          Save
+        </button>
+      )}
+        <button
         style={buttonLinkStyle}
         onMouseEnter={(e) => {
           Object.assign(e.target.style, buttonHoverStyle);
@@ -47,18 +61,6 @@ const DiagramButtons = ({ toggleNodesDrag, savePositions }) => {
         onClick={toggleNodesDrag}
       >
         Drag
-      </button>
-      <button
-        style={buttonLinkStyle}
-        onMouseEnter={(e) => {
-          Object.assign(e.target.style, buttonHoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          Object.assign(e.target.style, buttonLinkStyle);
-        }}
-        onClick={savePositions}
-      >
-        Save
       </button>
     </div>
   );

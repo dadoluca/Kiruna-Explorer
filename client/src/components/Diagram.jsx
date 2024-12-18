@@ -11,7 +11,8 @@ const Diagram = () => {
     const [xDomain, setXDomain] = useState(range(2004, 2024)); // Initial range for the X-axis (years)
     const [yDomain, setYDomain] = useState(["Blueprints/effects", "Concept", "Text"]);    // Initial range for the Y-axis (scales)
     const [links, setLinks] = useState([]); // State for calculated links
-
+    const [showButton, setShowButton]= useState(true);
+    
     // Function to generate a range of numbers
     function range(start, end) {
         if (start > end) {
@@ -695,8 +696,8 @@ const Diagram = () => {
     return (
         <>
             <svg ref={svgRef}></svg>
-            <DiagramButtons/>
-        </>
+            <DiagramButtons showButton={showButton} />
+            </>
     );
 };
 
