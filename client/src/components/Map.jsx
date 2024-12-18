@@ -31,7 +31,6 @@ function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMuni
     if(isVisualizingMunicipality){
         map.fitBounds(kirunaPolygonCoordinates);
         pos = [68.2636, 19.000];
-        //map.setZoom(7);
         if(selectedMarker != null)
             pos =  [68.2636, 16.000];
     }
@@ -45,7 +44,7 @@ function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMuni
             pos = map.containerPointToLatLng(point);
         }
     } 
-    //console.log("pos", pos);
+    
     map.setView(pos, map.getZoom());
 }
 
@@ -242,6 +241,29 @@ const MapComponent = () => {
         }
     };
 
+    const handleMarkerClick = (marker) => {
+        if(!selectingMode){
+            setSelectedMarker({
+                doc: marker,
+                position: [marker.latitude, marker.longitude]
+            });
+        
+            setHighlightedNode(marker._id);
+            setPosition([marker.latitude, marker.longitude]);
+        }
+        else{
+            setSelectedDocs(prev => {
+                if(prev.includes(marker._id)){
+                    return prev.filter(id => id !== marker._id);
+                }
+                else{
+                    return [...prev, marker._id];
+                }
+            });
+        }
+    }
+
+
     const handleCloseList = () => {
         setIsListing(false);
         if(isVisualizingMunicipality){
@@ -344,6 +366,7 @@ const MapComponent = () => {
                         </>
                     : 
                     <>
+
                         <MarkerClusterGroup
                             showCoverageOnHover={false}
                             iconCreateFunction={createClusterIcon}
@@ -356,28 +379,7 @@ const MapComponent = () => {
                                     <MemoizedMarker
                                         key={marker._id}
                                         marker={marker}
-                                        onClick={() => {
-                                            if(!selectingMode){
-                                                setSelectedMarker({
-                                                    doc: marker,
-                                                    position: [marker.latitude, marker.longitude]
-                                                });
-                                            
-                                                setHighlightedNode(marker._id);
-                                                setPosition([marker.latitude, marker.longitude]);
-                                            }
-                                            else{
-                                                setSelectedDocs(prev => {
-                                                    if(prev.includes(marker._id)){
-                                                        return prev.filter(id => id !== marker._id);
-                                                    }
-                                                    else{
-                                                        return [...prev, marker._id];
-                                                    }
-                                                });
-                                            }
-                                        }
-                                        }
+                                        onClick={() => handleMarkerClick(marker)}
 
                                     />
                                 
@@ -426,8 +428,19 @@ const MapComponent = () => {
                             {displayedAreas.length > 0 && !showUnion &&
                                 displayedAreas.map((area) => {
                                     const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
-                                    let icon = documentCount === 1 ? "/one-doc.png" : documentCount === 2 ? "/two-docs.png" : "/multiple_docs.png";
-                                    let size = documentCount === 1 ? 30 : documentCount === 2 ? 35 : 40;
+                                    let icon;
+                                    let size;
+                                    if(documentCount === 1){
+                                        icon = "/one-doc.png";
+                                        size = 30;
+                                    } else if(documentCount === 2){
+                                        icon = "/two-docs.png";
+                                        size = 35;
+                                    }else{
+                                        icon = "/multiple_docs.png";
+                                        size = 40;
+                                    }
+        
                                     return (
                                     <React.Fragment key={area._id}>
                                         <MemoizedAreaMarker
@@ -475,8 +488,6 @@ const MapComponent = () => {
                                 }
 
                         </MarkerClusterGroup>
-
-                    </>
                     }
                 </MapContainer>
 
@@ -526,36 +537,6 @@ const MapComponent = () => {
                     {/* SELECT MORE DOCUMENTS BUTTON */}
                     {isResident && <SelectDocumentsButton />}
 
-
-                    {/*{isResident &&
-                        <button
-                            className={`${styles.selectDocumentsButton}`}
-                            onClick={() => {
-                                setSelectingMode(prev => !prev);
-                                console.log(selectedDocs);
-                            }}
-                        >
-                            {
-                                !selectingMode && <i class="bi bi-files"></i>
-                            }
-                            {
-                                selectingMode && <i class="bi bi-send"></i>
-                            }
-                        </button>
-                    }
-
-                    {
-                        selectingMode &&
-                        <button
-                        className={`${styles.selectDocumentsButton}`}
-                        onClick={() => {
-                            setSelectedDocs([]);
-                            setSelectingMode(prev => !prev);
-                        }}
-                         >
-                            <i class="bi bi-x"></i>
-                        </button>
-                    }*/}
 
                     {/* CHANGE MAP VIEW BUTTON */}
                     <button
