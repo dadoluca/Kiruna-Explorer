@@ -66,13 +66,19 @@ function MapPage() {
                 {/* Resize bar to adjust diagram size */}
                 <div
                     className={styles.resizeBar}
-                    onMouseDown={startDrag} // Start dragging when the resize bar is clicked
-                    onClick={handleClick} // Close the diagram
-                    onDoubleClick={handleDoubleClick} // Open the diagram
+                    onMouseDown={startDrag}  // Start dragging when the resize bar is clicked
+                    onClick={handleClick}  // Close the diagram
+                    onDoubleClick={handleDoubleClick}  // Open the diagram
                     tabIndex="0"
                     role="button"
-                    onFocus={ () => {}}
-                >
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                        handleClick();  // Trigger click on Enter or Space
+                        } else if (e.key === 'ArrowUp') {
+                        handleDoubleClick();  // Trigger double-click with ArrowUp
+                        }
+                    }}
+                    >
                     <FaArrowsAltV className={styles.resizeIcon} /> {/* Icon indicating draggable area */}
                 </div>
 
