@@ -19,7 +19,7 @@ export const DocumentProvider = ({ children }) => {
   const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
   const [selectedDocs, setSelectedDocs] = useState([]); // selected documents
   const [selectingMode, setSelectingMode] = useState(false);          //for the button to select more documents
-
+  // const 
   useEffect(() => {
     
     const fetchDocuments = async () => {
