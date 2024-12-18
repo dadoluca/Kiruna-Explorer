@@ -64,21 +64,14 @@ const NewLinkModal = ({ show, onClose, documentId, documentTitle, onAddConnectio
         const selectedTitle = selectedDocument ? selectedDocument.title : '';
 
         for (const type of connection.selectedTypes) {
-          const result1 = await API.createConnection({
+          const result = await API.createConnection({
             documentId,
             newDocumentId: connection.selectedDocumentId,
             type,
             title: selectedTitle,
           });
-          updateDocument(result1);
-
-          const result2 = await API.createConnection({
-            documentId: connection.selectedDocumentId,
-            newDocumentId: documentId,
-            type,
-            title: documentTitle,
-          });
-          updateDocument(result2);
+          updateDocument(result.document1);
+          updateDocument(result.document2);
         }
       }
 

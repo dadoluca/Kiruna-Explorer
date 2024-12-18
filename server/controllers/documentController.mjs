@@ -150,19 +150,37 @@ export const deleteDocument = async (req, res) => {
 // Add a new relationship to a document
 export const addRelationship = async (req, res) => {
   const { documentId: newDocumentId, type, title } = req.body;
+
+  const session = await Document.startSession();
+  session.startTransaction();
+
   try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
+    const document = await Document.findById(req.params.id).session(session);
+    const relatedDocument = await Document.findById(newDocumentId).session(session);
+
+    if (!document || !relatedDocument) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'One or both documents not found' });
     }
 
-    const newRelationship = { documentId: newDocumentId, documentTitle: title, type}; 
+    const newRelationship = { documentId: newDocumentId, documentTitle: title, type };
     document.relationships.push(newRelationship);
     document.connections = (document.connections || 0) + 1;
-    await document.save();
+    await document.save({ session });
 
-    res.status(201).json(document);
+    const reverseRelationship = { documentId: req.params.id, documentTitle: document.title, type };
+    relatedDocument.relationships.push(reverseRelationship);
+    relatedDocument.connections = (relatedDocument.connections || 0) + 1;
+    await relatedDocument.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({ document1: document, document2: relatedDocument });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };

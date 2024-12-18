@@ -209,13 +209,6 @@ function DocumentInsert() {
                     type,
                     title: selectedTitle,
                   });
-        
-                  await API.createConnection({
-                    documentId: connection.selectedDocumentId,
-                    newDocumentId: newDoc._id,
-                    type,
-                    title: document.title,
-                  });
                 }
             }
 
