@@ -221,8 +221,8 @@ const noXButton =
                     )}
 
                     {/* Plus button - always rendered */}
-                    {isAddingDocument != SelectionState.NOT_IN_PROGRESS ? (
-                            noXButton ? (
+                    {isAddingDocument != SelectionState.NOT_IN_PROGRESS &&
+                        noXButton ? (
                             <button
                                 className={styl.buttonLink}
                                 onClick={() => {
@@ -236,8 +236,10 @@ const noXButton =
                                     }}
                                 />
                             </button>
-                        ) : null
-                    ) : (
+                        ) : null 
+                    }   
+
+                    {isAddingDocument == SelectionState.NOT_IN_PROGRESS &&(
                         <button
                             style={{ backgroundColor: 'transparent', color: 'white', border: 'none' }}
                             onClick={() => setIsAddingDocument(SelectionState.IS_CHOOSING_THE_MODE)}
