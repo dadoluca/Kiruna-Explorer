@@ -19,7 +19,8 @@ export const DocumentProvider = ({ children }) => {
   const [position, setPosition] = useState([68.1, 20.4]); // Kiruna coordinates
   const [selectedDocs, setSelectedDocs] = useState([]); // selected documents
   const [selectingMode, setSelectingMode] = useState(false);          //for the button to select more documents
-  // const 
+  const [showUnion, setShowUnion] = useState(false);
+
   useEffect(() => {
     
     const fetchDocuments = async () => {
@@ -186,6 +187,8 @@ export const DocumentProvider = ({ children }) => {
       visualizeDiagram,
       selectedDocs,
       selectingMode,
+      showUnion,
+      setShowUnion,
       setMapMarkers,
       addDocument,
       addArea,
@@ -203,7 +206,7 @@ export const DocumentProvider = ({ children }) => {
       setSelectingMode,
       checkDocumentPresence
     }),
-    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode, selectedDocs, selectingMode]
+    [documents, areas, markers, docList, displayedAreas, municipalArea, selectedMarker, position, visualizeDiagram, highlightedNode, selectedDocs, selectingMode, showUnion]
   );
 
   return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;

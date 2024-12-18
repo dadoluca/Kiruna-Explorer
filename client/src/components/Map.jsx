@@ -7,7 +7,7 @@ import { useMapLayoutContext } from '../contexts/MapLayoutContext';
 import DetailPlanCard from './CardDocument';
 import { AuthContext } from '../contexts/AuthContext';
 import styles from './Map.module.css';
-import L from 'leaflet';
+import L, { marker } from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import Legend from './Legend';
 import ScrollableDocumentsList from './ListDocument';
@@ -20,6 +20,7 @@ import Municipality from './Municipality';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
+import * as turf from '@turf/turf';
 
 
 function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMunicipality }) {
@@ -135,8 +136,7 @@ const MemoizedMarker = React.memo(
       prevProps.area._id === nextProps.area._id &&
       JSON.stringify(prevProps.area.geometry.coordinates) ===
         JSON.stringify(nextProps.area.geometry.coordinates)
-  );
-
+    );
 
 const MemoizedSelectPointMarker = React.memo(
     ({ marker, onClick }) => {
@@ -182,7 +182,7 @@ const MapComponent = () => {
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const { loggedIn, isResident } = useContext(AuthContext);
-    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectedDocs, setSelectedDocs, selectingMode, setSelectingMode} = useContext(DocumentContext);
+    const {position, setPosition, selectedMarker, setSelectedMarker, setHighlightedNode, setVisualizeDiagram, handleDocCardVisualization, selectedDocs, setSelectedDocs, selectingMode, showUnion} = useContext(DocumentContext);
     const [isAddingDocument, setIsAddingDocument] = useState(SelectionState.NOT_IN_PROGRESS); // Selection state
     const [isListing, setIsListing] = useState(false); 
     const { documents, markers, displayedAreas, municipalArea, setMapMarkers, setListContent, addArea } = useContext(DocumentContext);
@@ -371,7 +371,7 @@ const MapComponent = () => {
                                 ))
                             }
 
-                            {displayedAreas.length > 0 &&
+                            {displayedAreas.length > 0 && !showUnion &&
                                 displayedAreas.map((area) => {
                                     const documentCount = documents.filter((doc) => doc.areaId === area._id).length;
                                     let icon = documentCount === 1 ? "/one-doc.png" : documentCount === 2 ? "/two-docs.png" : "/multiple_docs.png";
@@ -395,6 +395,23 @@ const MapComponent = () => {
                                 })
                             }
 
+                            {
+                                displayedAreas.length > 0 && showUnion && selectedDocs!==([]) &&
+                                // turf.union(selectedDocs.map((doc)=>{}))
+                                    <Polygon
+                                        positions = {
+                                            displayedAreas
+                                                .filter((area) => {
+                                                    return selectedDocs.find((doc) => doc.areaId === area._id)
+                                                })
+                                                .map((area) => area.geometry.coordinates)
+                                                .reduce((acc, polygon) => {
+                                                    console.log(turf.polygon(polygon));
+                                                    return turf.union(acc, turf.polygon(polygon))},
+                                                    turf.polygon([[[0, 0], [0, 0], [0, 0], [0, 0]]]))
+                                        }
+                                    />
+                            }
 
                         </MarkerClusterGroup>
 
