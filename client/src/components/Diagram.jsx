@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import * as d3 from "d3";
 import { useDocumentContext } from '../contexts/DocumentContext';
+import { AuthContext } from '../contexts/AuthContext';
 import DiagramButtons from "../components/DiagramButtons";
 import API from '../services/api';
 import { toast } from 'react-toastify';
@@ -16,6 +17,7 @@ const Diagram = () => {
     const [links, setLinks] = useState([]); // State for calculated links
     const [isDragging, setIsDragging]= useState(false);
     const nodesDataRef = useRef([]);
+    const { loggedIn, isResident } = useContext(AuthContext);
     
     // Function to generate a range of numbers
     function range(start, end) {
@@ -754,7 +756,7 @@ const Diagram = () => {
     return (
         <>
             <svg ref={svgRef}></svg>
-            <DiagramButtons isDragging={isDragging} setIsDragging={setIsDragging} savePositions={savePositions} />
+            { loggedIn && !isResident && <DiagramButtons isDragging={isDragging} setIsDragging={setIsDragging} savePositions={savePositions} /> }
         </>
     );
 };
