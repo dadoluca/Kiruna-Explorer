@@ -21,7 +21,7 @@
 
 .background.expanded {
   bottom: 94px;
-  right: 13px;
+  right: 14px;
   width: auto; /* Larghezza espansa */
   height: min-content; /* Altezza invariata */
   background-color: #33333399; /* Grigio scuro */
@@ -30,7 +30,7 @@
   font-family: 'Source Code Pro', monospace;
   padding-bottom: 3px;
   padding-top: 10px;
-  padding-right: 5px;
+  padding-right: 2px;
   padding-left: 30px;
   
 }
