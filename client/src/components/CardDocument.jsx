@@ -55,7 +55,7 @@ const DetailPlanCard = (props) => {
               size="sm"
               className={`mb-3 ${styles.selectButton}`}
             >
-              {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
+              {selected ?  <><i className="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
             </Button>
           </Col>
         </Row>
