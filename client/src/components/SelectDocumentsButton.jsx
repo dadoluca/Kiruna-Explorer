@@ -25,6 +25,7 @@ const SelectDocumentsButton = () => {
 
         { 
             selectingMode && (
+                    <div className={`${style.background} ${style.expanded}` }>
                         <div className={style.verticalAlignment}>
                             <div style={{ height: '55px' }}>
                                 <p>Confirm selections {" "}
@@ -44,6 +45,7 @@ const SelectDocumentsButton = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
             )
         }
         </>
