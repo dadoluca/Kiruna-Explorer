@@ -1,10 +1,11 @@
 import React, { useState, useContext } from "react";
+import PropTypes from 'prop-types'; 
 import styles from './SearchBar.module.css'; 
 import { DocumentContext } from '../contexts/DocumentContext'; 
-import { FaSearch } from "react-icons/fa"; // Import the search icon
+import { FaSearch } from "react-icons/fa"; 
   
 const SearchBar = ({ onFilter, inMap }) => {
-  const { documents } = useContext(DocumentContext); // Fetch documents from context
+  const { documents } = useContext(DocumentContext); 
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
@@ -25,7 +26,7 @@ const SearchBar = ({ onFilter, inMap }) => {
       onFilter("All");
     }
 
-    // Filter suggestions based on the query
+    
     if (query) {
       const filteredSuggestions = documents
         .filter(doc => 
@@ -38,7 +39,7 @@ const SearchBar = ({ onFilter, inMap }) => {
             ? null
             : extractSnippet(doc.description, query)
         }));
-      setSuggestions(filteredSuggestions.slice(0, 4)); // Limit to 4 suggestions
+      setSuggestions(filteredSuggestions.slice(0, 4)); 
     } else {
       setSuggestions([]);
     }
@@ -47,7 +48,7 @@ const SearchBar = ({ onFilter, inMap }) => {
   const handleSuggestionClick = (title) => {
     setSearchTerm(title);
     setSuggestions([]);
-    onFilter(title); // Call parent handler with filtered documents
+    onFilter(title); 
   };
 
   const handleSearchSubmit = (e) => {
@@ -95,6 +96,12 @@ const SearchBar = ({ onFilter, inMap }) => {
       )}
     </div>
   );
+};
+
+
+SearchBar.propTypes = {
+  onFilter: PropTypes.func.isRequired,
+  inMap: PropTypes.bool.isRequired,
 };
 
 export default SearchBar;

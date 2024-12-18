@@ -22,7 +22,7 @@ const DetailPlanCard = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [showModalResource, setShowModalResource] = useState(false);
   const [showResources, setShowResources] = useState(false);
-  console.log(checkDocumentPresence(document));
+  //console.log(checkDocumentPresence(document));
   const [selected, setSelected] = useState(false);
 
   const handleAddConnection = async () => {
@@ -44,6 +44,7 @@ const DetailPlanCard = (props) => {
               variant="dark"
               onClick={() => {
                 if(!selected){
+                  console.log("STO AGGIUNGENDO");
                   setSelectedDocs([...selectedDocs, document]);
                 }
                 else{
@@ -55,7 +56,7 @@ const DetailPlanCard = (props) => {
               size="sm"
               className={`mb-3 ${styles.selectButton}`}
             >
-              {selected ?  <><i class="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
+              {selected ?  <><i className="bi bi-x-lg"></i> Deselect</> : <><i class="bi bi-check2"></i> Select </>}
             </Button>
           </Col>
         </Row>
