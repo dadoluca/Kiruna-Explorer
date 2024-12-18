@@ -365,8 +365,7 @@ const MapComponent = () => {
                         }
                         </>
                     : 
-                    <>
-
+                    
                         <MarkerClusterGroup
                             showCoverageOnHover={false}
                             iconCreateFunction={createClusterIcon}
