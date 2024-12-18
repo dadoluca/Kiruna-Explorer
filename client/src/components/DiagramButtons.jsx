@@ -47,8 +47,8 @@ const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
           }}
           onClick={savePositions}
         >
-          Save
-        </button>
+          <i className="bi bi-save" style={{ fontSize: '1.2rem' }}></i> {/* Icona Save */}
+          </button>
       )}
         <button
         style={buttonLinkStyle}
@@ -60,8 +60,8 @@ const DiagramButtons = ({ showButton, toggleNodesDrag, savePositions }) => {
         }}
         onClick={toggleNodesDrag}
       >
-        Drag
-      </button>
+        <i className="bi bi-arrows-move" style={{ fontSize: '1.2rem' }}></i> {/* Icona Drag */}
+        </button>
     </div>
   );
 };
