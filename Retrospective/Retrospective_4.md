@@ -58,9 +58,9 @@ sections:
 ## QUALITY MEASURES 
 
 - Unit Testing:
-  - Total hours estimated `0h` (we focused on technical debt about previous unit tests)
-  - Total hours spent `0h`
-  - Nr of automated unit test cases `0`
+  - Total hours estimated `2h`
+  - Total hours spent `2h`
+  - Nr of automated unit test cases `0` (we focused on technical debt about previous unit tests)
   - Coverage (if available)
 - E2E testing:
   - Total hours estimated `30m`
