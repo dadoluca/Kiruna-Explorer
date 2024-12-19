@@ -1,4 +1,4 @@
-TEMPLATE FOR RETROSPECTIVE (Team ##)
+RETROSPECTIVE (Team 6)
 =====================================
 
 The retrospective should include _at least_ the following
@@ -77,16 +77,12 @@ sections:
 
 - Which improvement goals set in the previous retrospective were you able to achieve? 
   - We are proud of the fact that, the day before the presentation, almost all stories were completed. Despite this, we still need to anticipate the completion of the stories to allow more time and reduce stress the day before the demo while fixing last-minute problems.
-
-
   
 - Which ones you were not able to achieve? Why?
   - We still need to be able to have the work done 2 or 3 days before the demo.
 
-
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
   - As the next sprint will be the last one for this project, we aim to arrive at the demo with a well-designed and visually pleasing web app, marking our work as complete. We are still very proud of our product and its structure, which makes the app highly user-friendly. Our goal is to make it both easy to use and wonderful to look at!
-
 
 - One thing you are proud of as a Team!!
   - We are proud of ourselves and our ability to collaborate effectively, always helping each other when needed. From the beginning of the project, we maintained strong communication during our working sessions.
