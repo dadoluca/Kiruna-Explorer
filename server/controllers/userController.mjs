@@ -12,37 +12,54 @@ export const registerUser = async (req, res, next) => {
   const { name, email, password, role, registrationSecret } = req.body;
 
   try {
-    
-    const existingUser = await User.findOne({ email });
+    // Sanitize and validate inputs
+    if (!name || !email || !password || !role) {
+      const error = new Error('All fields are required');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Check for duplicate email
+    const existingUser = await User.findOne({ email: trimmedEmail });
     if (existingUser) {
       const error = new Error('Email already in use');
       error.statusCode = 400;
       return next(error);
     }
 
-    
+    // Validate role and secret key
     if (role === 'Urban Planner') {
-      if (registrationSecret !== URBAN_PLANNER_SECRET) {
+      if (registrationSecret !== process.env.URBAN_PLANNER_SECRET) {
         const error = new Error('Invalid registration secret for Urban Planner');
         error.statusCode = 403;
         return next(error);
       }
-    }
-
-    
-    if (!['Urban Planner', 'Resident'].includes(role)) {
+    } else if (role !== 'Resident') {
       const error = new Error('Invalid role');
       error.statusCode = 400;
       return next(error);
     }
 
-    
-    const user = new User({ name, email, password, role });
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create and save the user
+    const user = new User({
+      name: name.trim(),
+      email: trimmedEmail,
+      password: hashedPassword,
+      role,
+    });
     await user.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Respond with success
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: { id: user._id, name: user.name, role: user.role },
+    });
   } catch (error) {
-    error.statusCode = 500;
     next(error);
   }
 };
