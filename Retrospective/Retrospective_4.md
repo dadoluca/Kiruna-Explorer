@@ -73,8 +73,8 @@ sections:
     - **`feature` → `dev`**: Features are developed in separate branches (e.g., `feature/feature-name`). When merging into the `dev` branch, **only SonarQube checks are required**. No pull request or review is mandatory at this stage.
     - **`dev` → `main`**: Pull requests to the `main` branch are mandatory every two weeks for releases or demos. These PRs must pass **SonarQube checks** (with Maintainability, Vulnerabilities, Reliability: Grade A) and require **review and approval** from at least one team member before merging.
 
-  - Total hours estimated at sprint planning `12h`
-  - Total hours spent `12h`
+  - Total hours estimated at sprint planning `7h`
+  - Total hours spent `5h`
   
 
 ## ASSESSMENT
