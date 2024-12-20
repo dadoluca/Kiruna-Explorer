@@ -8,7 +8,7 @@ dotenv.config();
 
 // Register a new user
 const URBAN_PLANNER_SECRET = process.env.URBAN_PLANNER_SECRET;
-const JWT_SECRET = process.env.JWT_SECRET; // Ensure this is set in your environment
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const registerUser = async (req, res, next) => {
   const { name, email, password, role, registrationSecret } = req.body;
@@ -22,20 +22,30 @@ export const registerUser = async (req, res, next) => {
     }
 
     // Validate and sanitize email
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!validator.isEmail(trimmedEmail)) {
+    if (typeof email !== 'string' || !email.trim()) {
+      const error = new Error('Email must be a valid non-empty string');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const sanitizedEmail = validator.normalizeEmail(email.trim().toLowerCase());
+    if (!sanitizedEmail || !validator.isEmail(sanitizedEmail)) {
       const error = new Error('Invalid email format');
       error.statusCode = 400;
       return next(error);
     }
 
-    // Escape email to prevent injection attacks
-    const escapedEmail = trimmedEmail.replace(/[$.]/g, '\\$&');
+    // Explicitly validate sanitizedEmail to prevent injection
+    if (/[$]/.test(sanitizedEmail)) {
+      const error = new Error('Invalid email characters');
+      error.statusCode = 400;
+      return next(error);
+    }
 
-    // Check for duplicate email using escaped input
+    // Check for duplicate email using strict MongoDB operator
     const existingUser = await User.findOne({
-      email: { $eq: escapedEmail }, // Explicit query operator
-    }).lean(); // Use lean() for optimized read-only query
+      email: { $eq: sanitizedEmail }, // Use $eq for explicit matching
+    }).lean();
 
     if (existingUser) {
       const error = new Error('Email already in use');
@@ -57,12 +67,20 @@ export const registerUser = async (req, res, next) => {
     }
 
     // Hash the password
+    if (typeof password !== 'string' || password.length < 6) {
+      const error = new Error('Password must be at least 6 characters long');
+      error.statusCode = 400;
+      return next(error);
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Sanitize name
+    const sanitizedName = name.trim();
 
     // Create and save the user
     const user = new User({
-      name: name.trim(),
-      email: escapedEmail,
+      name: sanitizedName,
+      email: sanitizedEmail,
       password: hashedPassword,
       role,
     });
@@ -83,6 +101,8 @@ export const registerUser = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 
 
