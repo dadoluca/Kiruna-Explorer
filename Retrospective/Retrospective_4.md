@@ -92,7 +92,7 @@ sections:
   - We exceeded the goal set in the last retrospective thanks to many restyling tasks, delivering a well-designed, visually pleasing, and user-friendly web app. We’re proud of its structure, making it both easy to use and great to look at!
   
 - Which ones you were not able to achieve? Why?
- - We were unable to complete the work 2 or 3 days before the demo due to misunderstandings about some user stories, which caused delays in development and required additional clarification and rework.
+  - We were unable to complete the work 2 or 3 days before the demo due to misunderstandings about some user stories, which caused delays in development and required additional clarification and rework.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
   - For the next sprint, we need to focus more on understanding the challenges one team member is facing in completing their hours and develop measures to improve more their integration into the team 
