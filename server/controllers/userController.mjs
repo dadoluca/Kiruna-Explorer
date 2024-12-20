@@ -2,47 +2,84 @@ import User from '../models/User.mjs';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import validator from 'validator';
+
 dotenv.config();
 
 // Register a new user
-// Define your secret key for Urban Planner registration in the environment
 const URBAN_PLANNER_SECRET = process.env.URBAN_PLANNER_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET; // Ensure this is set in your environment
 
 export const registerUser = async (req, res, next) => {
   const { name, email, password, role, registrationSecret } = req.body;
 
   try {
-    
-    const existingUser = await User.findOne({ email });
+    // Validate inputs
+    if (!name || !email || !password || !role) {
+      const error = new Error('All fields are required');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Validate and sanitize email
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!validator.isEmail(trimmedEmail)) {
+      const error = new Error('Invalid email format');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Escape email to prevent injection attacks
+    const escapedEmail = trimmedEmail.replace(/[$.]/g, '\\$&');
+
+    // Check for duplicate email using escaped input
+    const existingUser = await User.findOne({
+      email: { $eq: escapedEmail }, // Explicit query operator
+    }).lean(); // Use lean() for optimized read-only query
+
     if (existingUser) {
       const error = new Error('Email already in use');
       error.statusCode = 400;
       return next(error);
     }
 
-    
+    // Validate role and secret key
     if (role === 'Urban Planner') {
       if (registrationSecret !== URBAN_PLANNER_SECRET) {
-        const error = new Error('Invalid registration secret for Urban Planner');
+        const error = new Error('Unauthorized to register as Urban Planner');
         error.statusCode = 403;
         return next(error);
       }
-    }
-
-    
-    if (!['Urban Planner', 'Resident'].includes(role)) {
+    } else if (role !== 'Resident') {
       const error = new Error('Invalid role');
       error.statusCode = 400;
       return next(error);
     }
 
-    
-    const user = new User({ name, email, password, role });
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create and save the user
+    const user = new User({
+      name: name.trim(),
+      email: escapedEmail,
+      password: hashedPassword,
+      role,
+    });
     await user.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // Respond with success
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: { id: user._id, name: user.name, role: user.role },
+      token,
+    });
   } catch (error) {
-    error.statusCode = 500;
     next(error);
   }
 };
