@@ -1,7 +1,7 @@
-RETROSPECTIVE (Team 6)
+RETROSPECTIVE 2 (Team 6)
 =====================================
 
-The retrospective should include _at least_ the following
+The retrospective includes the following
 sections:
 
 - [process measures](#process-measures)
