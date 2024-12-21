@@ -20,7 +20,6 @@ import Municipality from './Municipality';
 import API from '../services/api';
 import kirunaGeoJSON from '../data/KirunaMunicipality.json';
 import { SelectionState } from './SelectionState'; 
-import * as turf from '@turf/turf';
 
 
 function RecenterMap({ newPosition, isListing, selectedMarker, isVisualizingMunicipality }) {
@@ -191,7 +190,7 @@ const MapComponent = () => {
     const [addButton, setAddButton] = useState(null);
     const accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     const { isMapHigh } = useMapLayoutContext();
-    const [isVisualizingMunicipality, setIsisualizingMunicipality] = useState(false);
+    const [isVisualizingMunicipality, setIsVisualizingMunicipality] = useState(false);
 
     useEffect(() => {
         // Function to update the map's size
@@ -267,7 +266,7 @@ const MapComponent = () => {
     const handleCloseList = () => {
         setIsListing(false);
         if(isVisualizingMunicipality){
-            setIsisualizingMunicipality(false);
+            setIsVisualizingMunicipality(false);
         }
     };
 
@@ -312,10 +311,9 @@ const MapComponent = () => {
 
                     {satelliteView ? (
                         <TileLayer
-                        url={`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${accessToken}`}
-                        attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        id="mapbox/satellite-v9"
-                      />
+                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            attribution='Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
                       ) : (
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -502,7 +500,7 @@ const MapComponent = () => {
                         }
                         else{
                             setIsListing(true);
-                            setIsisualizingMunicipality(true);
+                            setIsVisualizingMunicipality(true);
                         }
                     }}/>
                 }
