@@ -16,5 +16,7 @@ COPY . .
 # Expose the backend port
 EXPOSE 5001
 
+ENV MONGO_URI=mongodb://mongo:27017/kiruna?replicaSet=rs0
+
 # Start the backend
 CMD ["npm", "start"]

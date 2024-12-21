@@ -2,30 +2,55 @@ version: '3.8'
 
 services:
   backend:
+    container_name: backend_container
     build:
       context: ./server
+      dockerfile: Dockerfile
     ports:
       - "5001:5001"
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/kiruna
+      - MONGO_URI=mongodb://mongo:27017/kiruna?replicaSet=rs0
+    env_file:
+      - ./server/.env
     depends_on:
       - mongo
+    networks:
+      - my_network
 
   frontend:
+    container_name: frontend_container
     build:
       context: ./client
       dockerfile: Dockerfile  
     ports:
-      - "3000:80" # Frontend runs on port 80 inside the container, mapped to 3000
+      - "5173:5173" # Frontend runs on port 80 inside the container, mapped to 3000
+    networks:
+      - my_network
 
-  mongo:
-    image: mongo:6.0
-    container_name: mongodb
+  mongo: # Only one image for simplicity
+    context: .
+    dockerfile: Dockerfile
+    container_name: mongo
     ports:
       - "27017:27017"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo_data:/data/db
+      - ./mongo-init-scripts:/scripts
+    networks:
+      - my_network
 
 volumes:
   mongo_data:
+
+networks:
+  my_network:
+    driver: bridge
