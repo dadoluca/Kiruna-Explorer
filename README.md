@@ -1,9 +1,17 @@
-# 🌍 Kiruna Explorer
+# 🌍 Kiruna eXplorer
 
 The project is a web app featuring a **React frontend**, **Express backend**, **MongoDB**, and **Docker**. It follows an **Agile Scrum** framework with **bi-weekly demos**, **monthly releases**, **weekly retrospectives**, and task management through **YouTrack**. **SonarQube** ensures continuous code quality via automated checks.
+<div style="display: flex; justify-content: center; gap: 10px;">
+  <img src="Screenshots/tablet_landingPage.png" alt="Screenshot 1" width="300"/>
+  <img src="Screenshots/tablet_mapPage.png" alt="Screenshot 2" width="300"/>
+</div>
 
----
+&nbsp;
 
+🎥 **Quick Presentation:**  
+[Watch the Kiruna eXplorer video on YouTube](https://youtu.be/9GLxSt9epsI)
+
+&nbsp;
 ## ✨ About Kiruna Explorer  
 
 **Discover Kiruna's Journey!** Kiruna Explorer is an interactive web application that brings to life the rich history, cultural identity, and transformation of this unique city. As a flagship platform celebrating Kiruna's designation as **the European Capital of Culture 2029**, it serves as a bridge between past, present, and future.
@@ -17,7 +25,7 @@ For urban planners, the platform offers powerful tools to:
 - Add, manage, and organize new resources.  
 - Build connections between documents to shape the city's narrative.  
 
----
+&nbsp;
 
 ## 🌲 **Branching Strategy**  
 
@@ -25,7 +33,8 @@ For urban planners, the platform offers powerful tools to:
 - **`dev`**: Staging branch for testing all merged features before release.  
 - **`feature/*`**: Temporary branches dedicated to specific tasks or features.  
  
----
+
+&nbsp;
 
 ## 📂 **Project Documentation**
 
@@ -38,7 +47,8 @@ For urban planners, the platform offers powerful tools to:
 
 Refer to these directories for all technical details needed to set up and run Kiruna Explorer. 
 
----
+
+&nbsp;
 
 ## 📫 Contact  
 
